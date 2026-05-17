@@ -1,0 +1,40 @@
+{% load static socialaccount %}<!doctype html>
+<html lang="{{ current_lang|default:'fr' }}" dir="{{ T.dir|default:'ltr' }}">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ meta_title|default:"Pizza Vitti Bordeaux | Pizzeria italienne, commande en ligne" }}</title>
+  <meta name="description" content="{{ meta_description|default:"Pizza Vitti à Bordeaux : pizzas italiennes, menu en ligne, réservation, retrait, livraison et paiement par carte Visa/Mastercard/CB." }}">
+  <link rel="canonical" href="{{ SITE_URL }}{{ request.path }}">
+  {% for code,label,name,href in LANGUAGES_MENU %}<link rel="alternate" hreflang="{{ code }}" href="{{ SITE_URL }}{{ href }}">{% endfor %}
+  <meta property="og:title" content="{{ meta_title|default:"Pizza Vitti Bordeaux" }}"><meta property="og:type" content="restaurant"><meta property="og:url" content="{{ SITE_URL }}{{ request.path }}">
+  <meta property="og:description" content="Pizzeria italienne au 236 Rue d'Ornano, Bordeaux. Commandez en ligne et payez en avance.">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"Restaurant","name":"Pizza Vitti","servesCuisine":"Italian, Pizza","address":{"@type":"PostalAddress","streetAddress":"236 Rue d'Ornano","addressLocality":"Bordeaux","postalCode":"33000","addressCountry":"FR"},"telephone":"+33 5 56 42 14 49","url":"{{ SITE_URL }}","acceptsReservations":true,"paymentAccepted":"Cash, Visa, Mastercard, CB"}</script>
+  <link rel="stylesheet" href="{% static 'shop/style.css' %}">
+  <script defer src="{% static 'shop/app.js' %}"></script>
+</head>
+<body class="lang-{{ current_lang }}">
+<header class="site-header">
+  <a class="logo" href="{{ url_home }}"><span>PV</span> Pizza Vitti</a>
+  <button class="nav-toggle" data-nav>☰</button>
+  <nav>
+    <a href="{{ url_home }}">{{ T.home }}</a><a href="{{ url_menu }}">{{ T.menu }}</a><a href="{{ url_booking }}">{{ T.booking }}</a><a href="{{ url_gallery }}">{{ T.gallery }}</a><a href="{{ url_reviews }}">{{ T.reviews }}</a><a href="{{ url_blog }}">{{ T.blog }}</a><a href="{{ url_contact }}">{{ T.contact }}</a><a class="cart-link" href="{{ url_cart }}">{{ T.cart }} ({{ cart_count }})</a> {% if request.user.is_staff %} <a class="admin-link" href="/admin/">{{ T.admin }}</a> {% endif %}
+  </nav>
+</header>
+<div class="language-switch" data-lang><button type="button" class="language-current" data-lang-toggle>{{ current_lang|upper }} ▾</button><div class="language-menu" aria-label="{{ T.language }}">{% for code,label,name,href in LANGUAGES_MENU %}<a href="{{ href }}">{{ label }} — {{ name }}</a>{% endfor %}</div></div>
+{% if messages %}<section class="messages">{% for message in messages %}<div class="message {{ message.tags }}">{{ message }}</div>{% endfor %}</section>{% endif %}
+<main>{% block content %}{% endblock %}</main>
+<div class="bot" data-bot>
+  <button class="bot-toggle" data-bot-toggle>{{ T.help }}</button>
+  <div class="bot-panel"><strong>Assistant Pizza Vitti</strong><div class="bot-log" data-bot-log><p>{{ T.assistant_hello }}</p></div><form data-bot-form data-url="{% url 'shop:bot_reply' %}">{% csrf_token %}<input name="message" placeholder="{{ T.message }}..."><button>{{ T.send }}</button></form></div>
+</div>
+{% if WHATSAPP_NUMBER %}<a class="chat" href="https://wa.me/{{ WHATSAPP_NUMBER }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
+{% include 'shop/partials/review_links.html' %}
+<footer>
+  <div class="footer-grid">
+    <div><strong>Pizza Vitti</strong><p>Restaurant italien — 236 Rue d'Ornano, 33000 Bordeaux · +33 5 56 42 14 49</p><!-- Google login will be enabled after OAuth setup --></p></div>
+    <div><strong>{{ T.links }}</strong><p><a href="{{ url_menu }}">{{ T.menu }}</a> · <a href="{{ url_booking }}">{{ T.booking }}</a> · <a href="{{ url_gallery }}">{{ T.gallery }}</a> · <a href="{{ url_reviews }}">{{ T.reviews }}</a> · <a href="{% url 'shop:legal_notice' %}">Mentions légales</a></p><p class="social-icons"><a aria-label="Instagram" href="https://www.instagram.com/" target="_blank" rel="noopener">📷</a><a aria-label="Facebook" href="https://www.facebook.com/" target="_blank" rel="noopener">f</a></p></div>
+    <div><strong>{{ T.newsletter_title }}</strong><p>{{ T.newsletter_text }}</p><form class="newsletter" method="post" action="{% url 'shop:newsletter' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><input type="email" name="email" placeholder="{{ T.email_placeholder }}" required><button>OK</button></form></div>
+  </div>
+  <p class="credit">{{ T.created }} <a href="https://kayan.fr" target="_blank" rel="noopener">Kayan.fr</a></p>
+</footer>
+</body></html>
