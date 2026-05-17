@@ -29,6 +29,5 @@ urlpatterns = [
     path('mentions-legales/', views.simple_page, {'title':'Mentions légales'}, name='mentions'),
     path('legal-notice/', views.simple_page, {'title':'Legal Notice'}, name='legal_notice'),
     path('cgv/', views.simple_page, {'title':'Conditions générales de vente'}, name='cgv'),
-    path('<str:lang>/', views.localized_dispatch, name='localized_home_short'),
-    path('<str:lang>/<slug:page>/', views.localized_dispatch, name='localized_page'),
+   
 ]
