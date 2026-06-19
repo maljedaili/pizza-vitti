@@ -2,7 +2,7 @@
 {% block content %}
 <section class="shop-hero menu-hero">
   <p class="eyebrow">Nouvelle carte Pizza Vitti</p>
-  <h1>{% if category %}{{ category.name }}{% else %}Menu complet{% endif %}</h1>
+  <h1>{% if category %}{{ category.translated_name|default:category.name }}{% else %}Menu complet{% endif %}</h1>
   <p>Retrouvez toute la carte: apéritifs, boissons, entrées, antipasti, bruschetta, salades, pizzas, pastas, ravioles, menu bambino, desserts et vins.</p>
 </section>
 <section class="menu-note">

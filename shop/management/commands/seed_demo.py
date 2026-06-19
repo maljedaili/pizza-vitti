@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
+from django.core.management import call_command
 from django.utils.text import slugify
-from shop.models import Category, Product, BlogPost, Review, GalleryImage
+from shop.models import Category, Product, BlogPost, Review, GalleryImage, LoyaltyReward
 
 # Menu taken from NEW menu VITTI.pdf (10 pages).
 # Stable, real food/drink photos are used instead of source.unsplash.com random search URLs.
@@ -289,4 +290,17 @@ class Command(BaseCommand):
         for title, image_url, order in gallery:
             GalleryImage.objects.update_or_create(title=title, defaults={'external_image': image_url, 'order':order, 'is_active':True})
 
-        self.stdout.write(self.style.SUCCESS(f'Pizza Vitti complete menu created: {len(MENU)} categories.'))
+
+        LoyaltyReward.objects.update_or_create(name='Pizza offerte fidélité', defaults={'reward_type':'free_pizza','pizzas_required':5,'is_active':True})
+        LoyaltyReward.objects.update_or_create(name='Pasta offerte fidélité', defaults={'reward_type':'free_pasta','pizzas_required':5,'is_active':True})
+        LoyaltyReward.objects.update_or_create(name='Dessert offert fidélité', defaults={'reward_type':'free_dessert','pizzas_required':5,'is_active':True})
+        LoyaltyReward.objects.update_or_create(name='10% de réduction fidélité', defaults={'reward_type':'discount_10','pizzas_required':5,'is_active':True})
+        for best_name in ['La Regina','La Quattro fromaggi','La Parma et Burrata','La Calzone']:
+            Product.objects.filter(name=best_name).update(is_best_seller=True)
+        Product.objects.filter(name='La Parma et Burrata').update(is_pizza_of_month=True)
+        Review.objects.update_or_create(name='Marie', defaults={'rating':5,'source':'Google','comment':'Très bonne pizza.','is_published':True})
+        Review.objects.update_or_create(name='Ahmed', defaults={'rating':5,'source':'Google','comment':'Service rapide.','is_published':True})
+        Review.objects.update_or_create(name='Camille', defaults={'rating':5,'source':'Google','comment':'Accueil chaleureux et vraie ambiance italienne.','is_published':True})
+
+        call_command('translate_menu')
+        self.stdout.write(self.style.SUCCESS(f'Pizza Vitti complete menu created: {len(MENU)} categories + growth features + 9-language translations.'))

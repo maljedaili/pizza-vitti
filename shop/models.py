@@ -42,6 +42,8 @@ class Product(TimeStampedModel):
     stock = models.PositiveIntegerField(default=20)
     is_available = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
+    is_best_seller = models.BooleanField(default=False, verbose_name='Meilleure vente')
+    is_pizza_of_month = models.BooleanField(default=False, verbose_name='Pizza du mois')
     professional_only = models.BooleanField(default=False, verbose_name='Réservé aux professionnels')
     meta_title = models.CharField(max_length=70, blank=True)
     meta_description = models.CharField(max_length=160, blank=True)
@@ -128,7 +130,11 @@ class Order(TimeStampedModel):
     customer_name = models.CharField(max_length=160)
     email = models.EmailField()
     phone = models.CharField(max_length=40, blank=True)
+    ORDER_TYPE = [('pickup','À emporter'),('dine_in','Sur place'),('uber_eats','Uber Eats'),('deliveroo','Deliveroo'),('just_eat','Just Eat')]
     address = models.TextField(blank=True)
+    order_type = models.CharField(max_length=20, choices=ORDER_TYPE, default='pickup', verbose_name='Type de commande')
+    selected_reward = models.CharField(max_length=80, blank=True, verbose_name='Cadeau fidélité choisi')
+    promo_code = models.CharField(max_length=40, blank=True, verbose_name='Code promo')
     notes = models.TextField(blank=True)
     delivery_issue_note = models.TextField(blank=True, verbose_name='Note livraison/refus')
     status = models.CharField(max_length=20, choices=STATUS, default='received')
@@ -214,3 +220,92 @@ class NewsletterSubscriber(TimeStampedModel):
         verbose_name = 'Abonné newsletter'
         verbose_name_plural = 'Abonnés newsletter'
     def __str__(self): return self.email
+
+
+class LoyaltyReward(TimeStampedModel):
+    REWARD_TYPES = [
+        ('free_pizza','Pizza offerte'),
+        ('free_pasta','Pasta offerte'),
+        ('free_dessert','Dessert offert'),
+        ('discount_10','10% de réduction'),
+    ]
+    name = models.CharField(max_length=120, default='Cadeau fidélité')
+    reward_type = models.CharField(max_length=30, choices=REWARD_TYPES, default='free_dessert')
+    pizzas_required = models.PositiveIntegerField(default=5)
+    is_active = models.BooleanField(default=True)
+    class Meta:
+        ordering = ['pizzas_required','name']
+        verbose_name = 'Récompense fidélité'
+        verbose_name_plural = 'Récompenses fidélité'
+    def __str__(self):
+        return f'{self.name} - {self.get_reward_type_display()}'
+
+class PromoCode(TimeStampedModel):
+    code = models.CharField(max_length=40, unique=True)
+    description = models.CharField(max_length=180, blank=True)
+    discount_percent = models.PositiveIntegerField(default=10)
+    is_active = models.BooleanField(default=True)
+    class Meta:
+        ordering = ['code']
+        verbose_name = 'Code promo'
+        verbose_name_plural = 'Codes promo'
+    def __str__(self):
+        return f'{self.code} - {self.discount_percent}%'
+
+class GiftCard(TimeStampedModel):
+    code = models.CharField(max_length=40, unique=True)
+    initial_value = models.DecimalField(max_digits=8, decimal_places=2, default=25)
+    remaining_value = models.DecimalField(max_digits=8, decimal_places=2, default=25)
+    recipient_email = models.EmailField(blank=True)
+    is_active = models.BooleanField(default=True)
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Carte cadeau'
+        verbose_name_plural = 'Cartes cadeaux'
+    def __str__(self):
+        return f'{self.code} - {self.remaining_value} €'
+
+
+class ProductTranslation(TimeStampedModel):
+    LANGUAGES = [
+        ('fr','Français'),('en','English'),('es','Español'),('it','Italiano'),('pt','Português'),
+        ('nl','Nederlands'),('zh','中文'),('ja','日本語'),('ar','العربية'),
+    ]
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='translations')
+    language = models.CharField(max_length=5, choices=LANGUAGES)
+    name = models.CharField(max_length=180)
+    description = models.TextField(blank=True)
+    class Meta:
+        unique_together = ('product', 'language')
+        ordering = ['product__name', 'language']
+        verbose_name = 'Traduction produit'
+        verbose_name_plural = 'Traductions produits'
+    def __str__(self):
+        return f'{self.product.name} [{self.language}]'
+
+
+class CategoryTranslation(TimeStampedModel):
+    LANGUAGES = ProductTranslation.LANGUAGES
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='translations')
+    language = models.CharField(max_length=5, choices=LANGUAGES)
+    name = models.CharField(max_length=140)
+    description = models.TextField(blank=True)
+    class Meta:
+        unique_together = ('category', 'language')
+        ordering = ['category__order', 'language']
+        verbose_name = 'Traduction catégorie'
+        verbose_name_plural = 'Traductions catégories'
+    def __str__(self):
+        return f'{self.category.name} [{self.language}]'
+
+
+class Favorite(TimeStampedModel):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='pizza_vitti_favorites')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='favorited_by')
+    class Meta:
+        unique_together = ('user', 'product')
+        ordering = ['-created_at']
+        verbose_name = 'Favori client'
+        verbose_name_plural = 'Favoris clients'
+    def __str__(self):
+        return f'{self.user} ❤ {self.product}'

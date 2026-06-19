@@ -1,0 +1,56 @@
+{% extends "shop/base.html" %}
+{% load static socialaccount %}
+{% block content %}
+<section class="auth-page">
+  <div class="auth-shell">
+    <aside class="auth-brand-panel">
+      <img src="{% static 'shop/img/logo-vitti-clean.png' %}" alt="Pizza Vitti" class="auth-logo">
+      <p class="eyebrow">Espace client</p>
+      <h1>Connexion</h1>
+      <p>Connectez-vous pour retrouver vos commandes, suivre votre fidélité et enregistrer vos pizzas préférées.</p>
+      <div class="auth-benefits">
+        <span>🍕 Historique des commandes</span>
+        <span>🎁 Fidélité 5 pizzas = cadeau</span>
+        <span>❤️ Favoris enregistrés</span>
+      </div>
+    </aside>
+
+    <div class="auth-card-vitti">
+      <div class="auth-tabs" aria-label="Menu compte">
+        <a class="active" href="{% url 'account_login' %}">Connexion</a>
+        <a href="{% url 'account_signup' %}">Création de compte</a>
+      </div>
+
+      <h2>Connexion</h2>
+      <p class="auth-subtitle">Si vous n'avez pas encore créé de compte, merci de vous enregistrer au préalable.</p>
+
+      {% if form.non_field_errors %}
+        <div class="auth-error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <form class="auth-form" method="post" action="{% url 'account_login' %}">
+        {% csrf_token %}
+        {% if redirect_field_value %}<input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">{% endif %}
+
+        <label for="id_login">Nom d'utilisateur ou email</label>
+        <div class="auth-input-wrap">{{ form.login }}</div>
+        {% if form.login.errors %}<div class="field-error">{{ form.login.errors }}</div>{% endif %}
+
+        <label for="id_password">Mot de passe</label>
+        <div class="auth-input-wrap">{{ form.password }}</div>
+        {% if form.password.errors %}<div class="field-error">{{ form.password.errors }}</div>{% endif %}
+
+        <div class="auth-options">
+          <label class="remember-row">{{ form.remember }} <span>Se souvenir de moi</span></label>
+          <a href="{% url 'account_reset_password' %}">Mot de passe oublié ?</a>
+        </div>
+
+        <button class="auth-submit" type="submit">Connexion</button>
+      </form>
+
+      <div class="auth-separator"><span>ou</span></div>
+      <a class="google-login" href="/accounts/google/login/">Continuer avec Google</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

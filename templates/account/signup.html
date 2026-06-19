@@ -1,0 +1,52 @@
+{% extends "shop/base.html" %}
+{% load static socialaccount %}
+{% block content %}
+<section class="auth-page">
+  <div class="auth-shell">
+    <aside class="auth-brand-panel">
+      <img src="{% static 'shop/img/logo-vitti-clean.png' %}" alt="Pizza Vitti" class="auth-logo">
+      <p class="eyebrow">Bienvenue chez Pizza Vitti</p>
+      <h1>Création de compte</h1>
+      <p>Créez votre compte client pour profiter du programme fidélité et commander plus rapidement.</p>
+      <div class="auth-benefits">
+        <span>🎁 Cadeau après 5 pizzas</span>
+        <span>⭐ Meilleures ventes en favoris</span>
+        <span>🥡 Commandes à emporter rapides</span>
+      </div>
+    </aside>
+
+    <div class="auth-card-vitti">
+      <div class="auth-tabs" aria-label="Menu compte">
+        <a href="{% url 'account_login' %}">Connexion</a>
+        <a class="active" href="{% url 'account_signup' %}">Création de compte</a>
+      </div>
+
+      <h2>Créer un compte</h2>
+      <p class="auth-subtitle">Inscrivez-vous pour suivre vos points fidélité, vos commandes et vos favoris.</p>
+
+      {% if form.non_field_errors %}
+        <div class="auth-error">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <form class="auth-form" method="post" action="{% url 'account_signup' %}">
+        {% csrf_token %}
+        {% if redirect_field_value %}<input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">{% endif %}
+
+        {% for field in form %}
+          {% if field.name != 'remember' %}
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            <div class="auth-input-wrap">{{ field }}</div>
+            {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+            {% if field.errors %}<div class="field-error">{{ field.errors }}</div>{% endif %}
+          {% endif %}
+        {% endfor %}
+
+        <button class="auth-submit" type="submit">Créer mon compte</button>
+      </form>
+
+      <div class="auth-separator"><span>ou</span></div>
+      <a class="google-login" href="/accounts/google/login/">Créer un compte avec Google</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} | Pizza Vitti Administration{% endblock %}
+
+{% block extrastyle %}
+{{ block.super }}
+<style>
+  :root { --primary: #111; --secondary: #8d1f16; --accent: #fff4e6; }
+  #header { background: #050505; color: #fff; min-height: 76px; }
+  #branding h1, #branding h1 a:link, #branding h1 a:visited { color: #fff; display: flex; align-items: center; gap: 14px; font-weight: 800; }
+  .admin-logo-vitti { width: 58px; height: 58px; object-fit: contain; border-radius: 50%; background: #000; box-shadow: 0 0 0 2px rgba(255,255,255,.85); }
+  div.breadcrumbs { background: #8d1f16; }
+  .module h2, .module caption, .inline-group h2 { background: #111; }
+  a:link, a:visited { color: #8d1f16; }
+  .button, input[type=submit], input[type=button], .submit-row input, a.button { background: #8d1f16; }
+  .button.default, input[type=submit].default, .submit-row input.default { background: #111; }
+</style>
+{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+  <a href="{% url 'admin:index' %}">
+    <img class="admin-logo-vitti" src="{% static 'shop/img/logo-vitti-admin.png' %}" alt="Pizza Vitti logo">
+    <span>Pizza Vitti — Administration</span>
+  </a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}

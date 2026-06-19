@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, BlogPost, CustomerMessage, Order, OrderItem, Reservation, Review, GalleryImage, NewsletterSubscriber
+from .models import Category, Product, BlogPost, CustomerMessage, Order, OrderItem, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, PromoCode, GiftCard
 
 admin.site.site_header = "Pizza Vitti — Administration"
 admin.site.site_title = "Pizza Vitti"
@@ -14,15 +14,15 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name','category','price','unit','stock','is_available','is_featured')
-    list_filter = ('category','is_available','is_featured')
-    list_editable = ('price','stock','is_available','is_featured')
+    list_display = ('name','category','price','unit','stock','is_available','is_featured','is_best_seller','is_pizza_of_month')
+    list_filter = ('category','is_available','is_featured','is_best_seller','is_pizza_of_month')
+    list_editable = ('price','stock','is_available','is_featured','is_best_seller','is_pizza_of_month')
     search_fields = ('name','description')
     prepopulated_fields = {'slug': ('name',)}
     fieldsets = (
         ('Produit', {'fields': ('category','name','slug','description','price','unit','stock','badge')}),
         ('Images', {'fields': ('image','external_image')}),
-        ('Publication', {'fields': ('is_available','is_featured')}),
+        ('Publication', {'fields': ('is_available','is_featured','is_best_seller','is_pizza_of_month')}),
         ('SEO', {'fields': ('meta_title','meta_description')}),
     )
 
@@ -47,13 +47,13 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('order_number','customer_name','email','total','status','payment_status','created_at')
-    list_filter = ('status','payment_status','created_at')
+    list_display = ('order_number','customer_name','email','order_type','selected_reward','total','status','payment_status','created_at')
+    list_filter = ('status','payment_status','order_type','created_at')
     search_fields = ('order_number','customer_name','email','phone')
     list_editable = ('status','payment_status')
     readonly_fields = ('order_number','stripe_session_id','created_at','updated_at')
     fieldsets = (
-        ('Commande', {'fields': ('order_number','customer_name','email','phone','address','notes','total')}),
+        ('Commande', {'fields': ('order_number','customer_name','email','phone','address','order_type','selected_reward','promo_code','notes','total')}),
         ('Suivi', {'fields': ('status','payment_status','delivery_issue_note','stripe_session_id')}),
         ('Dates', {'fields': ('created_at','updated_at')}),
     )
@@ -94,3 +94,44 @@ class NewsletterSubscriberAdmin(admin.ModelAdmin):
     list_display = ('email','is_active','created_at')
     list_filter = ('is_active',)
     search_fields = ('email',)
+
+
+@admin.register(LoyaltyReward)
+class LoyaltyRewardAdmin(admin.ModelAdmin):
+    list_display = ('name','reward_type','pizzas_required','is_active','updated_at')
+    list_editable = ('reward_type','pizzas_required','is_active')
+    list_filter = ('reward_type','is_active')
+    search_fields = ('name',)
+
+@admin.register(PromoCode)
+class PromoCodeAdmin(admin.ModelAdmin):
+    list_display = ('code','discount_percent','description','is_active','created_at')
+    list_editable = ('discount_percent','is_active')
+    list_filter = ('is_active',)
+    search_fields = ('code','description')
+
+@admin.register(GiftCard)
+class GiftCardAdmin(admin.ModelAdmin):
+    list_display = ('code','initial_value','remaining_value','recipient_email','is_active','created_at')
+    list_editable = ('is_active',)
+    list_filter = ('is_active',)
+    search_fields = ('code','recipient_email')
+
+from .models import ProductTranslation, CategoryTranslation, Favorite
+
+@admin.register(ProductTranslation)
+class ProductTranslationAdmin(admin.ModelAdmin):
+    list_display = ('product', 'language', 'name')
+    list_filter = ('language',)
+    search_fields = ('product__name', 'name', 'description')
+
+@admin.register(CategoryTranslation)
+class CategoryTranslationAdmin(admin.ModelAdmin):
+    list_display = ('category', 'language', 'name')
+    list_filter = ('language',)
+    search_fields = ('category__name', 'name', 'description')
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'product', 'created_at')
+    search_fields = ('user__username', 'user__email', 'product__name')

@@ -1,7 +1,23 @@
 
 from django.conf import settings
 from .models import Category
+from django.db.models import Case, When, IntegerField
 from .translations import LANGUAGE_OPTIONS, get_lang_from_path, t_for, localized_url, lang_home
+
+def _menu_category_order(qs):
+    return qs.annotate(
+        menu_priority=Case(
+            When(name__iexact='Nos Pizza', then=0),
+            When(name__iexact='Nos Pizzas', then=0),
+            When(name__icontains='pizza', then=0),
+            When(name__iexact='Nos Pasta', then=1),
+            When(name__iexact='Nos Pastas', then=1),
+            When(name__icontains='pasta', then=1),
+            default=10,
+            output_field=IntegerField(),
+        )
+    ).order_by('menu_priority', 'order', 'name')
+
 
 def site_settings(request):
     lang = get_lang_from_path(request.path)
@@ -9,7 +25,7 @@ def site_settings(request):
     return {
         'SITE_URL': settings.SITE_URL,
         'WHATSAPP_NUMBER': settings.WHATSAPP_NUMBER,
-        'nav_categories': Category.objects.filter(is_active=True),
+        'nav_categories': _menu_category_order(Category.objects.filter(is_active=True)),
         'current_lang': lang,
         'T': T,
         'LANGUAGES_MENU': LANGUAGE_OPTIONS,

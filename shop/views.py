@@ -2,20 +2,68 @@ from decimal import Decimal
 from uuid import uuid4
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q, Case, When, IntegerField
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 import stripe
-from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber
-from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS
+from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, Favorite, ProductTranslation, CategoryTranslation
+from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_path
 
+
+def _menu_category_order(qs):
+    return qs.annotate(
+        menu_priority=Case(
+            When(name__iexact='Nos Pizza', then=0),
+            When(name__iexact='Nos Pizzas', then=0),
+            When(name__icontains='pizza', then=0),
+            When(name__iexact='Nos Pasta', then=1),
+            When(name__iexact='Nos Pastas', then=1),
+            When(name__icontains='pasta', then=1),
+            default=10,
+            output_field=IntegerField(),
+        )
+    ).order_by('menu_priority', 'order', 'name')
+
+
+
+def _apply_menu_translations(products, categories, lang):
+    if lang == 'fr':
+        return
+    product_map = {tr.product_id: tr for tr in ProductTranslation.objects.filter(language=lang, product_id__in=[p.id for p in products])}
+    category_map = {tr.category_id: tr for tr in CategoryTranslation.objects.filter(language=lang, category_id__in=[c.id for c in categories])}
+    for product in products:
+        tr = product_map.get(product.id)
+        product.translated_name = tr.name if tr else product.name
+        product.translated_description = tr.description if tr and tr.description else product.description
+        if product.category_id and product.category_id in category_map:
+            product.translated_category_name = category_map[product.category_id].name
+    for category in categories:
+        tr = category_map.get(category.id)
+        category.translated_name = tr.name if tr else category.name
+        category.translated_description = tr.description if tr and tr.description else category.description
+
+def _customer_pizza_count(user):
+    if not user.is_authenticated:
+        return 0
+    count = 0
+    orders = Order.objects.filter(user=user).prefetch_related('items__product__category')
+    for order in orders:
+        if order.status in ['cancelled', 'refunded']:
+            continue
+        for item in order.items.all():
+            category_name = (item.product.category.name if item.product and item.product.category else '').lower()
+            item_name = (item.name or '').lower()
+            if 'pizza' in category_name or 'pizza' in item_name:
+                count += item.quantity
+    return count
 
 def _cart_items(request):
     cart = request.session.get('cart', {})
-    products = Product.objects.filter(id__in=cart.keys(), is_available=True)
+    products = Product.objects.filter(id__in=cart.keys(), is_available=True).select_related('category')
     items, total = [], Decimal('0.00')
     for p in products:
         qty = max(1, int(cart.get(str(p.id), 1)))
@@ -24,14 +72,37 @@ def _cart_items(request):
         items.append({'product': p, 'qty': qty, 'line_total': line})
     return items, total
 
+def _pizza_qty(items):
+    pizza_words = ('pizza', 'pizzas')
+    count = 0
+    for item in items:
+        product = item['product']
+        category_name = (product.category.name if product.category else '').lower()
+        product_name = product.name.lower()
+        if any(word in category_name or word in product_name for word in pizza_words):
+            count += item['qty']
+    return count
+
 def home(request):
-    products = Product.objects.filter(is_available=True, is_featured=True)[:8]
+    lang = get_lang_from_path(request.path)
+    products = list(Product.objects.filter(is_available=True).select_related('category')[:180])
     posts = BlogPost.objects.filter(is_published=True)[:3]
-    categories = Category.objects.filter(is_active=True)[:6]
-    reviews = Review.objects.filter(is_published=True)[:3]
-    gallery = GalleryImage.objects.filter(is_active=True)[:6]
+    categories = list(_menu_category_order(Category.objects.filter(is_active=True).prefetch_related('products'))[:12])
+    reviews = Review.objects.filter(is_published=True)[:6]
+    gallery = GalleryImage.objects.filter(is_active=True)[:8]
+    best_sellers = list(Product.objects.filter(is_available=True, is_best_seller=True).select_related('category')[:4])
+    if not best_sellers:
+        best_sellers = list(Product.objects.filter(is_available=True, category__name__icontains='pizza').select_related('category')[:4])
+    pizza_of_month = Product.objects.filter(is_available=True, is_pizza_of_month=True).select_related('category').first()
+    loyalty_reward = LoyaltyReward.objects.filter(is_active=True).first()
+    _apply_menu_translations(products, categories, lang)
+    _apply_menu_translations(best_sellers, [], lang)
+    customer_pizza_count = _customer_pizza_count(request.user)
+    favorite_product_ids = set()
+    if request.user.is_authenticated:
+        favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
     return render(request, 'shop/home.html', {
-        'products': products, 'posts': posts, 'categories': categories, 'reviews': reviews, 'gallery': gallery,
+        'products': products, 'posts': posts, 'categories': categories, 'reviews': reviews, 'gallery': gallery, 'best_sellers': best_sellers, 'pizza_of_month': pizza_of_month, 'loyalty_reward': loyalty_reward, 'customer_pizza_count': customer_pizza_count, 'customer_loyalty_remaining': max(0, 5 - (customer_pizza_count % 5)), 'favorite_product_ids': favorite_product_ids,
         'meta_title': "Pizza Vitti Bordeaux | Pizzeria italienne et commande en ligne",
         'meta_description': "Pizza Vitti à Bordeaux : pizzas italiennes, menu en ligne, réservation, retrait et paiement en avance."
     })
@@ -48,17 +119,34 @@ def boutique(request):
     if query:
         qs = qs.filter(Q(name__icontains=query)|Q(description__icontains=query)|Q(category__name__icontains=query))
     paginator = Paginator(qs, 120)
-    return render(request, 'shop/boutique.html', {'page_obj': paginator.get_page(request.GET.get('page')), 'query': query})
+    page_obj = paginator.get_page(request.GET.get('page'))
+    lang = get_lang_from_path(request.path)
+    _apply_menu_translations(list(page_obj.object_list), [], lang)
+    favorite_product_ids = set()
+    if request.user.is_authenticated:
+        favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
+    return render(request, 'shop/boutique.html', {'page_obj': page_obj, 'query': query, 'favorite_product_ids': favorite_product_ids})
 
 def category(request, slug):
     cat = get_object_or_404(Category, slug=slug, is_active=True)
     qs = cat.products.filter(is_available=True)
     paginator = Paginator(qs, 120)
-    return render(request, 'shop/boutique.html', {'page_obj': paginator.get_page(request.GET.get('page')), 'category': cat})
+    page_obj = paginator.get_page(request.GET.get('page'))
+    lang = get_lang_from_path(request.path)
+    _apply_menu_translations(list(page_obj.object_list), [cat], lang)
+    favorite_product_ids = set()
+    if request.user.is_authenticated:
+        favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
+    return render(request, 'shop/boutique.html', {'page_obj': page_obj, 'category': cat, 'favorite_product_ids': favorite_product_ids})
 
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug, is_available=True)
-    return render(request, 'shop/product_detail.html', {'product': product,
+    lang = get_lang_from_path(request.path)
+    _apply_menu_translations([product], [product.category] if product.category else [], lang)
+    favorite_product_ids = set()
+    if request.user.is_authenticated:
+        favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
+    return render(request, 'shop/product_detail.html', {'product': product, 'favorite_product_ids': favorite_product_ids,
         'meta_title': product.meta_title or f'{product.name} | Pizza Vitti',
         'meta_description': product.meta_description or product.description[:155]})
 
@@ -74,7 +162,12 @@ def add_to_cart(request, product_id):
 
 def cart(request):
     items, total = _cart_items(request)
-    return render(request, 'shop/cart.html', {'items': items, 'total': total})
+    pizza_qty = _pizza_qty(items)
+    return render(request, 'shop/cart.html', {
+        'items': items, 'total': total, 'pizza_qty': pizza_qty,
+        'loyalty_remaining': max(0, 5 - pizza_qty),
+        'loyalty_gift_eligible': pizza_qty >= 5,
+    })
 
 @require_POST
 def update_cart(request):
@@ -103,13 +196,15 @@ def checkout(request):
         return redirect('shop:boutique')
     if request.method == 'POST':
         payment_method = request.POST.get('payment_method', 'stripe')
+        order_type = request.POST.get('order_type', 'pickup')
+        selected_reward = request.POST.get('selected_reward', '').strip() if _pizza_qty(items) >= 5 else ''
         order = Order.objects.create(
             order_number='PV-' + uuid4().hex[:8].upper(),
             user=request.user if request.user.is_authenticated else None,
             customer_type='particulier',
             customer_name=request.POST.get('name','').strip(), email=request.POST.get('email','').strip(),
-            phone=request.POST.get('phone','').strip(), address=request.POST.get('address','').strip(),
-            notes=request.POST.get('notes','').strip(), total=total,
+            phone=request.POST.get('phone','').strip(), address=request.POST.get('address','').strip(), order_type=order_type, selected_reward=selected_reward, promo_code=request.POST.get('promo_code','').strip(),
+            notes=(request.POST.get('notes','').strip() + ('\nOffre fidélité: cadeau à préparer: ' + (selected_reward or 'au choix client') if _pizza_qty(items) >= 5 else '')).strip(), total=total,
             payment_status='pending' if payment_method == 'stripe' else 'cash')
         for item in items:
             OrderItem.objects.create(order=order, product=item['product'], name=item['product'].name,
@@ -119,7 +214,12 @@ def checkout(request):
             return redirect('shop:stripe_checkout', order_id=order.id)
         messages.success(request, 'Commande créée. Une facture est disponible.')
         return redirect(order.get_absolute_url())
-    return render(request, 'shop/checkout.html', {'items': items, 'total': total, 'stripe_enabled': bool(settings.STRIPE_SECRET_KEY)})
+    pizza_qty = _pizza_qty(items)
+    return render(request, 'shop/checkout.html', {
+        'items': items, 'total': total, 'stripe_enabled': bool(settings.STRIPE_SECRET_KEY), 'loyalty_rewards': LoyaltyReward.objects.filter(is_active=True),
+        'pizza_qty': pizza_qty, 'loyalty_remaining': max(0, 5 - pizza_qty),
+        'loyalty_gift_eligible': pizza_qty >= 5,
+    })
 
 def create_checkout_session(request, order_id):
     order = get_object_or_404(Order, id=order_id)
@@ -232,6 +332,44 @@ def localized_dispatch(request, lang, page=None):
         if page == slugs.get(lang, ''):
             return dispatch.get(key, home)(request)
     return home(request)
+
+
+@login_required
+def customer_dashboard(request):
+    orders = Order.objects.filter(user=request.user).prefetch_related('items')[:8]
+    pizza_count = _customer_pizza_count(request.user)
+    favorites = Favorite.objects.filter(user=request.user).select_related('product', 'product__category')[:12]
+    return render(request, 'shop/customer_dashboard.html', {
+        'orders': orders,
+        'pizza_count': pizza_count,
+        'loyalty_remaining': max(0, 5 - (pizza_count % 5)) if pizza_count % 5 else 0,
+        'pizza_progress': pizza_count % 5,
+        'rewards_unlocked': pizza_count // 5,
+        'favorites': favorites,
+        'meta_title': 'Mon compte | Pizza Vitti',
+    })
+
+@login_required
+def customer_orders(request):
+    orders = Order.objects.filter(user=request.user).prefetch_related('items')
+    return render(request, 'shop/customer_orders.html', {'orders': orders, 'meta_title': 'Mes commandes | Pizza Vitti'})
+
+@login_required
+def customer_favorites(request):
+    favorites = Favorite.objects.filter(user=request.user).select_related('product', 'product__category')
+    return render(request, 'shop/customer_favorites.html', {'favorites': favorites, 'meta_title': 'Mes favoris | Pizza Vitti'})
+
+@login_required
+@require_POST
+def toggle_favorite(request, product_id):
+    product = get_object_or_404(Product, id=product_id, is_available=True)
+    fav, created = Favorite.objects.get_or_create(user=request.user, product=product)
+    if created:
+        messages.success(request, f'{product.name} ajouté à vos favoris.')
+    else:
+        fav.delete()
+        messages.success(request, f'{product.name} retiré de vos favoris.')
+    return redirect(request.POST.get('next') or product.get_absolute_url())
 
 def robots_txt(request):
     sitemap_url = settings.SITE_URL.rstrip('/') + '/sitemap.xml'

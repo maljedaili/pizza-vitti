@@ -1,1 +1,13 @@
-<article class="product-card reveal"><a href="{{ product.get_absolute_url }}" class="product-img" style="background-image:url('{{ product.display_image|default:"https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=900&q=80" }}')">{% if product.badge %}<span>{{ product.badge }}</span>{% endif %}</a><div><p class="cat">{{ product.category.name|default:'Menu' }}</p><h3>{{ product.name }}</h3><p>{{ product.description|truncatechars:105 }}</p><div class="buy"><strong>{{ product.price }} €</strong><small>/ {{ product.unit }}</small><form method="post" action="{% url 'shop:add_to_cart' product.id %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button>{{ T.add }}</button></form></div></div></article>
+<article class="product-card reveal">
+  <a href="{{ product.get_absolute_url }}" class="product-img" style="background-image:url('{{ product.display_image|default:"https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=900&q=80" }}')">{% if product.badge %}<span>{{ product.badge }}</span>{% endif %}</a>
+  <div>
+    <p class="cat">{{ product.translated_category_name|default:product.category.name|default:'Menu' }}</p>
+    <h3>{{ product.translated_name|default:product.name }}</h3>
+    <p>{{ product.translated_description|default:product.description|truncatechars:105 }}</p>
+    <div class="buy">
+      <strong>{{ product.price }} €</strong><small>/ {{ product.unit }}</small>
+      <form method="post" action="{% url 'shop:add_to_cart' product.id %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button>{{ T.add }}</button></form>
+      {% if request.user.is_authenticated %}<form method="post" action="{% url 'shop:toggle_favorite' product.id %}" class="favorite-form">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit" class="favorite-btn" title="Favori">{% if product.id in favorite_product_ids %}❤️{% else %}♡{% endif %}</button></form>{% endif %}
+    </div>
+  </div>
+</article>
