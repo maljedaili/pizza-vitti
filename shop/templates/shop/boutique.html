@@ -2,13 +2,35 @@
 {% block content %}
 <section class="shop-hero menu-hero">
   <p class="eyebrow">Nouvelle carte Pizza Vitti</p>
-  <h1>{% if category %}{{ category.translated_name|default:category.name }}{% else %}Menu complet{% endif %}</h1>
-  <p>Retrouvez toute la carte: apéritifs, boissons, entrées, antipasti, bruschetta, salades, pizzas, pastas, ravioles, menu bambino, desserts et vins.</p>
+  <h1>{% if menu_group %}{{ menu_group.title }}{% elif category %}{{ category.translated_name|default:category.name }}{% else %}Menu complet{% endif %}</h1>
+  <p>{% if menu_group %}{{ menu_group.summary }}{% else %}Retrouvez toute la carte: apéritifs, boissons, entrées, antipasti, bruschetta, salades, pizzas, pastas, ravioles, menu bambino, desserts et vins.{% endif %}</p>
 </section>
 <section class="menu-note">
   <h2>Chers clients,</h2>
   <p>Parce que la cuisine est avant tout une histoire de goût, de plaisir et de partage, Pizza Vitti vous invite à découvrir une carte généreuse, italienne et gourmande, préparée avec soin.</p>
 </section>
-<section class="toolbar"><form><input name="q" placeholder="{{ T.search_placeholder }}" value="{{ query }}"></form><div class="pills"><a href="{{ url_menu }}">{{ T.all }}</a>{% for c in nav_categories %}<a href="{{ c.get_absolute_url }}">{{ c.name }}</a>{% endfor %}</div></section>
-<div class="grid">{% for product in page_obj %}{% include 'shop/product_card.html' %}{% empty %}<p class="empty">{{ T.empty_menu }}</p>{% endfor %}</div>
+<section class="toolbar">
+  <form><input name="q" placeholder="{{ T.search_placeholder }}" value="{{ query }}"></form>
+  <div class="pills">
+    <a href="{{ url_menu }}">{{ T.all }}</a>
+    {% for group in menu_groups %}<a href="{{ group.url }}">{{ group.title }}</a>{% endfor %}
+  </div>
+</section>
+{% if group_sections %}
+  {% for section in group_sections %}
+    <section class="menu-category grouped-menu-section" id="cat-{{ section.category.slug }}">
+      <div class="section-head compact">
+        <p class="eyebrow">{% if menu_group.slug == 'boissons' %}Boissons{% elif menu_group.slug == 'pastas' %}Pasta{% elif menu_group.slug == 'pizzas' %}Pizza{% else %}Menu{% endif %}</p>
+        <h2>{{ section.category.translated_name|default:section.category.name }}</h2>
+      </div>
+      <div class="grid">
+        {% for product in section.products %}
+          {% include 'shop/product_card.html' %}
+        {% endfor %}
+      </div>
+    </section>
+  {% endfor %}
+{% else %}
+  <div class="grid">{% for product in page_obj %}{% include 'shop/product_card.html' %}{% empty %}<p class="empty">{{ T.empty_menu }}</p>{% endfor %}</div>
+{% endif %}
 {% endblock %}

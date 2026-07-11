@@ -6,6 +6,22 @@ const observer = new IntersectionObserver(entries => entries.forEach(entry => {
   if (entry.isIntersecting) entry.target.classList.add('show');
 }), {threshold: .12});
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+document.querySelectorAll('.menu-photo-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width - .5) * 10;
+    const y = ((e.clientY - rect.top) / rect.height - .5) * -10;
+    card.style.setProperty('--tilt-x', `${y.toFixed(2)}deg`);
+    card.style.setProperty('--tilt-y', `${x.toFixed(2)}deg`);
+  });
+  card.addEventListener('mouseleave', () => {
+    card.style.setProperty('--tilt-x', '0deg');
+    card.style.setProperty('--tilt-y', '0deg');
+  });
+});
+if (document.querySelector('[data-prep-board]')) {
+  setInterval(() => window.location.reload(), 30000);
+}
 const typeSelect = document.querySelector('[data-customer-type]');
 const proBox = document.querySelector('[data-pro-box]');
 if (typeSelect && proBox) {
@@ -14,6 +30,7 @@ if (typeSelect && proBox) {
   togglePro();
 }
 const botForm = document.querySelector('[data-bot-form]');
+const escapeHtml = text => text.replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
 if (botForm) {
   botForm.addEventListener('submit', async e => {
     e.preventDefault();
@@ -21,14 +38,19 @@ if (botForm) {
     const log = document.querySelector('[data-bot-log]');
     const text = input.value.trim();
     if (!text) return;
-    log.insertAdjacentHTML('beforeend', `<p><strong>Vous :</strong> ${text.replace(/[<>]/g,'')}</p>`);
+    log.insertAdjacentHTML('beforeend', `<p><strong>Vous :</strong> ${escapeHtml(text)}</p>`);
     const formData = new FormData(botForm);
     const res = await fetch(botForm.dataset.url, {method:'POST', body:formData, headers:{'X-Requested-With':'XMLHttpRequest'}});
     const data = await res.json();
-    log.insertAdjacentHTML('beforeend', `<p><strong>Assistant :</strong> ${data.answer}</p>`);
+    log.insertAdjacentHTML('beforeend', `<p><strong>Assistant :</strong> ${escapeHtml(data.answer)}</p>`);
     log.scrollTop = log.scrollHeight;
     input.value = '';
   });
+  document.querySelectorAll('[data-bot-suggest]').forEach(button => button.addEventListener('click', () => {
+    const input = botForm.querySelector('input[name="message"]');
+    input.value = button.dataset.botSuggest;
+    botForm.requestSubmit();
+  }));
 }
 
 // Language dropdown

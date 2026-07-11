@@ -131,6 +131,7 @@ class Order(TimeStampedModel):
     email = models.EmailField()
     phone = models.CharField(max_length=40, blank=True)
     ORDER_TYPE = [('pickup','À emporter'),('dine_in','Sur place'),('uber_eats','Uber Eats'),('deliveroo','Deliveroo'),('just_eat','Just Eat')]
+    table_number = models.CharField(max_length=20, blank=True, verbose_name='Numéro de table')
     address = models.TextField(blank=True)
     order_type = models.CharField(max_length=20, choices=ORDER_TYPE, default='pickup', verbose_name='Type de commande')
     selected_reward = models.CharField(max_length=80, blank=True, verbose_name='Cadeau fidélité choisi')

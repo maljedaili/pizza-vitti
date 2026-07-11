@@ -3,11 +3,13 @@ from uuid import uuid4
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
 from django.db.models import Q, Case, When, IntegerField
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils import timezone
 from django.views.decorators.http import require_POST
 import stripe
 from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, Favorite, ProductTranslation, CategoryTranslation
@@ -19,15 +21,116 @@ def _menu_category_order(qs):
         menu_priority=Case(
             When(name__iexact='Nos Pizza', then=0),
             When(name__iexact='Nos Pizzas', then=0),
-            When(name__icontains='pizza', then=0),
             When(name__iexact='Nos Pasta', then=1),
             When(name__iexact='Nos Pastas', then=1),
+            When(name__icontains='raviol', then=2),
+            When(name__icontains='entrée', then=3),
+            When(name__icontains='entree', then=3),
+            When(name__icontains='antipasti', then=4),
+            When(name__icontains='bruschetta', then=5),
+            When(name__icontains='salade', then=6),
+            When(name__icontains='bambino', then=7),
+            When(name__icontains='douceur', then=8),
+            When(name__icontains='suppl', then=9),
+            When(name__icontains='pizza', then=0),
             When(name__icontains='pasta', then=1),
-            default=10,
+            When(name__icontains='aperitivo', then=20),
+            When(name__icontains='digestif', then=21),
+            When(name__icontains='birre', then=22),
+            When(name__icontains='analcolici', then=23),
+            When(name__icontains='caff', then=24),
+            When(name__icontains='vin', then=25),
+            default=30,
             output_field=IntegerField(),
         )
     ).order_by('menu_priority', 'order', 'name')
 
+
+MENU_GROUPS = [
+    {
+        'slug': 'pizzas',
+        'title': 'Nos Pizza',
+        'eyebrow': 'Pizza',
+        'summary': 'Toutes les pizzas maison avec les suppléments pour personnaliser votre commande.',
+        'kind': 'is-pizza',
+        'image': '/media/gallery/2eef003fea54537e5b8f6516f9fcec6ac5afe20b.jpeg',
+        'matches': ('pizza', 'suppl'),
+    },
+    {
+        'slug': 'pastas',
+        'title': 'Nos Pastas',
+        'eyebrow': 'Pasta',
+        'summary': 'Pastas italiennes, ravioles et recettes généreuses servies bien chaudes.',
+        'kind': 'is-pasta',
+        'image': 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=1200&q=82',
+        'matches': ('pasta', 'raviol'),
+    },
+    {
+        'slug': 'antipasti',
+        'title': 'Entrées & Antipasti',
+        'eyebrow': 'À partager',
+        'summary': 'Entrées, antipasti, bruschette et salades pour commencer ou partager.',
+        'kind': 'is-antipasti',
+        'image': 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&w=1200&q=82',
+        'matches': ('entrée', 'entree', 'antipasti', 'bruschetta', 'salade'),
+    },
+    {
+        'slug': 'bambino',
+        'title': 'Menu Bambino',
+        'eyebrow': 'Enfants',
+        'summary': 'Un menu simple et gourmand pensé pour les plus jeunes.',
+        'kind': 'is-kids',
+        'image': 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1200&q=82',
+        'matches': ('bambino',),
+    },
+    {
+        'slug': 'douceurs',
+        'title': 'Nos douceurs',
+        'eyebrow': 'Desserts',
+        'summary': 'Tiramisu, panna cotta, glaces et desserts italiens.',
+        'kind': 'is-dessert',
+        'image': 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=1200&q=82',
+        'matches': ('douceur', 'dessert', 'glace'),
+    },
+    {
+        'slug': 'boissons',
+        'title': 'Boissons',
+        'eyebrow': 'Bar',
+        'summary': 'Softs, bières, vins, apéritifs, digestifs, cafés et thés.',
+        'kind': 'is-drink',
+        'image': '/media/gallery/45e8414417d58a2774dc544f972c5d7a773a39e2.jpeg',
+        'matches': ('aperitivo', 'digestif', 'birre', 'analcolici', 'caff', 'vin'),
+    },
+]
+
+
+def _category_key(category):
+    return f'{category.name} {category.slug}'.lower()
+
+
+def _categories_for_group(group):
+    categories = list(_menu_category_order(Category.objects.filter(is_active=True)))
+    return [category for category in categories if any(match in _category_key(category) for match in group['matches'])]
+
+
+def _menu_groups():
+    groups = []
+    for group in MENU_GROUPS:
+        categories = _categories_for_group(group)
+        if not categories:
+            continue
+        item = group.copy()
+        item['url'] = reverse('shop:menu_group', args=[group['slug']])
+        item['count'] = sum(category.products.filter(is_available=True).count() for category in categories)
+        groups.append(item)
+    return groups
+
+
+def _menu_group_by_slug(slug):
+    for group in MENU_GROUPS:
+        if group['slug'] == slug:
+            return group
+    return None
 
 
 def _apply_menu_translations(products, categories, lang):
@@ -84,25 +187,15 @@ def _pizza_qty(items):
     return count
 
 def home(request):
-    lang = get_lang_from_path(request.path)
-    products = list(Product.objects.filter(is_available=True).select_related('category')[:180])
-    posts = BlogPost.objects.filter(is_published=True)[:3]
-    categories = list(_menu_category_order(Category.objects.filter(is_active=True).prefetch_related('products'))[:12])
     reviews = Review.objects.filter(is_published=True)[:6]
     gallery = GalleryImage.objects.filter(is_active=True)[:8]
-    best_sellers = list(Product.objects.filter(is_available=True, is_best_seller=True).select_related('category')[:4])
-    if not best_sellers:
-        best_sellers = list(Product.objects.filter(is_available=True, category__name__icontains='pizza').select_related('category')[:4])
-    pizza_of_month = Product.objects.filter(is_available=True, is_pizza_of_month=True).select_related('category').first()
-    loyalty_reward = LoyaltyReward.objects.filter(is_active=True).first()
-    _apply_menu_translations(products, categories, lang)
-    _apply_menu_translations(best_sellers, [], lang)
-    customer_pizza_count = _customer_pizza_count(request.user)
+    posts = BlogPost.objects.filter(is_published=True)[:3]
+    menu_groups = _menu_groups()
     favorite_product_ids = set()
     if request.user.is_authenticated:
         favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
     return render(request, 'shop/home.html', {
-        'products': products, 'posts': posts, 'categories': categories, 'reviews': reviews, 'gallery': gallery, 'best_sellers': best_sellers, 'pizza_of_month': pizza_of_month, 'loyalty_reward': loyalty_reward, 'customer_pizza_count': customer_pizza_count, 'customer_loyalty_remaining': max(0, 5 - (customer_pizza_count % 5)), 'favorite_product_ids': favorite_product_ids,
+        'menu_groups': menu_groups, 'reviews': reviews, 'gallery': gallery, 'posts': posts, 'favorite_product_ids': favorite_product_ids,
         'meta_title': "Pizza Vitti Bordeaux | Pizzeria italienne et commande en ligne",
         'meta_description': "Pizza Vitti à Bordeaux : pizzas italiennes, menu en ligne, réservation, retrait et paiement en avance."
     })
@@ -125,7 +218,7 @@ def boutique(request):
     favorite_product_ids = set()
     if request.user.is_authenticated:
         favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
-    return render(request, 'shop/boutique.html', {'page_obj': page_obj, 'query': query, 'favorite_product_ids': favorite_product_ids})
+    return render(request, 'shop/boutique.html', {'page_obj': page_obj, 'query': query, 'favorite_product_ids': favorite_product_ids, 'menu_groups': _menu_groups()})
 
 def category(request, slug):
     cat = get_object_or_404(Category, slug=slug, is_active=True)
@@ -137,7 +230,32 @@ def category(request, slug):
     favorite_product_ids = set()
     if request.user.is_authenticated:
         favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
-    return render(request, 'shop/boutique.html', {'page_obj': page_obj, 'category': cat, 'favorite_product_ids': favorite_product_ids})
+    return render(request, 'shop/boutique.html', {'page_obj': page_obj, 'category': cat, 'favorite_product_ids': favorite_product_ids, 'menu_groups': _menu_groups()})
+
+def menu_group(request, group):
+    menu_group_data = _menu_group_by_slug(group)
+    if not menu_group_data:
+        return redirect('shop:boutique')
+    categories = _categories_for_group(menu_group_data)
+    products = list(Product.objects.filter(is_available=True, category__in=categories).select_related('category'))
+    lang = get_lang_from_path(request.path)
+    _apply_menu_translations(products, categories, lang)
+    sections = []
+    for category in categories:
+        section_products = [product for product in products if product.category_id == category.id]
+        if section_products:
+            sections.append({'category': category, 'products': section_products})
+    favorite_product_ids = set()
+    if request.user.is_authenticated:
+        favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
+    return render(request, 'shop/boutique.html', {
+        'menu_group': menu_group_data,
+        'menu_groups': _menu_groups(),
+        'group_sections': sections,
+        'favorite_product_ids': favorite_product_ids,
+        'meta_title': f"{menu_group_data['title']} | Pizza Vitti Bordeaux",
+        'meta_description': menu_group_data['summary'],
+    })
 
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug, is_available=True)
@@ -149,6 +267,13 @@ def product_detail(request, slug):
     return render(request, 'shop/product_detail.html', {'product': product, 'favorite_product_ids': favorite_product_ids,
         'meta_title': product.meta_title or f'{product.name} | Pizza Vitti',
         'meta_description': product.meta_description or product.description[:155]})
+
+def table_menu(request, table):
+    table_number = ''.join(ch for ch in str(table) if ch.isalnum() or ch in '-_')[:20]
+    if table_number:
+        request.session['table_number'] = table_number
+        messages.success(request, f'Table {table_number} sélectionnée. Choisissez vos plats, puis validez votre commande.')
+    return redirect('shop:boutique')
 
 @require_POST
 def add_to_cart(request, product_id):
@@ -167,6 +292,7 @@ def cart(request):
         'items': items, 'total': total, 'pizza_qty': pizza_qty,
         'loyalty_remaining': max(0, 5 - pizza_qty),
         'loyalty_gift_eligible': pizza_qty >= 5,
+        'table_number': request.session.get('table_number', '').strip(),
     })
 
 @require_POST
@@ -194,22 +320,27 @@ def checkout(request):
     if not items:
         messages.error(request, 'Votre panier est vide.')
         return redirect('shop:boutique')
+    table_number = request.session.get('table_number', '').strip()
     if request.method == 'POST':
         payment_method = request.POST.get('payment_method', 'stripe')
-        order_type = request.POST.get('order_type', 'pickup')
-        selected_reward = request.POST.get('selected_reward', '').strip() if _pizza_qty(items) >= 5 else ''
+        order_type = 'dine_in' if table_number else request.POST.get('order_type', 'pickup')
+        loyalty_reward = LoyaltyReward.objects.filter(is_active=True).first() if _pizza_qty(items) >= 5 else None
+        selected_reward = loyalty_reward.get_reward_type_display() if loyalty_reward else ''
+        loyalty_note = 'Cadeau fidélité à préparer.' if _pizza_qty(items) >= 5 else ''
         order = Order.objects.create(
             order_number='PV-' + uuid4().hex[:8].upper(),
             user=request.user if request.user.is_authenticated else None,
             customer_type='particulier',
             customer_name=request.POST.get('name','').strip(), email=request.POST.get('email','').strip(),
-            phone=request.POST.get('phone','').strip(), address=request.POST.get('address','').strip(), order_type=order_type, selected_reward=selected_reward, promo_code=request.POST.get('promo_code','').strip(),
-            notes=(request.POST.get('notes','').strip() + ('\nOffre fidélité: cadeau à préparer: ' + (selected_reward or 'au choix client') if _pizza_qty(items) >= 5 else '')).strip(), total=total,
+            phone=request.POST.get('phone','').strip(), table_number=table_number, address=request.POST.get('address','').strip(), order_type=order_type, selected_reward=selected_reward, promo_code=request.POST.get('promo_code','').strip(),
+            notes=(request.POST.get('notes','').strip() + (f'\nOffre fidélité: {loyalty_note}' if loyalty_note else '')).strip(), total=total,
             payment_status='pending' if payment_method == 'stripe' else 'cash')
         for item in items:
             OrderItem.objects.create(order=order, product=item['product'], name=item['product'].name,
                 quantity=item['qty'], unit_price=item['product'].price, line_total=item['line_total'])
         request.session['cart'] = {}
+        if table_number:
+            request.session.pop('table_number', None)
         if payment_method == 'stripe' and settings.STRIPE_SECRET_KEY:
             return redirect('shop:stripe_checkout', order_id=order.id)
         messages.success(request, 'Commande créée. Une facture est disponible.')
@@ -218,7 +349,7 @@ def checkout(request):
     return render(request, 'shop/checkout.html', {
         'items': items, 'total': total, 'stripe_enabled': bool(settings.STRIPE_SECRET_KEY), 'loyalty_rewards': LoyaltyReward.objects.filter(is_active=True),
         'pizza_qty': pizza_qty, 'loyalty_remaining': max(0, 5 - pizza_qty),
-        'loyalty_gift_eligible': pizza_qty >= 5,
+        'loyalty_gift_eligible': pizza_qty >= 5, 'table_number': table_number,
     })
 
 def create_checkout_session(request, order_id):
@@ -246,6 +377,44 @@ def payment_success(request, order_number):
 def invoice(request, order_number):
     order = get_object_or_404(Order.objects.prefetch_related('items'), order_number=order_number)
     return render(request, 'shop/invoice.html', {'order': order})
+
+@staff_member_required
+def qr_tables(request):
+    try:
+        count = min(max(int(request.GET.get('count', 20)), 1), 80)
+    except ValueError:
+        count = 20
+    base_url = request.build_absolute_uri(reverse('shop:home')).rstrip('/')
+    tables = []
+    for number in range(1, count + 1):
+        url = request.build_absolute_uri(reverse('shop:table_menu', args=[number]))
+        tables.append({'number': number, 'url': url})
+    return render(request, 'shop/qr_tables.html', {
+        'tables': tables,
+        'base_url': base_url,
+        'meta_title': 'QR codes tables | Pizza Vitti',
+    })
+
+@staff_member_required
+def preparation_dashboard(request):
+    active_statuses = ['received', 'preparing', 'ready']
+    orders = Order.objects.filter(status__in=active_statuses).prefetch_related('items').order_by('created_at')
+    return render(request, 'shop/preparation_dashboard.html', {
+        'orders': orders,
+        'now': timezone.now(),
+        'meta_title': 'Préparation commandes | Pizza Vitti',
+    })
+
+@staff_member_required
+@require_POST
+def update_order_status(request, order_number):
+    order = get_object_or_404(Order, order_number=order_number)
+    status = request.POST.get('status')
+    if status in dict(Order.STATUS):
+        order.status = status
+        order.save(update_fields=['status'])
+        messages.success(request, f'Commande {order.order_number} mise à jour.')
+    return redirect('shop:preparation_dashboard')
 
 def track_order(request):
     order = None
@@ -284,12 +453,29 @@ def contact(request):
 @require_POST
 def bot_reply(request):
     msg = request.POST.get('message','').lower()
-    if any(w in msg for w in ['payer', 'visa', 'carte', 'paiement']):
-        answer = "Vous pouvez payer par carte bancaire Visa/Mastercard via Stripe si les clés Stripe sont configurées, ou choisir le paiement au retrait."
-    elif any(w in msg for w in ['livraison', 'retrait', 'commande']):
-        answer = "Après commande, vous recevez un numéro. Utilisez la page Suivi pour voir si la commande est reçue, en préparation, prête ou livrée."
+    table_number = request.session.get('table_number', '').strip()
+    if any(w in msg for w in ['table', 'qr', 'scan', 'scanner']):
+        answer = f"Vous êtes sur la table {table_number}. Ajoutez vos plats au panier puis validez la commande." if table_number else "Scannez le QR code posé sur votre table : le site mémorise la table, puis vous pouvez commander depuis le menu."
+    elif any(w in msg for w in ['menu', 'pizza', 'pasta', 'pâtes', 'raviol', 'boisson', 'dessert']):
+        answer = "Le menu est organisé par familles : pizzas, pastas et ravioles, antipasti, menu bambino, douceurs et boissons. Cliquez sur une photo de catégorie pour ouvrir la page correspondante."
+    elif any(w in msg for w in ['fidélité', 'fidelite', 'cadeau', '5 pizza', '5 pizzas']):
+        answer = "Offre fidélité : chaque 5 pizzas commandées donnent droit à un cadeau. Pizza Vitti vous confirmera le cadeau selon disponibilité."
+    elif any(w in msg for w in ['payer', 'visa', 'carte', 'paiement', 'stripe', 'cash', 'espèce', 'espece']):
+        answer = "Vous pouvez payer par carte bancaire si Stripe est configuré, ou choisir le paiement au retrait / sur place selon l’organisation du restaurant."
+    elif any(w in msg for w in ['réserver', 'reserver', 'reservation', 'réservation']):
+        answer = "Pour réserver une table, utilisez la page Réserver et indiquez votre nom, téléphone, date, heure et nombre de personnes."
+    elif any(w in msg for w in ['adresse', 'où', 'ou', 'localisation', 'maps', 'venir']):
+        answer = "Pizza Vitti se trouve au 236 Rue d'Ornano, 33000 Bordeaux. Vous pouvez ouvrir Google Maps depuis la page contact ou le pied de page."
+    elif any(w in msg for w in ['allerg', 'végétarien', 'vegetarien', 'sans gluten', 'halal']):
+        answer = "Pour les allergènes ou demandes spéciales, ajoutez une note dans votre commande ou demandez confirmation au restaurant avant de valider."
+    elif any(w in msg for w in ['suivi', 'statut', 'prête', 'prete', 'préparation', 'preparation']):
+        answer = "Après commande, conservez votre numéro de commande. La facture affiche le statut : reçue, en préparation, prête ou servie."
+    elif any(w in msg for w in ['avis', 'review', 'google', 'commentaire']):
+        answer = "Après votre commande, vous pouvez laisser un avis depuis la page Avis. Vos commentaires Google aident beaucoup Pizza Vitti."
+    elif any(w in msg for w in ['bonjour', 'salut', 'hello', 'hi']):
+        answer = "Bonjour ! Je peux vous aider à choisir le menu, commander à table, comprendre la fidélité, réserver ou suivre une commande."
     else:
-        answer = "Bonjour ! Je peux vous aider pour le menu, les pizzas, les horaires, la commande, le retrait, la réservation et le paiement par carte."
+        answer = "Je peux vous aider pour le menu, les pizzas, les pastas, les boissons, la commande QR à table, la fidélité, la réservation, le paiement, les allergènes et les avis Google."
     return JsonResponse({'answer': answer})
 
 

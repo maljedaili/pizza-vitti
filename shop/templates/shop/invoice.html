@@ -1,1 +1,38 @@
-{% extends 'shop/base.html' %}{% block content %}<section class="card invoice-card"><h1>{{ T.invoice }} {{ order.order_number }}</h1><p><strong>{{ T.name }} :</strong> {{ order.customer_name }} — {{ order.email }}</p><p><strong>{{ T.phone }} :</strong> {{ order.phone|default:'-' }}</p><p><strong>{{ T.address_label }} :</strong> {{ order.address|default:'-' }}</p><p><strong>Statut :</strong> {{ order.get_status_display }}</p><p><strong>{{ T.payment }} :</strong> {{ order.get_payment_status_display }}</p><table><thead><tr><th>Produit</th><th>Qté</th><th>Prix</th><th>{{ T.total }}</th></tr></thead><tbody>{% for item in order.items.all %}<tr><td>{{ item.name }}</td><td>{{ item.quantity }}</td><td>{{ item.unit_price }} €</td><td>{{ item.line_total }} €</td></tr>{% endfor %}</tbody></table><div class="total"><span>{{ T.total }}</span><strong>{{ order.total }} €</strong></div><button class="button ghost" onclick="window.print()">{{ T.print_invoice }}</button>{% if order.delivery_issue_note %}<p><strong>Note :</strong> {{ order.delivery_issue_note }}</p>{% endif %}</section><section class="card no-print"><h2>Problème avec la livraison ?</h2><form method="post" action="{% url 'shop:report_order_issue' order.order_number %}">{% csrf_token %}<label>Type de problème<select name="issue"><option value="not_received">Produit non reçu</option><option value="refused">Produit refusé par le client</option></select></label><label>Détails<textarea name="delivery_issue_note" placeholder="Expliquez le problème..."></textarea></label><button class="button">{{ T.send }}</button></form></section>{% endblock %}
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="card invoice-card">
+  <h1>{{ T.invoice }} {{ order.order_number }}</h1>
+  <p><strong>{{ T.name }} :</strong> {{ order.customer_name }} — {{ order.email }}</p>
+  <p><strong>{{ T.phone }} :</strong> {{ order.phone|default:'-' }}</p>
+  {% if order.table_number %}<p><strong>Table :</strong> {{ order.table_number }}</p>{% endif %}
+  <p><strong>{{ T.address_label }} :</strong> {{ order.address|default:'-' }}</p>
+  <p><strong>Statut :</strong> {{ order.get_status_display }}</p>
+  <p><strong>{{ T.payment }} :</strong> {{ order.get_payment_status_display }}</p>
+
+  <table>
+    <thead>
+      <tr><th>Produit</th><th>Qté</th><th>Prix</th><th>{{ T.total }}</th></tr>
+    </thead>
+    <tbody>
+      {% for item in order.items.all %}
+        <tr><td>{{ item.name }}</td><td>{{ item.quantity }}</td><td>{{ item.unit_price }} €</td><td>{{ item.line_total }} €</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="total"><span>{{ T.total }}</span><strong>{{ order.total }} €</strong></div>
+  <button class="button ghost" onclick="window.print()">{{ T.print_invoice }}</button>
+</section>
+
+<section class="card no-print order-thanks-card reveal">
+  <p class="eyebrow">Merci pour votre commande</p>
+  <h2>Votre avis compte pour Pizza Vitti</h2>
+  <p>Si vous avez apprécié votre commande, laissez un commentaire sur Google. Cela aide le restaurant à être mieux visible et à continuer d’améliorer l’expérience client.</p>
+  <p class="loyalty-mini">Chaque 5 pizzas commandées donnent droit à un cadeau. Pizza Vitti vous confirmera le cadeau.</p>
+  <div class="hero-actions">
+    <a class="button" href="{{ url_reviews }}">Laisser un avis</a>
+    <a class="button ghost" target="_blank" rel="noopener" href="https://www.google.com/search?q=Pizza+Vitti+Bordeaux+avis">Avis Google</a>
+  </div>
+</section>
+{% endblock %}

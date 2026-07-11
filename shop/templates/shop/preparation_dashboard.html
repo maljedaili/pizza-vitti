@@ -1,0 +1,38 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="page-title prep-title">
+  <p class="eyebrow">Préparation</p>
+  <h1>Commandes en cuisine</h1>
+  <p>Les commandes QR à table apparaissent ici avec la table, le client, les plats et les actions de suivi.</p>
+  <div class="hero-actions"><a class="button ghost" href="{% url 'shop:qr_tables' %}">QR tables</a><button class="button" onclick="window.location.reload()">Actualiser</button></div>
+</section>
+
+<section class="prep-board" data-prep-board>
+  {% for order in orders %}
+    <article class="prep-ticket status-{{ order.status }}">
+      <div class="prep-ticket-head">
+        <div>
+          <p class="eyebrow">{% if order.table_number %}Table {{ order.table_number }}{% else %}Commande{% endif %}</p>
+          <h2>{{ order.order_number }}</h2>
+          <p>{{ order.customer_name }} · {{ order.created_at|date:'H:i' }}</p>
+        </div>
+        <strong>{{ order.get_status_display }}</strong>
+      </div>
+      <ul>
+        {% for item in order.items.all %}
+          <li><span>{{ item.quantity }} × {{ item.name }}</span><strong>{{ item.line_total }} €</strong></li>
+        {% endfor %}
+      </ul>
+      {% if order.notes %}<p class="prep-note">{{ order.notes|linebreaksbr }}</p>{% endif %}
+      <div class="prep-actions">
+        <form method="post" action="{% url 'shop:update_order_status' order.order_number %}">{% csrf_token %}<input type="hidden" name="status" value="preparing"><button class="button ghost">Préparer</button></form>
+        <form method="post" action="{% url 'shop:update_order_status' order.order_number %}">{% csrf_token %}<input type="hidden" name="status" value="ready"><button class="button">Prête</button></form>
+        <form method="post" action="{% url 'shop:update_order_status' order.order_number %}">{% csrf_token %}<input type="hidden" name="status" value="delivered"><button class="button ghost">Servie</button></form>
+      </div>
+    </article>
+  {% empty %}
+    <p class="empty">Aucune commande en attente pour le moment.</p>
+  {% endfor %}
+</section>
+{% endblock %}

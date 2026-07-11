@@ -1,0 +1,20 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="page-title no-print">
+  <p class="eyebrow">QR codes tables</p>
+  <h1>QR codes à imprimer</h1>
+  <p>Chaque QR code envoie le client vers le menu et mémorise automatiquement le numéro de table.</p>
+  <div class="hero-actions"><button class="button" onclick="window.print()">Imprimer</button><a class="button ghost" href="{% url 'shop:preparation_dashboard' %}">Écran préparation</a></div>
+</section>
+
+<section class="qr-grid">
+  {% for table in tables %}
+    <article class="qr-card">
+      <strong>Table {{ table.number }}</strong>
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={{ table.url|urlencode }}" alt="QR code table {{ table.number }}">
+      <small>{{ table.url }}</small>
+    </article>
+  {% endfor %}
+</section>
+{% endblock %}

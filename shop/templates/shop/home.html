@@ -1,27 +1,127 @@
-{% extends 'shop/base.html' %}{% block content %}
-<section class="hero reveal"><div><p class="eyebrow">Pizza Vitti Bordeaux</p><h1>La vraie pizza italienne, dès la page d’accueil.</h1><p>Menu complet, pizzas en premier, réservation, retrait sur place et livraison via nos partenaires.</p><div class="hero-actions"><a class="button" href="#menu-home">Voir le menu</a><a class="button ghost" href="#order-options">Commander maintenant</a></div></div><aside class="hero-card"><strong>🎁 Fidélité</strong><p>5 pizzas achetées = 1 cadeau offert.</p><a class="button" href="#loyalty">Voir mon avantage</a></aside></section>
+{% extends 'shop/base.html' %}
 
-<section class="section-head"><p class="eyebrow">Nos Meilleures Ventes</p><h2>Les favoris des clients</h2></section>
-<div class="grid best-sellers">{% for product in best_sellers %}{% include 'shop/product_card.html' %}{% empty %}<p class="empty">Marquez des produits comme “Meilleure vente” dans l’administration.</p>{% endfor %}</div>
+{% block content %}
+<section class="hero reveal">
+  <div>
+    <p class="eyebrow">Pizza Vitti Bordeaux</p>
+    <h1>La vraie pizza italienne à Bordeaux.</h1>
+    <p>Pizzas maison, pastas généreuses, antipasti et desserts italiens préparés avec soin, à découvrir sur place ou à commander en ligne.</p>
+    <div class="hero-actions">
+      <a class="button" href="#menu-home">Voir la carte</a>
+      <a class="button ghost" href="{{ url_booking }}">Réserver</a>
+    </div>
+  </div>
+  <aside class="hero-card">
+    <strong>Pizza Vitti</strong>
+    <p>236 Rue d'Ornano, 33000 Bordeaux</p>
+    <a class="button" href="https://maps.google.com/?q=Pizza+Vitti+236+Rue+d'Ornano+33000+Bordeaux" target="_blank" rel="noopener">Nous trouver</a>
+  </aside>
+</section>
 
-{% if pizza_of_month %}<section class="pizza-month reveal"><div><p class="eyebrow">Pizza du mois</p><h2>{{ pizza_of_month.translated_name|default:pizza_of_month.name }}</h2><p>{{ pizza_of_month.translated_description|default:pizza_of_month.description }}</p><strong>{{ pizza_of_month.price }} €</strong><form method="post" action="{% url 'shop:add_to_cart' pizza_of_month.id %}">{% csrf_token %}<input type="hidden" name="next" value="{% url 'shop:cart' %}"><button class="button">Ajouter au panier</button></form></div><a class="pizza-month-img" href="{{ pizza_of_month.get_absolute_url }}" {% if pizza_of_month.display_image %}style="background-image:url('{{ pizza_of_month.display_image }}')"{% endif %}></a></section>{% endif %}
+<section id="menu-home" class="menu-first reveal">
+  <div class="menu-first-header">
+    <div>
+      <p class="eyebrow">Carte Pizza Vitti</p>
+      <h1>La carte Pizza Vitti</h1>
+      <p>Choisissez une famille de plats pour ouvrir sa page dédiée: pizzas avec leurs suppléments, pastas avec ravioles, boissons organisées, menu bambino et douceurs.</p>
+    </div>
+    <aside>
+      <strong>Carte organisée</strong>
+      <span>Les catégories proches sont regroupées pour rendre le choix plus simple.</span>
+    </aside>
+  </div>
 
-<section id="menu-home" class="section-head"><p class="eyebrow">Menu Pizza Vitti</p><h2>Notre menu complet</h2></section>
-<div class="home-menu-nav pills">{% for category in categories %}<a href="#cat-{{ category.slug }}">{{ category.translated_name|default:category.name }}</a>{% endfor %}</div>
-{% for category in categories %}<section class="menu-category" id="cat-{{ category.slug }}"><div class="section-head compact"><p class="eyebrow">Menu</p><h2>{{ category.translated_name|default:category.name }}</h2></div><div class="grid">{% for product in products %}{% if product.category_id == category.id %}{% include 'shop/product_card.html' %}{% endif %}{% endfor %}</div></section>{% empty %}<div class="grid">{% for product in products %}{% include 'shop/product_card.html' %}{% empty %}<p class="empty">Ajoutez vos pizzas depuis l’administration Django.</p>{% endfor %}</div>{% endfor %}
+  <div class="category-photo-grid" aria-label="Catégories du menu">
+    {% for group in menu_groups %}
+      <a
+        class="menu-photo-card {{ group.kind }}"
+        href="{{ group.url }}"
+        style="background-image:linear-gradient(180deg,rgba(17,10,7,.12),rgba(17,10,7,.82)),url('{{ group.image }}')"
+        aria-label="Ouvrir {{ group.title }}"
+      >
+        <span>{{ group.eyebrow }}</span>
+        <strong>{{ group.title }}</strong>
+        <small>{{ group.summary }}</small>
+      </a>
+    {% empty %}
+      <p class="empty">Ajoutez vos catégories depuis l’administration Django.</p>
+    {% endfor %}
+  </div>
+</section>
 
-<section id="loyalty" class="loyalty-dashboard reveal"><div><p class="eyebrow">Programme Fidélité</p><h2>Votre fidélité</h2><div class="loyalty-pizzas"><span>{% if customer_pizza_count >= 1 %}🍕{% else %}⚪{% endif %}</span><span>{% if customer_pizza_count >= 2 %}🍕{% else %}⚪{% endif %}</span><span>{% if customer_pizza_count >= 3 %}🍕{% else %}⚪{% endif %}</span><span>{% if customer_pizza_count >= 4 %}🍕{% else %}⚪{% endif %}</span><span>{% if customer_pizza_count >= 5 %}🍕{% else %}⚪{% endif %}</span></div><p><strong>{{ customer_pizza_count }} / 5 pizzas achetées</strong><br>{% if customer_pizza_count >= 5 %}Votre cadeau est disponible dans votre compte.{% else %}Encore {{ customer_loyalty_remaining }} pizza(s) pour recevoir votre cadeau.{% endif %}</p></div><div class="loyalty-rewards"><h3>Récompense au choix</h3><ul><li>Pizza offerte</li><li>Pasta offerte</li><li>Dessert offert</li><li>10% de réduction</li></ul><p class="muted">L’admin peut modifier la récompense dans “Récompenses fidélité”.</p></div></section>
+<section class="section-head">
+  <p class="eyebrow">Blog Pizza Vitti</p>
+  <h2>Actualités & conseils</h2>
+</section>
+<section class="home-blog-strip reveal">
+  {% for post in posts %}
+    <article class="product-card blog-card">
+      <a class="product-img" href="{{ post.get_absolute_url }}" {% if post.display_image %}style="background-image:url('{{ post.display_image }}')"{% endif %}></a>
+      <div>
+        <p class="cat">Article</p>
+        <h3><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h3>
+        <p>{{ post.excerpt }}</p>
+        <a class="button ghost" href="{{ post.get_absolute_url }}">{{ T.read }}</a>
+      </div>
+    </article>
+  {% empty %}
+    <p class="empty">Ajoutez vos articles depuis l’administration.</p>
+  {% endfor %}
+</section>
 
-<section id="order-options" class="section-head"><p class="eyebrow">Commander</p><h2>Sur place, à emporter ou livraison partenaire</h2></section>
-<section class="order-partners reveal"><article><strong>🥡 À emporter</strong><p>Commandez sur le site et récupérez votre commande.</p><a class="button" href="{% url 'shop:checkout' %}">Commander</a></article><article><strong>🍽️ Sur place</strong><p>Réservez une table chez Pizza Vitti Bordeaux.</p><a class="button" href="{{ url_booking }}">Réserver</a></article><article><strong>🚚 Uber Eats</strong><p>Livraison par Uber Eats.</p><a class="button ghost" href="https://www.ubereats.com/fr" target="_blank" rel="noopener">Ouvrir</a></article><article><strong>🚚 Deliveroo</strong><p>Livraison par Deliveroo.</p><a class="button ghost" href="https://deliveroo.fr/fr/" target="_blank" rel="noopener">Ouvrir</a></article><article><strong>🚚 Just Eat</strong><p>Livraison par Just Eat.</p><a class="button ghost" href="https://www.just-eat.fr/" target="_blank" rel="noopener">Ouvrir</a></article></section>
+<section class="section-head">
+  <p class="eyebrow">Avis Google</p>
+  <h2>Ce que disent nos clients</h2>
+</section>
+<section class="testimonials reveal">
+  {% for review in reviews %}
+    <article>
+      <strong>{{ review.name }}</strong>
+      <span>★★★★★</span>
+      <p>{{ review.comment|default:'Très bonne adresse à Bordeaux.' }}</p>
+      <small>{{ review.source|default:'Google' }}</small>
+    </article>
+  {% empty %}
+    <article><strong>Marie</strong><span>★★★★★</span><p>Très bonne pizza.</p><small>Google</small></article>
+    <article><strong>Ahmed</strong><span>★★★★★</span><p>Service rapide.</p><small>Google</small></article>
+    <article><strong>Camille</strong><span>★★★★★</span><p>Accueil chaleureux et vraie ambiance italienne.</p><small>Google</small></article>
+  {% endfor %}
+</section>
 
-<section class="section-head"><p class="eyebrow">Avis Google</p><h2>Ce que disent nos clients</h2></section>
-<section class="testimonials reveal">{% for review in reviews %}<article><strong>{{ review.name }}</strong><span>★★★★★</span><p>{{ review.comment|default:'Très bonne adresse à Bordeaux.' }}</p><small>{{ review.source|default:'Google' }}</small></article>{% empty %}<article><strong>Marie</strong><span>★★★★★</span><p>Très bonne pizza.</p><small>Google</small></article><article><strong>Ahmed</strong><span>★★★★★</span><p>Service rapide.</p><small>Google</small></article><article><strong>Camille</strong><span>★★★★★</span><p>Accueil chaleureux et vraie ambiance italienne.</p><small>Google</small></article>{% endfor %}</section>
+<section class="section-head">
+  <p class="eyebrow">Instagram</p>
+  <h2>Galerie Pizza Vitti</h2>
+</section>
+<section class="gallery-strip reveal">
+  {% for image in gallery %}
+    <a href="{{ url_gallery }}" {% if image.display_image %}style="background-image:url('{{ image.display_image }}')"{% endif %}></a>
+  {% empty %}
+    <a href="{{ url_gallery }}"></a>
+    <a href="{{ url_gallery }}"></a>
+    <a href="{{ url_gallery }}"></a>
+  {% endfor %}
+</section>
 
-<section class="section-head"><p class="eyebrow">Instagram</p><h2>Galerie Pizza Vitti</h2></section>
-<section class="gallery-strip reveal">{% for image in gallery %}<a href="{{ url_gallery }}" {% if image.display_image %}style="background-image:url('{{ image.display_image }}')"{% endif %}></a>{% empty %}<a href="{{ url_gallery }}"></a><a href="{{ url_gallery }}"></a><a href="{{ url_gallery }}"></a>{% endfor %}</section>
+<section class="map-section reveal">
+  <div>
+    <p class="eyebrow">Contact & Carte</p>
+    <h2>Nous trouver</h2>
+    <p>236 Rue d'Ornano, 33000 Bordeaux</p>
+    <a class="button" target="_blank" rel="noopener" href="https://maps.google.com/?q=Pizza+Vitti+236+Rue+d'Ornano+33000+Bordeaux">Ouvrir Google Maps</a>
+  </div>
+  <iframe loading="lazy" src="https://www.google.com/maps?q=Pizza%20Vitti%20236%20Rue%20d'Ornano%2033000%20Bordeaux&output=embed"></iframe>
+</section>
 
-<section class="map-section reveal"><div><p class="eyebrow">Contact & Carte</p><h2>Nous trouver</h2><p>236 Rue d'Ornano, 33000 Bordeaux</p><a class="button" target="_blank" rel="noopener" href="https://maps.google.com/?q=Pizza+Vitti+236+Rue+d'Ornano+33000+Bordeaux">Ouvrir Google Maps</a></div><iframe loading="lazy" src="https://www.google.com/maps?q=Pizza%20Vitti%20236%20Rue%20d'Ornano%2033000%20Bordeaux&output=embed"></iframe></section>
-
-<section class="story reveal"><div><h2>Recevoir les offres Pizza Vitti</h2><p>Promos, pizza du mois, anniversaire et avantages fidélité.</p></div><form method="post" action="{% url 'shop:newsletter' %}" class="newsletter big">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><input type="email" name="email" placeholder="Votre email" required><button>OK</button></form></section>
+<section class="story reveal">
+  <div>
+    <h2>Recevoir les offres Pizza Vitti</h2>
+    <p>Promos, pizza du mois, anniversaire et nouveautés de la carte.</p>
+  </div>
+  <form method="post" action="{% url 'shop:newsletter' %}" class="newsletter big">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ request.path }}">
+    <input type="email" name="email" placeholder="Votre email" required>
+    <button>OK</button>
+  </form>
+</section>
 {% endblock %}
