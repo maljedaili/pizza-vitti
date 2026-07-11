@@ -19,8 +19,59 @@ document.querySelectorAll('.menu-photo-card').forEach(card => {
     card.style.setProperty('--tilt-y', '0deg');
   });
 });
-if (document.querySelector('[data-prep-board]')) {
-  setInterval(() => window.location.reload(), 30000);
+const orderPreview = document.querySelector('[data-order-preview]');
+if (orderPreview) {
+  document.querySelector('[data-order-preview-toggle]')?.addEventListener('click', () => orderPreview.classList.toggle('open'));
+  document.querySelector('[data-order-preview-close]')?.addEventListener('click', () => orderPreview.classList.remove('open'));
+}
+const prepBoard = document.querySelector('[data-prep-board]');
+if (prepBoard) {
+  const key = 'pizzaVittiLatestOrder';
+  const soundKey = 'pizzaVittiPrepSound';
+  const soundButton = document.querySelector('[data-prep-sound]');
+  const speak = text => {
+    try {
+      const audio = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      oscillator.type = 'sine';
+      oscillator.frequency.value = 880;
+      gain.gain.setValueAtTime(.001, audio.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.25, audio.currentTime + .03);
+      gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + .55);
+      oscillator.connect(gain).connect(audio.destination);
+      oscillator.start();
+      oscillator.stop(audio.currentTime + .6);
+    } catch (error) {}
+    if ('speechSynthesis' in window) window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+  };
+  const setSoundLabel = () => {
+    if (soundButton) soundButton.textContent = localStorage.getItem(soundKey) === 'on' ? 'Son actif' : 'Activer son';
+  };
+  soundButton?.addEventListener('click', () => {
+    localStorage.setItem(soundKey, 'on');
+    setSoundLabel();
+    speak('Son active. Vous recevrez une alerte a chaque nouvelle commande.');
+  });
+  setSoundLabel();
+  const initial = prepBoard.dataset.latestOrder || '';
+  if (initial && !localStorage.getItem(key)) localStorage.setItem(key, initial);
+  const checkOrders = async () => {
+    try {
+      const res = await fetch(prepBoard.dataset.pollUrl || window.location.href, {headers: {'X-Requested-With': 'XMLHttpRequest'}});
+      const data = await res.json();
+      const latest = data.latest_order_key || '';
+      const previous = localStorage.getItem(key) || '';
+      if (latest && previous && latest !== previous) {
+        localStorage.setItem(key, latest);
+        if (localStorage.getItem(soundKey) === 'on') speak('Nouvelle commande recue.');
+        setTimeout(() => window.location.reload(), 1200);
+      } else if (latest) {
+        localStorage.setItem(key, latest);
+      }
+    } catch (error) {}
+  };
+  setInterval(checkOrders, 12000);
 }
 const typeSelect = document.querySelector('[data-customer-type]');
 const proBox = document.querySelector('[data-pro-box]');

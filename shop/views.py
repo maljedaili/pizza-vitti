@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.db.models import Q, Case, When, IntegerField
 from django.http import JsonResponse, HttpResponse
@@ -175,6 +176,54 @@ def _cart_items(request):
         items.append({'product': p, 'qty': qty, 'line_total': line})
     return items, total
 
+def _format_order_lines(order):
+    return '\n'.join(
+        f'- {item.quantity} x {item.name}: {item.line_total} EUR'
+        for item in order.items.all()
+    )
+
+def _send_order_email(order, subject, intro):
+    if not order.email:
+        return False
+    order_url = settings.SITE_URL.rstrip('/') + order.get_absolute_url()
+    location_line = f'Table: {order.table_number}' if order.table_number else 'Type: retrait / sur place selon votre commande'
+    body = (
+        f'Bonjour {order.customer_name},\n\n'
+        f'{intro}\n\n'
+        f'Commande: {order.order_number}\n'
+        f'{location_line}\n\n'
+        f'Detail de la commande:\n{_format_order_lines(order)}\n\n'
+        f'Total: {order.total} EUR\n'
+        f'Suivi / facture: {order_url}\n\n'
+        'Merci,\nPizza Vitti'
+    )
+    try:
+        return send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [order.email], fail_silently=True) > 0
+    except Exception:
+        return False
+
+def _send_order_received_email(order):
+    sent = _send_order_email(
+        order,
+        f'Pizza Vitti - commande recue {order.order_number}',
+        'Nous avons bien recu votre commande. Elle arrive dans le tableau de preparation Pizza Vitti.',
+    )
+    if sent:
+        order.confirmation_email_sent = True
+        order.save(update_fields=['confirmation_email_sent'])
+
+def _send_order_ready_email(order):
+    if order.ready_email_sent:
+        return
+    sent = _send_order_email(
+        order,
+        f'Pizza Vitti - votre commande est prete {order.order_number}',
+        'Votre commande est prete. Vous pouvez la recuperer, ou elle va etre servie a votre table.',
+    )
+    if sent:
+        order.ready_email_sent = True
+        order.save(update_fields=['ready_email_sent'])
+
 def _pizza_qty(items):
     pizza_words = ('pizza', 'pizzas')
     count = 0
@@ -338,6 +387,7 @@ def checkout(request):
         for item in items:
             OrderItem.objects.create(order=order, product=item['product'], name=item['product'].name,
                 quantity=item['qty'], unit_price=item['product'].price, line_total=item['line_total'])
+        _send_order_received_email(order)
         request.session['cart'] = {}
         if table_number:
             request.session.pop('table_number', None)
@@ -399,8 +449,15 @@ def qr_tables(request):
 def preparation_dashboard(request):
     active_statuses = ['received', 'preparing', 'ready']
     orders = Order.objects.filter(status__in=active_statuses).prefetch_related('items').order_by('created_at')
+    latest_order = orders.order_by('-created_at').first()
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse({
+            'latest_order_key': latest_order.order_number if latest_order else '',
+            'count': orders.count(),
+        })
     return render(request, 'shop/preparation_dashboard.html', {
         'orders': orders,
+        'latest_order_key': latest_order.order_number if latest_order else '',
         'now': timezone.now(),
         'meta_title': 'Préparation commandes | Pizza Vitti',
     })
@@ -413,6 +470,8 @@ def update_order_status(request, order_number):
     if status in dict(Order.STATUS):
         order.status = status
         order.save(update_fields=['status'])
+        if status == 'ready':
+            _send_order_ready_email(order)
         messages.success(request, f'Commande {order.order_number} mise à jour.')
     return redirect('shop:preparation_dashboard')
 

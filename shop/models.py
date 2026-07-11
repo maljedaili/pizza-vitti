@@ -141,6 +141,8 @@ class Order(TimeStampedModel):
     status = models.CharField(max_length=20, choices=STATUS, default='received')
     payment_status = models.CharField(max_length=20, choices=PAYMENT, default='pending')
     stripe_session_id = models.CharField(max_length=255, blank=True)
+    confirmation_email_sent = models.BooleanField(default=False, verbose_name='Email de confirmation envoyé')
+    ready_email_sent = models.BooleanField(default=False, verbose_name='Email commande prête envoyé')
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     class Meta:
         ordering = ['-created_at']

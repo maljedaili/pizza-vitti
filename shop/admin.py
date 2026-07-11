@@ -47,14 +47,14 @@ class OrderItemInline(admin.TabularInline):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ('order_number','customer_name','table_number','email','order_type','selected_reward','total','status','payment_status','created_at')
-    list_filter = ('status','payment_status','order_type','created_at')
+    list_display = ('order_number','customer_name','table_number','email','order_type','selected_reward','total','status','payment_status','confirmation_email_sent','ready_email_sent','created_at')
+    list_filter = ('status','payment_status','order_type','confirmation_email_sent','ready_email_sent','created_at')
     search_fields = ('order_number','customer_name','email','phone','table_number')
     list_editable = ('status','payment_status')
-    readonly_fields = ('order_number','stripe_session_id','created_at','updated_at')
+    readonly_fields = ('order_number','stripe_session_id','confirmation_email_sent','ready_email_sent','created_at','updated_at')
     fieldsets = (
         ('Commande', {'fields': ('order_number','customer_name','email','phone','table_number','address','order_type','selected_reward','promo_code','notes','total')}),
-        ('Suivi', {'fields': ('status','payment_status','delivery_issue_note','stripe_session_id')}),
+        ('Suivi', {'fields': ('status','payment_status','delivery_issue_note','confirmation_email_sent','ready_email_sent','stripe_session_id')}),
         ('Dates', {'fields': ('created_at','updated_at')}),
     )
     inlines = [OrderItemInline]

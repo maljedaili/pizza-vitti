@@ -5,10 +5,10 @@
   <p class="eyebrow">Préparation</p>
   <h1>Commandes en cuisine</h1>
   <p>Les commandes QR à table apparaissent ici avec la table, le client, les plats et les actions de suivi.</p>
-  <div class="hero-actions"><a class="button ghost" href="{% url 'shop:qr_tables' %}">QR tables</a><button class="button" onclick="window.location.reload()">Actualiser</button></div>
+  <div class="hero-actions"><a class="button ghost" href="{% url 'shop:qr_tables' %}">QR tables</a><button class="button ghost" type="button" data-prep-sound>Activer son</button><button class="button" onclick="window.location.reload()">Actualiser</button></div>
 </section>
 
-<section class="prep-board" data-prep-board>
+<section class="prep-board" data-prep-board data-latest-order="{{ latest_order_key }}" data-poll-url="{% url 'shop:preparation_dashboard' %}">
   {% for order in orders %}
     <article class="prep-ticket status-{{ order.status }}">
       <div class="prep-ticket-head">
