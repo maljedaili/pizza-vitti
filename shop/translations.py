@@ -1,6 +1,6 @@
 
 LANGUAGE_OPTIONS = [
-    ('fr', 'FR', 'Français', '/fr/accueil'),
+    ('fr', 'FR', 'Français', '/fr/'),
     ('en', 'EN', 'English', '/en/home'),
     ('es', 'ES', 'Español', '/es/inicio'),
     ('it', 'IT', 'Italiano', '/it/home'),
@@ -10,9 +10,9 @@ LANGUAGE_OPTIONS = [
     ('ja', 'JA', '日本語', '/ja/'),
     ('ar', 'AR', 'العربية', '/ar/'),
 ]
-HOME_SLUGS = {'fr':'accueil','en':'home','es':'inicio','it':'home','pt':'inicio','nl':'home','zh':'','ja':'','ar':''}
+HOME_SLUGS = {'fr':'','en':'home','es':'inicio','it':'home','pt':'inicio','nl':'home','zh':'','ja':'','ar':''}
 PAGE_SLUGS = {
-    'home': {'fr':'accueil','en':'home','es':'inicio','it':'home','pt':'inicio','nl':'home','zh':'','ja':'','ar':''},
+    'home': {'fr':'','en':'home','es':'inicio','it':'home','pt':'inicio','nl':'home','zh':'','ja':'','ar':''},
     'menu': {'fr':'menu','en':'menu','es':'menu','it':'menu','pt':'menu','nl':'menu','zh':'menu','ja':'menu','ar':'menu'},
     'booking': {'fr':'reserver','en':'booking','es':'reservar','it':'prenotare','pt':'reservar','nl':'reserveren','zh':'yuding','ja':'yoyaku','ar':'reservation'},
     'reviews': {'fr':'avis','en':'reviews','es':'opiniones','it':'recensioni','pt':'avaliacoes','nl':'beoordelingen','zh':'pingjia','ja':'kuchikomi','ar':'avis'},

@@ -512,6 +512,8 @@ def simple_page(request, title):
 def localized_dispatch(request, lang, page=None):
     if lang not in TRANSLATIONS:
         return redirect('shop:home')
+    if lang == 'fr' and page == 'accueil':
+        return redirect('/fr/')
     page = page or HOME_SLUGS.get(lang, '')
     dispatch = {'home': home, 'menu': boutique, 'booking': booking, 'reviews': reviews, 'gallery': gallery, 'blog': blog, 'contact': contact, 'cart': cart, 'checkout': checkout}
     for key, slugs in PAGE_SLUGS.items():

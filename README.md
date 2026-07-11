@@ -53,12 +53,14 @@ Le démarrage Render lance `render-start.sh`, qui exécute automatiquement :
 
 ```bash
 python manage.py migrate --noinput
+python manage.py seed_if_empty
 python manage.py collectstatic --noinput
 gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
 ```
 
 Pour la production, utiliser une base PostgreSQL Render et définir `DATABASE_URL`.
 Sans `DATABASE_URL`, Django utilise SQLite dans le conteneur Render, ce qui peut donner une base vide après déploiement.
+Définir aussi `ALLOWED_HOSTS` avec les domaines Render et client, par exemple `pizza-vitti.onrender.com,pizza-vitti.kayen.fr`.
 
 
 ## V5 updates
