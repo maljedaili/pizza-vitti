@@ -47,6 +47,19 @@ Sans clés Stripe, le site reste fonctionnel avec paiement au retrait.
 - Mettre les vraies photos du restaurant dans `media/` ou en URL externe
 - Configurer `SITE_URL` et `ALLOWED_HOSTS` pour le domaine final
 
+## Déploiement Render
+
+Le démarrage Render lance `render-start.sh`, qui exécute automatiquement :
+
+```bash
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
+gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+```
+
+Pour la production, utiliser une base PostgreSQL Render et définir `DATABASE_URL`.
+Sans `DATABASE_URL`, Django utilise SQLite dans le conteneur Render, ce qui peut donner une base vide après déploiement.
+
 
 ## V5 updates
 - Multilingual front pages: /fr/accueil, /en/home, /es/inicio, /it/home, /pt/inicio, /nl/home, /zh/, /ja/, /ar/.
