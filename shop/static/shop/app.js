@@ -28,22 +28,44 @@ const prepBoard = document.querySelector('[data-prep-board]');
 if (prepBoard) {
   const key = 'pizzaVittiLatestOrder';
   const soundKey = 'pizzaVittiPrepSound';
+  const pendingAlertKey = 'pizzaVittiPendingPrepAlert';
   const soundButton = document.querySelector('[data-prep-sound]');
-  const speak = text => {
+  const alertBox = document.querySelector('[data-prep-alert]');
+  const alertClose = document.querySelector('[data-prep-alert-close]');
+  const ring = () => {
     try {
       const audio = new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = audio.createOscillator();
-      const gain = audio.createGain();
-      oscillator.type = 'sine';
-      oscillator.frequency.value = 880;
-      gain.gain.setValueAtTime(.001, audio.currentTime);
-      gain.gain.exponentialRampToValueAtTime(.25, audio.currentTime + .03);
-      gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + .55);
-      oscillator.connect(gain).connect(audio.destination);
-      oscillator.start();
-      oscillator.stop(audio.currentTime + .6);
+      [0, .22, .44].forEach((offset, index) => {
+        const oscillator = audio.createOscillator();
+        const gain = audio.createGain();
+        oscillator.type = 'square';
+        oscillator.frequency.value = index % 2 ? 740 : 980;
+        gain.gain.setValueAtTime(.001, audio.currentTime + offset);
+        gain.gain.exponentialRampToValueAtTime(.28, audio.currentTime + offset + .03);
+        gain.gain.exponentialRampToValueAtTime(.001, audio.currentTime + offset + .18);
+        oscillator.connect(gain).connect(audio.destination);
+        oscillator.start(audio.currentTime + offset);
+        oscillator.stop(audio.currentTime + offset + .2);
+      });
     } catch (error) {}
-    if ('speechSynthesis' in window) window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+  };
+  const showPrepAlert = () => {
+    document.body.classList.add('prep-alert-active');
+    if (alertBox) alertBox.hidden = false;
+  };
+  const stopPrepAlert = () => {
+    document.body.classList.remove('prep-alert-active');
+    if (alertBox) alertBox.hidden = true;
+    localStorage.removeItem(pendingAlertKey);
+  };
+  const speak = text => {
+    ring();
+    setTimeout(ring, 900);
+    setTimeout(ring, 1800);
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+    }
   };
   const setSoundLabel = () => {
     if (soundButton) soundButton.textContent = localStorage.getItem(soundKey) === 'on' ? 'Son actif' : 'Activer son';
@@ -53,7 +75,12 @@ if (prepBoard) {
     setSoundLabel();
     speak('Son active. Vous recevrez une alerte a chaque nouvelle commande.');
   });
+  alertClose?.addEventListener('click', stopPrepAlert);
   setSoundLabel();
+  if (localStorage.getItem(pendingAlertKey) === 'on') {
+    showPrepAlert();
+    if (localStorage.getItem(soundKey) === 'on') speak('Nouvelle commande recue.');
+  }
   const initial = prepBoard.dataset.latestOrder || '';
   if (initial && !localStorage.getItem(key)) localStorage.setItem(key, initial);
   const checkOrders = async () => {
@@ -64,8 +91,10 @@ if (prepBoard) {
       const previous = localStorage.getItem(key) || '';
       if (latest && previous && latest !== previous) {
         localStorage.setItem(key, latest);
+        localStorage.setItem(pendingAlertKey, 'on');
+        showPrepAlert();
         if (localStorage.getItem(soundKey) === 'on') speak('Nouvelle commande recue.');
-        setTimeout(() => window.location.reload(), 1200);
+        setTimeout(() => window.location.reload(), 2600);
       } else if (latest) {
         localStorage.setItem(key, latest);
       }

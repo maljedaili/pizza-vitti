@@ -1,4 +1,5 @@
 from decimal import Decimal
+from urllib.parse import quote
 from uuid import uuid4
 from django.conf import settings
 from django.contrib import messages
@@ -224,6 +225,33 @@ def _send_order_ready_email(order):
         order.ready_email_sent = True
         order.save(update_fields=['ready_email_sent'])
 
+def _whatsapp_number(raw):
+    digits = ''.join(ch for ch in (raw or '') if ch.isdigit())
+    if not digits:
+        return ''
+    if digits.startswith('00'):
+        digits = digits[2:]
+    if digits.startswith('0') and len(digits) == 10:
+        digits = '33' + digits[1:]
+    return digits
+
+def _whatsapp_customer_url(order, kind):
+    phone = _whatsapp_number(order.phone)
+    if not phone:
+        return ''
+    order_url = settings.SITE_URL.rstrip('/') + order.get_absolute_url()
+    if kind == 'ready':
+        message = (
+            f'Bonjour {order.customer_name}, votre commande Pizza Vitti {order.order_number} est prête. '
+            f'Vous pouvez la récupérer ou elle va être servie à votre table. Suivi: {order_url}'
+        )
+    else:
+        message = (
+            f'Bonjour {order.customer_name}, nous avons bien reçu votre commande Pizza Vitti {order.order_number}. '
+            f'Elle est envoyée en préparation. Suivi: {order_url}'
+        )
+    return f'https://wa.me/{phone}?text={quote(message)}'
+
 def _pizza_qty(items):
     pizza_words = ('pizza', 'pizzas')
     count = 0
@@ -448,12 +476,16 @@ def qr_tables(request):
 @staff_member_required
 def preparation_dashboard(request):
     active_statuses = ['received', 'preparing', 'ready']
-    orders = Order.objects.filter(status__in=active_statuses).prefetch_related('items').order_by('created_at')
-    latest_order = orders.order_by('-created_at').first()
+    orders_qs = Order.objects.filter(status__in=active_statuses).prefetch_related('items').order_by('created_at')
+    latest_order = orders_qs.order_by('-created_at').first()
+    orders = list(orders_qs)
+    for order in orders:
+        order.whatsapp_received_url = _whatsapp_customer_url(order, 'received')
+        order.whatsapp_ready_url = _whatsapp_customer_url(order, 'ready')
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({
             'latest_order_key': latest_order.order_number if latest_order else '',
-            'count': orders.count(),
+            'count': len(orders),
         })
     return render(request, 'shop/preparation_dashboard.html', {
         'orders': orders,

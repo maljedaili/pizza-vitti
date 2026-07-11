@@ -8,6 +8,12 @@
   <div class="hero-actions"><a class="button ghost" href="{% url 'shop:qr_tables' %}">QR tables</a><button class="button ghost" type="button" data-prep-sound>Activer son</button><button class="button" onclick="window.location.reload()">Actualiser</button></div>
 </section>
 
+<section class="prep-live-alert" data-prep-alert hidden>
+  <strong>Nouvelle commande reçue</strong>
+  <span>Ouvrez le ticket en cuisine et lancez la préparation.</span>
+  <button type="button" data-prep-alert-close>OK</button>
+</section>
+
 <section class="prep-board" data-prep-board data-latest-order="{{ latest_order_key }}" data-poll-url="{% url 'shop:preparation_dashboard' %}">
   {% for order in orders %}
     <article class="prep-ticket status-{{ order.status }}">
@@ -25,6 +31,10 @@
         {% endfor %}
       </ul>
       {% if order.notes %}<p class="prep-note">{{ order.notes|linebreaksbr }}</p>{% endif %}
+      <div class="prep-customer-actions">
+        {% if order.whatsapp_received_url %}<a class="button ghost" target="_blank" rel="noopener" href="{{ order.whatsapp_received_url }}">WhatsApp reçu</a>{% endif %}
+        {% if order.whatsapp_ready_url %}<a class="button ghost" target="_blank" rel="noopener" href="{{ order.whatsapp_ready_url }}">WhatsApp prête</a>{% endif %}
+      </div>
       <div class="prep-actions">
         <form method="post" action="{% url 'shop:update_order_status' order.order_number %}">{% csrf_token %}<input type="hidden" name="status" value="preparing"><button class="button ghost">Préparer</button></form>
         <form method="post" action="{% url 'shop:update_order_status' order.order_number %}">{% csrf_token %}<input type="hidden" name="status" value="ready"><button class="button">Prête</button></form>
