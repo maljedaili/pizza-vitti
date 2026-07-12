@@ -11,6 +11,9 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,pizza-vitti.onrender.com,pizza-vitti.kayen.fr,pizza-vitti.kayan.fr').split(',')]
 SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
 WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', '')
+GOOGLE_REVIEW_URL = os.getenv('GOOGLE_REVIEW_URL', 'https://www.google.com/search?q=Pizza+Vitti+Bordeaux+avis')
+INSTAGRAM_URL = os.getenv('INSTAGRAM_URL', 'https://www.instagram.com/')
+FACEBOOK_URL = os.getenv('FACEBOOK_URL', 'https://www.facebook.com/')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Pizza Vitti <no-reply@pizza-vitti.fr>')
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', '')

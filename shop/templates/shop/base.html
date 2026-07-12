@@ -56,7 +56,7 @@
 <footer>
   <div class="footer-grid">
     <div><strong>Pizza Vitti</strong><p>Restaurant italien — 236 Rue d'Ornano, 33000 Bordeaux · +33 5 56 42 14 49</p><!-- Google login will be enabled after OAuth setup --></p></div>
-    <div><strong>{{ T.links }}</strong><p><a href="{{ url_menu }}">{{ T.menu }}</a> · <a href="{{ url_booking }}">{{ T.booking }}</a> · <a href="{{ url_gallery }}">{{ T.gallery }}</a> · <a href="{{ url_reviews }}">{{ T.reviews }}</a> · <a href="{% url 'shop:legal_notice' %}">Mentions légales</a></p><p class="social-icons"><a aria-label="Instagram" href="https://www.instagram.com/" target="_blank" rel="noopener">📷</a><a aria-label="Facebook" href="https://www.facebook.com/" target="_blank" rel="noopener">f</a></p></div>
+    <div><strong>{{ T.links }}</strong><p><a href="{{ url_menu }}">{{ T.menu }}</a> · <a href="{{ url_booking }}">{{ T.booking }}</a> · <a href="{{ url_gallery }}">{{ T.gallery }}</a> · <a href="{{ url_reviews }}">{{ T.reviews }}</a> · <a href="{% url 'shop:legal_notice' %}">Mentions légales</a></p><p class="social-icons"><a aria-label="Instagram" href="{{ INSTAGRAM_URL }}" target="_blank" rel="noopener">📷</a><a aria-label="Facebook" href="{{ FACEBOOK_URL }}" target="_blank" rel="noopener">f</a></p></div>
     <div><strong>{{ T.newsletter_title }}</strong><p>{{ T.newsletter_text }}</p><form class="newsletter" method="post" action="{% url 'shop:newsletter' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><input type="email" name="email" placeholder="{{ T.email_placeholder }}" required><button>OK</button></form></div>
   </div>
   <p class="credit">{{ T.created }} <a href="https://kayan.fr" target="_blank" rel="noopener">Kayan.fr</a></p>

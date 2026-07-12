@@ -37,9 +37,16 @@ def _menu_category_order(qs):
 def site_settings(request):
     lang = get_lang_from_path(request.path)
     T = t_for(lang)
+    configured_site_url = settings.SITE_URL.rstrip('/')
+    host = request.get_host().split(':')[0]
+    if configured_site_url.startswith('http://localhost') and host not in ['localhost', '127.0.0.1']:
+        configured_site_url = f"{request.scheme}://{request.get_host()}"
     return {
-        'SITE_URL': settings.SITE_URL,
+        'SITE_URL': configured_site_url,
         'WHATSAPP_NUMBER': settings.WHATSAPP_NUMBER,
+        'GOOGLE_REVIEW_URL': settings.GOOGLE_REVIEW_URL,
+        'INSTAGRAM_URL': settings.INSTAGRAM_URL,
+        'FACEBOOK_URL': settings.FACEBOOK_URL,
         'nav_categories': _menu_category_order(Category.objects.filter(is_active=True)),
         'current_lang': lang,
         'T': T,
