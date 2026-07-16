@@ -390,7 +390,7 @@ def remove_from_cart(request, product_id):
     cart.pop(str(product_id), None)
     request.session['cart'] = cart
     messages.success(request, 'Plat retiré du panier.')
-    return redirect('shop:cart')
+    return redirect(request.POST.get('next') or 'shop:cart')
 
 def checkout(request):
     items, total = _cart_items(request)

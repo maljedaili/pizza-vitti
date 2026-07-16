@@ -35,7 +35,15 @@
     </div>
     <div class="order-preview-lines">
       {% for item in cart_preview_items %}
-        <p><span>{{ item.qty }} × {{ item.product.name }}</span><strong>{{ item.line_total }} €</strong></p>
+        <div class="order-preview-line">
+          <span>{{ item.qty }} × {{ item.product.name }}</span>
+          <strong>{{ item.line_total }} €</strong>
+          <form method="post" action="{% url 'shop:remove_from_cart' item.product.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="remove-mini" title="Supprimer {{ item.product.name }}" aria-label="Supprimer {{ item.product.name }}">×</button>
+          </form>
+        </div>
       {% endfor %}
       {% if cart_preview_more %}<small>+ {{ cart_preview_more }} autre(s) article(s)</small>{% endif %}
     </div>
