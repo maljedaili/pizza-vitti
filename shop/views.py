@@ -1,22 +1,57 @@
 from decimal import Decimal
+from datetime import timedelta
+from functools import wraps
 import json
 from urllib.parse import quote
 from uuid import uuid4
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.admin.views.decorators import staff_member_required
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
-from django.db.models import Q, Case, When, IntegerField
+from django.db.models import Q, Case, When, IntegerField, Sum, Count
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 import stripe
-from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, Favorite, ProductTranslation, CategoryTranslation
+from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder
 from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_path
+
+
+def _password_matches(raw_password, configured_password):
+    return bool(raw_password) and raw_password == configured_password
+
+
+def _session_or_staff(request, key):
+    return bool(request.session.get(key) or request.user.is_staff)
+
+
+def kitchen_required(view_func):
+    @wraps(view_func)
+    def wrapped(request, *args, **kwargs):
+        if _session_or_staff(request, 'kitchen_access') or _session_or_staff(request, 'owner_access'):
+            return view_func(request, *args, **kwargs)
+        login_url = reverse('shop:kitchen_login')
+        return redirect(f'{login_url}?next={quote(request.get_full_path())}')
+    return wrapped
+
+
+def owner_required(view_func):
+    @wraps(view_func)
+    def wrapped(request, *args, **kwargs):
+        if _session_or_staff(request, 'owner_access'):
+            return view_func(request, *args, **kwargs)
+        login_url = reverse('shop:owner_login')
+        return redirect(f'{login_url}?next={quote(request.get_full_path())}')
+    return wrapped
+
+
+def _today_bounds():
+    now = timezone.localtime()
+    start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    return start, now
 
 
 def _menu_category_order(qs):
@@ -457,7 +492,312 @@ def invoice(request, order_number):
     order = get_object_or_404(Order.objects.prefetch_related('items'), order_number=order_number)
     return render(request, 'shop/invoice.html', {'order': order})
 
-@staff_member_required
+
+def _safe_next_url(request, fallback):
+    next_url = request.POST.get('next') or request.GET.get('next') or fallback
+    return next_url if next_url.startswith('/') else fallback
+
+
+def _login_fallback(role):
+    if role == 'kitchen':
+        return reverse('shop:kitchen_app')
+    if role == 'staff':
+        return reverse('shop:staff_portal')
+    return reverse('shop:owner_dashboard')
+
+
+def app_home(request):
+    return render(request, 'shop/app_home.html', {
+        'kitchen_app': True,
+        'meta_title': 'Application Pizza Vitti',
+    })
+
+
+def app_role(request, role):
+    role_map = {
+        'proprietaire': 'owner',
+        'owner': 'owner',
+        'cuisine': 'kitchen',
+        'kitchen': 'kitchen',
+        'staff': 'staff',
+    }
+    selected_role = role_map.get(role, 'owner')
+    return redirect(f"{reverse('shop:app_login')}?role={selected_role}")
+
+
+def app_login(request, default_role='owner'):
+    selected_role = request.POST.get('role') or request.GET.get('role') or default_role
+    if selected_role not in ['owner', 'kitchen', 'staff']:
+        selected_role = 'owner'
+    fallback = _login_fallback(selected_role)
+    if selected_role == 'owner' and _session_or_staff(request, 'owner_access'):
+        return redirect(_safe_next_url(request, fallback))
+    if selected_role == 'kitchen' and (_session_or_staff(request, 'kitchen_access') or _session_or_staff(request, 'owner_access')):
+        return redirect(_safe_next_url(request, fallback))
+    if selected_role == 'staff' and request.session.get('staff_id'):
+        return redirect(_safe_next_url(request, fallback))
+    if request.method == 'POST':
+        password = request.POST.get('password', '')
+        if selected_role == 'owner' and _password_matches(password, settings.OWNER_DASHBOARD_PASSWORD):
+            request.session['owner_access'] = True
+            request.session['kitchen_access'] = True
+            messages.success(request, 'Accès propriétaire activé.')
+            return redirect(_safe_next_url(request, reverse('shop:owner_dashboard')))
+        if selected_role == 'kitchen' and _password_matches(password, settings.KITCHEN_PASSWORD):
+            request.session['kitchen_access'] = True
+            messages.success(request, 'Accès cuisine activé.')
+            return redirect(_safe_next_url(request, reverse('shop:kitchen_app')))
+        if selected_role == 'staff':
+            username = request.POST.get('username', '').strip()
+            staff = StaffMember.objects.filter(username__iexact=username, is_active=True).first()
+            if staff and staff.check_password(password):
+                request.session['staff_id'] = staff.id
+                messages.success(request, f'Bonjour {staff.name}.')
+                return redirect(_safe_next_url(request, reverse('shop:staff_portal')))
+        messages.error(request, 'Identifiant ou mot de passe incorrect.')
+    return render(request, 'shop/app_login.html', {
+        'next': request.GET.get('next', fallback),
+        'selected_role': selected_role,
+        'kitchen_app': True,
+        'meta_title': 'Connexion application | Pizza Vitti',
+    })
+
+
+def kitchen_login(request):
+    return app_login(request, 'kitchen')
+
+
+def kitchen_logout(request):
+    request.session.pop('kitchen_access', None)
+    messages.success(request, 'Session cuisine fermée.')
+    return redirect('shop:app_login')
+
+
+def owner_login(request):
+    return app_login(request, 'owner')
+
+
+def owner_logout(request):
+    request.session.pop('owner_access', None)
+    messages.success(request, 'Session propriétaire fermée.')
+    return redirect('shop:app_login')
+
+
+def _report_stats(start, end=None):
+    qs = Order.objects.filter(created_at__gte=start)
+    if end:
+        qs = qs.filter(created_at__lt=end)
+    data = qs.aggregate(count=Count('id'), revenue=Sum('total'))
+    return {'count': data['count'] or 0, 'revenue': data['revenue'] or Decimal('0.00')}
+
+
+@owner_required
+def owner_dashboard(request):
+    today_start, now = _today_bounds()
+    active_orders = Order.objects.filter(status__in=['received','preparing','ready'])
+    today_orders = Order.objects.filter(created_at__gte=today_start)
+    today_staff = StaffShift.objects.filter(check_in_at__date=timezone.localdate())
+    stats = today_orders.aggregate(count=Count('id'), revenue=Sum('total'))
+    most_ordered = (
+        OrderItem.objects.filter(order__created_at__gte=today_start)
+        .values('name')
+        .annotate(quantity=Sum('quantity'))
+        .order_by('-quantity')[:5]
+    )
+    return render(request, 'shop/owner_dashboard.html', {
+        'orders_count': stats['count'] or 0,
+        'revenue': stats['revenue'] or Decimal('0.00'),
+        'active_orders_count': active_orders.count(),
+        'staff_present_count': today_staff.exclude(status='checked_out').count(),
+        'open_purchase_count': PurchaseOrder.objects.exclude(status__in=['received','cancelled']).count(),
+        'recent_orders': Order.objects.prefetch_related('items').order_by('-created_at')[:8],
+        'most_ordered': most_ordered,
+        'kitchen_app': True,
+        'meta_title': 'Dashboard propriétaire | Pizza Vitti',
+    })
+
+
+def _ensure_default_tables():
+    if DiningTable.objects.exists():
+        return
+    defaults = []
+    for idx in range(1, 13):
+        col = (idx - 1) % 4
+        row = (idx - 1) // 4
+        defaults.append(DiningTable(label=str(idx), seats=2 + (idx % 3), x=10 + col * 24, y=14 + row * 28))
+    DiningTable.objects.bulk_create(defaults)
+
+
+@owner_required
+def floor_plan(request):
+    _ensure_default_tables()
+    tables = list(DiningTable.objects.filter(is_active=True))
+    active_orders = Order.objects.filter(status__in=['received','preparing','ready'], table_number__isnull=False).order_by('created_at')
+    orders_by_table = {}
+    for order in active_orders:
+        if order.table_number:
+            orders_by_table[str(order.table_number)] = order
+    for table in tables:
+        table.current_order = orders_by_table.get(str(table.label))
+        table.public_url = request.build_absolute_uri(reverse('shop:table_menu', args=[table.label]))
+    return render(request, 'shop/floor_plan.html', {
+        'tables': tables,
+        'kitchen_app': True,
+        'meta_title': 'Plan de salle | Pizza Vitti',
+    })
+
+
+@owner_required
+def purchase_orders(request):
+    if request.method == 'POST':
+        supplier = request.POST.get('supplier', '').strip()
+        if supplier:
+            PurchaseOrder.objects.create(
+                supplier=supplier,
+                reference=request.POST.get('reference', '').strip(),
+                expected_date=request.POST.get('expected_date') or None,
+                total=Decimal(request.POST.get('total') or '0'),
+                status=request.POST.get('status') or 'draft',
+                notes=request.POST.get('notes', '').strip(),
+            )
+            messages.success(request, 'Commande fournisseur ajoutée.')
+            return redirect('shop:purchase_orders')
+        messages.error(request, 'Ajoutez au moins le fournisseur.')
+    return render(request, 'shop/purchase_orders.html', {
+        'purchase_orders': PurchaseOrder.objects.all()[:50],
+        'kitchen_app': True,
+        'meta_title': 'Commandes fournisseurs | Pizza Vitti',
+    })
+
+
+@owner_required
+def staff_manage(request):
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
+        role = request.POST.get('role', '').strip() or 'Équipe'
+        if name and username and password:
+            staff, created = StaffMember.objects.get_or_create(username=username, defaults={'name': name, 'role': role})
+            staff.name = name
+            staff.role = role
+            staff.temporary_password = password
+            staff.is_active = True
+            staff.save()
+            messages.success(request, 'Employé ajouté.' if created else 'Employé mis à jour.')
+            return redirect('shop:staff_manage')
+        messages.error(request, 'Nom, utilisateur et mot de passe sont obligatoires.')
+    staff_members = StaffMember.objects.prefetch_related('shifts')
+    latest_shifts = {}
+    for shift in StaffShift.objects.select_related('staff').order_by('-created_at')[:100]:
+        latest_shifts.setdefault(shift.staff_id, shift)
+    for staff in staff_members:
+        staff.latest_shift = latest_shifts.get(staff.id)
+    return render(request, 'shop/staff_manage.html', {
+        'staff_members': staff_members,
+        'kitchen_app': True,
+        'meta_title': 'Équipe | Pizza Vitti',
+    })
+
+
+@owner_required
+def staff_qr(request):
+    login_url = request.build_absolute_uri(f"{reverse('shop:app_login')}?role=staff")
+    return render(request, 'shop/staff_qr.html', {
+        'login_url': login_url,
+        'qr_url': f'https://api.qrserver.com/v1/create-qr-code/?size=320x320&data={quote(login_url)}',
+        'kitchen_app': True,
+        'meta_title': 'QR équipe | Pizza Vitti',
+    })
+
+
+@owner_required
+def reports_dashboard(request):
+    today_start, now = _today_bounds()
+    week_start = today_start - timedelta(days=today_start.weekday())
+    month_start = today_start.replace(day=1)
+    year_start = today_start.replace(month=1, day=1)
+    reports = [
+        ('Aujourd’hui', _report_stats(today_start)),
+        ('Cette semaine', _report_stats(week_start)),
+        ('Ce mois', _report_stats(month_start)),
+        ('Cette année', _report_stats(year_start)),
+    ]
+    staff_shifts = StaffShift.objects.select_related('staff').filter(check_in_at__gte=week_start)[:60]
+    return render(request, 'shop/reports_dashboard.html', {
+        'reports': reports,
+        'staff_shifts': staff_shifts,
+        'kitchen_app': True,
+        'meta_title': 'Rapports | Pizza Vitti',
+    })
+
+
+def staff_login(request):
+    return app_login(request, 'staff')
+
+
+def staff_logout(request):
+    request.session.pop('staff_id', None)
+    messages.success(request, 'Session équipe fermée.')
+    return redirect(f"{reverse('shop:app_login')}?role=staff")
+
+
+def _current_staff(request):
+    staff_id = request.session.get('staff_id')
+    if not staff_id:
+        return None
+    return StaffMember.objects.filter(id=staff_id, is_active=True).first()
+
+
+def staff_portal(request):
+    staff = _current_staff(request)
+    if not staff:
+        return redirect(f"{reverse('shop:app_login')}?role=staff")
+    today = timezone.localdate()
+    shift = StaffShift.objects.filter(staff=staff, check_in_at__date=today).order_by('-created_at').first()
+    return render(request, 'shop/staff_portal.html', {
+        'staff_member': staff,
+        'shift': shift,
+        'kitchen_app': True,
+        'meta_title': 'Pointage équipe | Pizza Vitti',
+    })
+
+
+@require_POST
+def staff_action(request):
+    staff = _current_staff(request)
+    if not staff:
+        return redirect(f"{reverse('shop:app_login')}?role=staff")
+    action = request.POST.get('action')
+    now = timezone.now()
+    today = timezone.localdate()
+    shift = StaffShift.objects.filter(staff=staff, check_in_at__date=today).order_by('-created_at').first()
+    if action == 'check_in':
+        if not shift or shift.status == 'checked_out':
+            StaffShift.objects.create(staff=staff, status='checked_in', check_in_at=now)
+        else:
+            shift.status = 'checked_in'
+            shift.save(update_fields=['status','updated_at'])
+        messages.success(request, 'Entrée enregistrée.')
+    elif shift and action == 'break':
+        shift.status = 'break'
+        shift.break_started_at = now
+        shift.save(update_fields=['status','break_started_at','updated_at'])
+        messages.success(request, 'Pause démarrée.')
+    elif shift and action == 'back':
+        shift.status = 'checked_in'
+        shift.break_ended_at = now
+        shift.save(update_fields=['status','break_ended_at','updated_at'])
+        messages.success(request, 'Retour de pause enregistré.')
+    elif shift and action == 'check_out':
+        shift.status = 'checked_out'
+        shift.check_out_at = now
+        shift.save(update_fields=['status','check_out_at','updated_at'])
+        messages.success(request, 'Sortie enregistrée.')
+    return redirect('shop:staff_portal')
+
+
+@kitchen_required
 def qr_tables(request):
     try:
         count = min(max(int(request.GET.get('count', 20)), 1), 80)
@@ -474,7 +814,7 @@ def qr_tables(request):
         'meta_title': 'QR codes tables | Pizza Vitti',
     })
 
-@staff_member_required
+@kitchen_required
 def preparation_dashboard(request):
     active_statuses = ['received', 'preparing', 'ready']
     orders_qs = Order.objects.filter(status__in=active_statuses).prefetch_related('items').order_by('created_at')
@@ -496,7 +836,7 @@ def preparation_dashboard(request):
         'meta_title': 'Préparation commandes | Pizza Vitti',
     })
 
-@staff_member_required
+@kitchen_required
 @require_POST
 def update_order_status(request, order_number):
     order = get_object_or_404(Order, order_number=order_number)
@@ -660,15 +1000,15 @@ def robots_txt(request):
 def manifest_webmanifest(request):
     site_url = request.build_absolute_uri('/').rstrip('/')
     manifest = {
-        'name': 'Pizza Vitti Préparation',
-        'short_name': 'Vitti Cuisine',
-        'description': 'Application cuisine pour suivre et préparer les commandes Pizza Vitti.',
-        'start_url': '/preparation/',
+        'name': 'Pizza Vitti Application',
+        'short_name': 'Vitti App',
+        'description': 'Application Pizza Vitti pour le propriétaire, la cuisine et le pointage staff.',
+        'start_url': '/app/',
         'scope': '/',
         'display': 'standalone',
         'orientation': 'any',
-        'background_color': '#fffaf0',
-        'theme_color': '#8d1f16',
+        'background_color': '#171923',
+        'theme_color': '#171923',
         'categories': ['food', 'business', 'productivity'],
         'icons': [
             {'src': f'{site_url}/static/shop/img/pwa/icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any maskable'},

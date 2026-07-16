@@ -1,0 +1,19 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-login">
+  <div>
+    <p class="ops-eyebrow">Dashboard client</p>
+    <h1>Accès propriétaire</h1>
+    <p>Un espace simple pour suivre les commandes, les tables, l’équipe, les achats et les rapports.</p>
+  </div>
+  <form method="post" class="ops-login-card">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <label for="owner-password">Mot de passe propriétaire</label>
+    <input id="owner-password" type="password" name="password" autocomplete="current-password" autofocus required>
+    <button class="button">Ouvrir le dashboard</button>
+    <a href="{% url 'shop:kitchen_login' %}">Accès cuisine</a>
+  </form>
+</section>
+{% endblock %}

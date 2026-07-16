@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, BlogPost, CustomerMessage, Order, OrderItem, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, PromoCode, GiftCard
+from .models import Category, Product, BlogPost, CustomerMessage, Order, OrderItem, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, PromoCode, GiftCard, DiningTable, StaffMember, StaffShift, PurchaseOrder, PurchaseOrderItem
 
 admin.site.site_header = "Pizza Vitti — Administration"
 admin.site.site_title = "Pizza Vitti"
@@ -116,6 +116,43 @@ class GiftCardAdmin(admin.ModelAdmin):
     list_editable = ('is_active',)
     list_filter = ('is_active',)
     search_fields = ('code','recipient_email')
+
+
+@admin.register(DiningTable)
+class DiningTableAdmin(admin.ModelAdmin):
+    list_display = ('label','seats','x','y','is_active','updated_at')
+    list_editable = ('seats','x','y','is_active')
+    search_fields = ('label',)
+
+
+@admin.register(StaffMember)
+class StaffMemberAdmin(admin.ModelAdmin):
+    list_display = ('name','username','role','is_active','updated_at')
+    list_filter = ('is_active','role')
+    list_editable = ('role','is_active')
+    search_fields = ('name','username','role')
+    readonly_fields = ('password_hash','created_at','updated_at')
+
+
+@admin.register(StaffShift)
+class StaffShiftAdmin(admin.ModelAdmin):
+    list_display = ('staff','status','check_in_at','break_started_at','break_ended_at','check_out_at')
+    list_filter = ('status','check_in_at')
+    search_fields = ('staff__name','staff__username','notes')
+
+
+class PurchaseOrderItemInline(admin.TabularInline):
+    model = PurchaseOrderItem
+    extra = 1
+
+
+@admin.register(PurchaseOrder)
+class PurchaseOrderAdmin(admin.ModelAdmin):
+    list_display = ('supplier','reference','status','expected_date','received_date','total','created_at')
+    list_filter = ('status','expected_date','received_date')
+    list_editable = ('status','total')
+    search_fields = ('supplier','reference','notes')
+    inlines = [PurchaseOrderItemInline]
 
 from .models import ProductTranslation, CategoryTranslation, Favorite
 

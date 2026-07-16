@@ -1,0 +1,19 @@
+<aside class="ops-sidebar">
+  <a class="ops-brand" href="{% url 'shop:owner_dashboard' %}">
+    <span>PV</span>
+    <strong>Pizza Vitti</strong>
+  </a>
+  <nav>
+    <a href="{% url 'shop:owner_dashboard' %}" {% if request.resolver_match.url_name == 'owner_dashboard' %}class="active"{% endif %}>Dashboard</a>
+    <a href="{% url 'shop:kitchen_app' %}" {% if request.resolver_match.url_name == 'kitchen_app' or request.resolver_match.url_name == 'preparation_dashboard' %}class="active"{% endif %}>Cuisine</a>
+    <a href="{% url 'shop:floor_plan' %}" {% if request.resolver_match.url_name == 'floor_plan' %}class="active"{% endif %}>Tables</a>
+    <a href="{% url 'shop:staff_manage' %}" {% if request.resolver_match.url_name == 'staff_manage' %}class="active"{% endif %}>Équipe</a>
+    <a href="{% url 'shop:purchase_orders' %}" {% if request.resolver_match.url_name == 'purchase_orders' %}class="active"{% endif %}>Achats</a>
+    <a href="{% url 'shop:reports_dashboard' %}" {% if request.resolver_match.url_name == 'reports_dashboard' %}class="active"{% endif %}>Rapports</a>
+    <a href="{% url 'shop:staff_qr' %}" {% if request.resolver_match.url_name == 'staff_qr' %}class="active"{% endif %}>QR équipe</a>
+  </nav>
+  <div class="ops-sidebar-actions">
+    <a href="{% url 'shop:kitchen_logout' %}">Fermer cuisine</a>
+    <a href="{% url 'shop:owner_logout' %}">Fermer owner</a>
+  </div>
+</aside>

@@ -1,0 +1,43 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-shell">
+  {% include 'shop/partials/ops_nav.html' %}
+  <div class="ops-main">
+    <header class="ops-topbar">
+      <div>
+        <p class="ops-eyebrow">Purchase orders</p>
+        <h1>Achats fournisseurs</h1>
+      </div>
+    </header>
+
+    <section class="ops-grid two">
+      <form method="post" class="ops-panel ops-form">
+        {% csrf_token %}
+        <h2>Nouvelle commande</h2>
+        <label>Fournisseur<input name="supplier" required></label>
+        <label>Référence<input name="reference"></label>
+        <label>Date prévue<input type="date" name="expected_date"></label>
+        <label>Total EUR<input type="number" min="0" step="0.01" name="total" value="0"></label>
+        <label>Statut<select name="status"><option value="draft">Brouillon</option><option value="ordered">Commandée</option><option value="received">Reçue</option></select></label>
+        <label>Notes<textarea name="notes"></textarea></label>
+        <button class="button">Ajouter</button>
+      </form>
+      <article class="ops-panel">
+        <h2>Suivi achats</h2>
+        <div class="ops-list">
+          {% for order in purchase_orders %}
+            <div class="ops-list-row">
+              <span>{{ order.supplier }}</span>
+              <strong>{{ order.total|floatformat:2 }} €</strong>
+              <small>{{ order.get_status_display }}{% if order.expected_date %} · {{ order.expected_date|date:'d/m/Y' }}{% endif %}</small>
+            </div>
+          {% empty %}
+            <p class="ops-empty">Aucune commande fournisseur.</p>
+          {% endfor %}
+        </div>
+      </article>
+    </section>
+  </div>
+</section>
+{% endblock %}

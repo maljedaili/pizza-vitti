@@ -1,0 +1,31 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-shell">
+  {% include 'shop/partials/ops_nav.html' %}
+  <div class="ops-main">
+    <header class="ops-topbar">
+      <div>
+        <p class="ops-eyebrow">Custom floor plan</p>
+        <h1>Plan de salle</h1>
+      </div>
+      <a class="button ghost" href="{% url 'shop:qr_tables' %}">QR tables</a>
+    </header>
+
+    <section class="floor-map">
+      {% for table in tables %}
+        <article class="floor-table {% if table.current_order %}busy status-{{ table.current_order.status }}{% endif %}" style="left:{{ table.x }}%;top:{{ table.y }}%;">
+          <strong>T{{ table.label }}</strong>
+          <span>{{ table.seats }} places</span>
+          {% if table.current_order %}
+            <small>{{ table.current_order.customer_name }}</small>
+            <b>{{ table.current_order.get_status_display }}</b>
+          {% else %}
+            <small>Libre</small>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </section>
+  </div>
+</section>
+{% endblock %}

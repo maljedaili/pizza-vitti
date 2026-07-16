@@ -1,53 +1,70 @@
 {% extends 'shop/base.html' %}
 
 {% block content %}
-<section class="page-title prep-title">
-  <p class="eyebrow">Préparation</p>
-  <h1>Commandes en cuisine</h1>
-  <p>Application cuisine pour recevoir les commandes, entendre les alertes et suivre la préparation sur tablette ou téléphone.</p>
-  <div class="hero-actions"><a class="button ghost" href="{% url 'shop:qr_tables' %}">QR tables</a><button class="button ghost" type="button" data-install-app hidden>Installer l’application</button><button class="button ghost" type="button" data-wake-lock>Garder écran allumé</button><button class="button ghost" type="button" data-prep-sound>Activer son</button><button class="button ghost" type="button" data-test-alert>Tester l’alerte</button><button class="button" onclick="window.location.reload()">Actualiser</button></div>
-</section>
+<section class="ops-shell kitchen-board-shell">
+  <aside class="ops-sidebar">
+    <a class="ops-brand" href="{% url 'shop:kitchen_app' %}"><span>PV</span><strong>Cuisine</strong></a>
+    <nav>
+      <a class="active" href="{% url 'shop:kitchen_app' %}">Commandes</a>
+      <a href="{% url 'shop:qr_tables' %}">QR tables</a>
+    </nav>
+    <div class="ops-sidebar-actions">
+      <a href="{% url 'shop:kitchen_logout' %}">Fermer session</a>
+    </div>
+  </aside>
 
-<section class="prep-app-help">
-  <strong>Installation tablette</strong>
-  <span>Android/Chrome : menu ⋮ puis “Installer l’application”. iPhone/iPad : bouton Partager puis “Sur l’écran d’accueil”. Gardez cette page ouverte, cliquez sur “Garder écran allumé”, “Activer son”, puis “Tester l’alerte”.</span>
-</section>
+  <div class="ops-main">
+    <header class="ops-topbar prep-title">
+      <div>
+        <p class="ops-eyebrow">Préparation live</p>
+        <h1>Commandes en cuisine</h1>
+        <p>Recevez les commandes, lancez l’alerte sonore et suivez chaque table sur tablette ou téléphone.</p>
+      </div>
+      <div class="hero-actions"><button class="button ghost" type="button" data-install-app hidden>Installer</button><button class="button ghost" type="button" data-wake-lock>Écran allumé</button><button class="button ghost" type="button" data-prep-sound>Son</button><button class="button ghost" type="button" data-test-alert>Test alerte</button><button class="button" onclick="window.location.reload()">Actualiser</button></div>
+    </header>
 
-<section class="prep-live-alert" data-prep-alert hidden>
-  <strong>Nouvelle commande reçue</strong>
-  <span>Ouvrez le ticket en cuisine et lancez la préparation.</span>
-  <button type="button" data-prep-alert-close>OK</button>
-</section>
+    <section class="prep-app-help">
+      <strong>Installation tablette</strong>
+      <span>Android/Chrome : menu puis “Installer l’application”. iPhone/iPad : bouton Partager puis “Sur l’écran d’accueil”. Cliquez sur “Écran allumé”, “Son”, puis “Test alerte”.</span>
+    </section>
 
-<section class="prep-board" data-prep-board data-latest-order="{{ latest_order_key }}" data-poll-url="{% url 'shop:preparation_dashboard' %}">
-  {% for order in orders %}
-    <article class="prep-ticket status-{{ order.status }}">
-      <div class="prep-ticket-head">
-        <div>
-          <p class="eyebrow">{% if order.table_number %}Table {{ order.table_number }}{% else %}Commande{% endif %}</p>
-          <h2>{{ order.order_number }}</h2>
-          <p>{{ order.customer_name }} · {{ order.created_at|date:'H:i' }}</p>
-        </div>
-        <strong>{{ order.get_status_display }}</strong>
-      </div>
-      <ul>
-        {% for item in order.items.all %}
-          <li><span>{{ item.quantity }} × {{ item.name }}</span><strong>{{ item.line_total }} €</strong></li>
-        {% endfor %}
-      </ul>
-      {% if order.notes %}<p class="prep-note">{{ order.notes|linebreaksbr }}</p>{% endif %}
-      <div class="prep-customer-actions">
-        {% if order.whatsapp_received_url %}<a class="button ghost" target="_blank" rel="noopener" href="{{ order.whatsapp_received_url }}">WhatsApp reçu</a>{% endif %}
-        {% if order.whatsapp_ready_url %}<a class="button ghost" target="_blank" rel="noopener" href="{{ order.whatsapp_ready_url }}">WhatsApp prête</a>{% endif %}
-      </div>
-      <div class="prep-actions">
-        <form method="post" action="{% url 'shop:update_order_status' order.order_number %}">{% csrf_token %}<input type="hidden" name="status" value="preparing"><button class="button ghost">Préparer</button></form>
-        <form method="post" action="{% url 'shop:update_order_status' order.order_number %}">{% csrf_token %}<input type="hidden" name="status" value="ready"><button class="button">Prête</button></form>
-        <form method="post" action="{% url 'shop:update_order_status' order.order_number %}">{% csrf_token %}<input type="hidden" name="status" value="delivered"><button class="button ghost">Servie</button></form>
-      </div>
-    </article>
-  {% empty %}
-    <p class="empty">Aucune commande en attente pour le moment.</p>
-  {% endfor %}
+    <section class="prep-live-alert" data-prep-alert hidden>
+      <strong>Nouvelle commande reçue</strong>
+      <span>Ouvrez le ticket en cuisine et lancez la préparation.</span>
+      <button type="button" data-prep-alert-close>OK</button>
+    </section>
+
+    <section class="prep-board" data-prep-board data-latest-order="{{ latest_order_key }}" data-poll-url="{% url 'shop:preparation_dashboard' %}">
+      {% for order in orders %}
+        <article class="prep-ticket status-{{ order.status }}">
+          <div class="prep-ticket-head">
+            <div>
+              <p class="eyebrow">{% if order.table_number %}Table {{ order.table_number }}{% else %}Commande{% endif %}</p>
+              <h2>{{ order.order_number }}</h2>
+              <p>{{ order.customer_name }} · {{ order.created_at|date:'H:i' }}</p>
+            </div>
+            <strong>{{ order.get_status_display }}</strong>
+          </div>
+          <ul>
+            {% for item in order.items.all %}
+              <li><span>{{ item.quantity }} × {{ item.name }}</span><strong>{{ item.line_total }} €</strong></li>
+            {% endfor %}
+          </ul>
+          {% if order.notes %}<p class="prep-note">{{ order.notes|linebreaksbr }}</p>{% endif %}
+          <div class="prep-customer-actions">
+            {% if order.whatsapp_received_url %}<a class="button ghost" target="_blank" rel="noopener" href="{{ order.whatsapp_received_url }}">WhatsApp reçu</a>{% endif %}
+            {% if order.whatsapp_ready_url %}<a class="button ghost" target="_blank" rel="noopener" href="{{ order.whatsapp_ready_url }}">WhatsApp prête</a>{% endif %}
+          </div>
+          <div class="prep-actions">
+            <form method="post" action="{% url 'shop:update_order_status' order.order_number %}">{% csrf_token %}<input type="hidden" name="status" value="preparing"><button class="button ghost">Préparer</button></form>
+            <form method="post" action="{% url 'shop:update_order_status' order.order_number %}">{% csrf_token %}<input type="hidden" name="status" value="ready"><button class="button">Prête</button></form>
+            <form method="post" action="{% url 'shop:update_order_status' order.order_number %}">{% csrf_token %}<input type="hidden" name="status" value="delivered"><button class="button ghost">Servie</button></form>
+          </div>
+        </article>
+      {% empty %}
+        <p class="empty">Aucune commande en attente pour le moment.</p>
+      {% endfor %}
+    </section>
+  </div>
 </section>
 {% endblock %}

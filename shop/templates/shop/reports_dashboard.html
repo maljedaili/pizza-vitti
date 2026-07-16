@@ -1,0 +1,34 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-shell">
+  {% include 'shop/partials/ops_nav.html' %}
+  <div class="ops-main">
+    <header class="ops-topbar">
+      <div>
+        <p class="ops-eyebrow">Shift reports</p>
+        <h1>Rapports</h1>
+      </div>
+    </header>
+    <section class="ops-kpis">
+      {% for label, stat in reports %}
+        <article><span>{{ label }}</span><strong>{{ stat.revenue|floatformat:2 }} €</strong><small>{{ stat.count }} commandes</small></article>
+      {% endfor %}
+    </section>
+    <article class="ops-panel">
+      <h2>Pointages récents</h2>
+      <div class="ops-list">
+        {% for shift in staff_shifts %}
+          <div class="ops-list-row">
+            <span>{{ shift.staff.name }}</span>
+            <strong>{{ shift.get_status_display }}</strong>
+            <small>{{ shift.check_in_at|date:'d/m H:i' }}{% if shift.check_out_at %} - {{ shift.check_out_at|date:'H:i' }}{% endif %}</small>
+          </div>
+        {% empty %}
+          <p class="ops-empty">Les pointages apparaîtront ici.</p>
+        {% endfor %}
+      </div>
+    </article>
+  </div>
+</section>
+{% endblock %}

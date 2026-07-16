@@ -1,0 +1,17 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-login">
+  <div>
+    <p class="ops-eyebrow">Équipe Pizza Vitti</p>
+    <h1>Pointage staff</h1>
+    <p>Scannez le QR code, connectez-vous, puis enregistrez entrée, pause et sortie.</p>
+  </div>
+  <form method="post" class="ops-login-card">
+    {% csrf_token %}
+    <label>Nom utilisateur<input name="username" autocomplete="username" required autofocus></label>
+    <label>Mot de passe<input type="password" name="password" autocomplete="current-password" required></label>
+    <button class="button">Se connecter</button>
+  </form>
+</section>
+{% endblock %}

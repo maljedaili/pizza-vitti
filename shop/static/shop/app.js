@@ -23,19 +23,24 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').then(registration => registration.update()).catch(() => {}));
 }
 let installPromptEvent = null;
-const installButton = document.querySelector('[data-install-app]');
+const installButtons = document.querySelectorAll('[data-install-app]');
+const installInstructions = document.querySelectorAll('[data-install-instructions]');
+const showInstallInstructions = () => installInstructions.forEach(el => { el.hidden = false; });
 window.addEventListener('beforeinstallprompt', event => {
   event.preventDefault();
   installPromptEvent = event;
-  if (installButton) installButton.hidden = false;
+  installButtons.forEach(button => { button.hidden = false; });
 });
-installButton?.addEventListener('click', async () => {
-  if (!installPromptEvent) return;
+installButtons.forEach(button => button.addEventListener('click', async () => {
+  if (!installPromptEvent) {
+    showInstallInstructions();
+    return;
+  }
   installPromptEvent.prompt();
   await installPromptEvent.userChoice;
   installPromptEvent = null;
-  installButton.hidden = true;
-});
+  installButtons.forEach(item => { item.hidden = true; });
+}));
 const orderPreview = document.querySelector('[data-order-preview]');
 if (orderPreview) {
   document.querySelector('[data-order-preview-toggle]')?.addEventListener('click', () => orderPreview.classList.toggle('open'));
@@ -155,6 +160,24 @@ if (typeSelect && proBox) {
   const togglePro = () => { proBox.hidden = typeSelect.value !== 'professionnel' && !proBox.dataset.force; };
   typeSelect.addEventListener('change', togglePro);
   togglePro();
+}
+const appRole = document.querySelector('[data-app-role]');
+if (appRole) {
+  const staffFields = document.querySelector('[data-staff-fields]');
+  const username = document.querySelector('#app-username');
+  const password = document.querySelector('#app-password');
+  const passwordLabel = document.querySelector('[data-password-label]');
+  const note = document.querySelector('[data-app-login-note]');
+  const syncAppLogin = () => {
+    const staff = appRole.value === 'staff';
+    if (staffFields) staffFields.hidden = !staff;
+    if (username) username.required = staff;
+    if (password) password.inputMode = staff ? 'text' : 'numeric';
+    if (passwordLabel) passwordLabel.textContent = staff ? 'Mot de passe staff' : 'Code secret';
+    if (note) note.textContent = staff ? 'Utilisez le compte créé dans le dashboard propriétaire.' : 'Code par défaut : 1234';
+  };
+  appRole.addEventListener('change', syncAppLogin);
+  syncAppLogin();
 }
 const botForm = document.querySelector('[data-bot-form]');
 const escapeHtml = text => text.replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));

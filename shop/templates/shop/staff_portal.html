@@ -1,0 +1,19 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-login staff-portal">
+  <div>
+    <p class="ops-eyebrow">Bonjour {{ staff_member.name }}</p>
+    <h1>Pointage</h1>
+    <p>Statut actuel : <strong>{% if shift %}{{ shift.get_status_display }}{% else %}Pas encore pointé{% endif %}</strong></p>
+    <a href="{% url 'shop:staff_logout' %}">Déconnexion</a>
+  </div>
+  <form method="post" action="{% url 'shop:staff_action' %}" class="ops-login-card staff-actions">
+    {% csrf_token %}
+    <button class="button" name="action" value="check_in">Check in</button>
+    <button class="button ghost" name="action" value="break">Pause</button>
+    <button class="button ghost" name="action" value="back">Retour pause</button>
+    <button class="button" name="action" value="check_out">Check out</button>
+  </form>
+</section>
+{% endblock %}

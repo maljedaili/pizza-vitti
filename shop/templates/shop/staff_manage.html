@@ -1,0 +1,43 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-shell">
+  {% include 'shop/partials/ops_nav.html' %}
+  <div class="ops-main">
+    <header class="ops-topbar">
+      <div>
+        <p class="ops-eyebrow">Staff management</p>
+        <h1>Équipe et pointage</h1>
+      </div>
+      <a class="button ghost" href="{% url 'shop:staff_qr' %}">QR login staff</a>
+    </header>
+
+    <section class="ops-grid two">
+      <form method="post" class="ops-panel ops-form">
+        {% csrf_token %}
+        <h2>Créer un employé</h2>
+        <label>Nom complet<input name="name" required></label>
+        <label>Nom utilisateur<input name="username" required></label>
+        <label>Mot de passe<input type="password" name="password" required></label>
+        <label>Rôle<input name="role" placeholder="Cuisine, salle, manager..."></label>
+        <button class="button">Enregistrer</button>
+      </form>
+
+      <article class="ops-panel">
+        <h2>Employés</h2>
+        <div class="ops-list">
+          {% for staff in staff_members %}
+            <div class="ops-list-row">
+              <span>{{ staff.name }} <small>@{{ staff.username }}</small></span>
+              <strong>{{ staff.role }}</strong>
+              <small>{% if staff.latest_shift %}{{ staff.latest_shift.get_status_display }}{% else %}Pas encore pointé{% endif %}</small>
+            </div>
+          {% empty %}
+            <p class="ops-empty">Ajoutez le premier employé.</p>
+          {% endfor %}
+        </div>
+      </article>
+    </section>
+  </div>
+</section>
+{% endblock %}

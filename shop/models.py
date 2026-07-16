@@ -312,3 +312,108 @@ class Favorite(TimeStampedModel):
         verbose_name_plural = 'Favoris clients'
     def __str__(self):
         return f'{self.user} ❤ {self.product}'
+
+
+class DiningTable(TimeStampedModel):
+    label = models.CharField(max_length=20, unique=True, verbose_name='Table')
+    seats = models.PositiveIntegerField(default=2, verbose_name='Couverts')
+    x = models.PositiveSmallIntegerField(default=10, verbose_name='Position X')
+    y = models.PositiveSmallIntegerField(default=10, verbose_name='Position Y')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['label']
+        verbose_name = 'Table salle'
+        verbose_name_plural = 'Tables salle'
+
+    def __str__(self):
+        return f'Table {self.label}'
+
+
+class StaffMember(TimeStampedModel):
+    name = models.CharField(max_length=140, verbose_name='Nom')
+    username = models.CharField(max_length=80, unique=True, verbose_name='Nom utilisateur')
+    role = models.CharField(max_length=80, default='Équipe', blank=True)
+    password_hash = models.CharField(max_length=256, editable=False, blank=True)
+    temporary_password = models.CharField(max_length=80, blank=True, help_text='Écrivez un nouveau mot de passe ici puis enregistrez.')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Employé'
+        verbose_name_plural = 'Employés'
+
+    def save(self, *args, **kwargs):
+        if self.temporary_password:
+            self.password_hash = make_password(self.temporary_password)
+            self.temporary_password = ''
+        super().save(*args, **kwargs)
+
+    def check_password(self, raw_password):
+        return bool(self.password_hash) and check_password(raw_password, self.password_hash)
+
+    def __str__(self):
+        return self.name
+
+
+class StaffShift(TimeStampedModel):
+    STATUS = [
+        ('checked_in', 'Présent'),
+        ('break', 'En pause'),
+        ('checked_out', 'Sorti'),
+    ]
+    staff = models.ForeignKey(StaffMember, on_delete=models.CASCADE, related_name='shifts')
+    status = models.CharField(max_length=20, choices=STATUS, default='checked_in')
+    check_in_at = models.DateTimeField(null=True, blank=True)
+    break_started_at = models.DateTimeField(null=True, blank=True)
+    break_ended_at = models.DateTimeField(null=True, blank=True)
+    check_out_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-check_in_at', '-created_at']
+        verbose_name = 'Pointage équipe'
+        verbose_name_plural = 'Pointages équipe'
+
+    def __str__(self):
+        return f'{self.staff.name} - {self.get_status_display()}'
+
+
+class PurchaseOrder(TimeStampedModel):
+    STATUS = [
+        ('draft', 'Brouillon'),
+        ('ordered', 'Commandée'),
+        ('received', 'Reçue'),
+        ('cancelled', 'Annulée'),
+    ]
+    supplier = models.CharField(max_length=160, verbose_name='Fournisseur')
+    reference = models.CharField(max_length=80, blank=True)
+    expected_date = models.DateField(null=True, blank=True, verbose_name='Date prévue')
+    received_date = models.DateField(null=True, blank=True, verbose_name='Date reçue')
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    status = models.CharField(max_length=20, choices=STATUS, default='draft')
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Commande fournisseur'
+        verbose_name_plural = 'Commandes fournisseurs'
+
+    def __str__(self):
+        return f'{self.supplier} - {self.get_status_display()}'
+
+
+class PurchaseOrderItem(models.Model):
+    purchase_order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='items')
+    name = models.CharField(max_length=160, verbose_name='Article')
+    quantity = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('1.00'))
+    unit = models.CharField(max_length=30, default='pièce')
+    unit_price = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'))
+    received_quantity = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'))
+
+    class Meta:
+        verbose_name = 'Article fournisseur'
+        verbose_name_plural = 'Articles fournisseurs'
+
+    def __str__(self):
+        return self.name

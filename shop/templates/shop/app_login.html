@@ -1,0 +1,45 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-login app-login">
+  <div>
+    <p class="ops-eyebrow">Application Pizza Vitti</p>
+    <h1>Connexion simple</h1>
+    <p>Choisissez votre espace, puis entrez le code ou les identifiants staff.</p>
+    <div class="hero-actions">
+      <a class="button ghost" href="{% url 'shop:app_home' %}">Accueil app</a>
+      <button class="button ghost" type="button" data-install-app>Installer l’application</button>
+    </div>
+    <div class="app-install-note" data-install-instructions hidden>
+      <strong>Installation manuelle</strong>
+      <span>Android/Chrome : menu puis “Installer l’application”. iPhone/iPad : bouton Partager puis “Sur l’écran d’accueil”.</span>
+    </div>
+    <div class="app-login-help">
+      <strong>Propriétaire</strong><span>Accès complet : dashboard, cuisine, tables, équipe, achats et rapports.</span>
+      <strong>Cuisine</strong><span>Accès commandes uniquement pour la tablette en cuisine.</span>
+      <strong>Staff</strong><span>Pointage équipe avec nom utilisateur et mot de passe créés par le propriétaire.</span>
+    </div>
+  </div>
+
+  <form method="post" class="ops-login-card" action="{% url 'shop:app_login' %}" data-app-login-form>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <label for="app-role">Espace</label>
+    <select id="app-role" name="role" data-app-role>
+      <option value="owner" {% if selected_role == 'owner' %}selected{% endif %}>Propriétaire (admin)</option>
+      <option value="kitchen" {% if selected_role == 'kitchen' %}selected{% endif %}>Cuisine (commandes)</option>
+      <option value="staff" {% if selected_role == 'staff' %}selected{% endif %}>Staff (pointage)</option>
+    </select>
+
+    <div data-staff-fields>
+      <label for="app-username">Nom utilisateur staff</label>
+      <input id="app-username" name="username" autocomplete="username">
+    </div>
+
+    <label for="app-password" data-password-label>Code secret</label>
+    <input id="app-password" type="password" name="password" autocomplete="current-password" inputmode="numeric" autofocus required>
+    <small data-app-login-note>Code par défaut : 1234</small>
+    <button class="button">Entrer</button>
+  </form>
+</section>
+{% endblock %}

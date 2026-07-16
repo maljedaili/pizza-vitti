@@ -1,0 +1,68 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-shell">
+  {% include 'shop/partials/ops_nav.html' %}
+  <div class="ops-main">
+    <header class="ops-topbar">
+      <div>
+        <p class="ops-eyebrow">Restaurant control</p>
+        <h1>Dashboard propriétaire</h1>
+      </div>
+      <a class="button" href="{% url 'shop:kitchen_app' %}">Ouvrir cuisine</a>
+    </header>
+
+    <section class="ops-kpis">
+      <article><span>Commandes jour</span><strong>{{ orders_count }}</strong></article>
+      <article><span>Chiffre jour</span><strong>{{ revenue|floatformat:2 }} €</strong></article>
+      <article><span>En cuisine</span><strong>{{ active_orders_count }}</strong></article>
+      <article><span>Équipe présente</span><strong>{{ staff_present_count }}</strong></article>
+      <article><span>Achats ouverts</span><strong>{{ open_purchase_count }}</strong></article>
+    </section>
+
+    <section class="ops-grid two">
+      <article class="ops-panel">
+        <div class="ops-panel-head">
+          <h2>Dernières commandes</h2>
+          <a href="{% url 'shop:kitchen_app' %}">Voir cuisine</a>
+        </div>
+        <div class="ops-list">
+          {% for order in recent_orders %}
+            <div class="ops-list-row">
+              <span>{% if order.table_number %}Table {{ order.table_number }} · {% endif %}{{ order.customer_name }}</span>
+              <strong>{{ order.total|floatformat:2 }} €</strong>
+              <small>{{ order.get_status_display }}</small>
+            </div>
+          {% empty %}
+            <p class="ops-empty">Aucune commande encore.</p>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="ops-panel">
+        <div class="ops-panel-head">
+          <h2>Plus commandés aujourd’hui</h2>
+          <a href="{% url 'shop:reports_dashboard' %}">Rapports</a>
+        </div>
+        <div class="ops-list">
+          {% for item in most_ordered %}
+            <div class="ops-list-row">
+              <span>{{ item.name }}</span>
+              <strong>{{ item.quantity }}</strong>
+              <small>vendus</small>
+            </div>
+          {% empty %}
+            <p class="ops-empty">Les ventes du jour apparaîtront ici.</p>
+          {% endfor %}
+        </div>
+      </article>
+    </section>
+
+    <section class="ops-grid three">
+      <a class="ops-action-card" href="{% url 'shop:floor_plan' %}"><strong>Table management</strong><span>Plan de salle temps réel et commandes par table.</span></a>
+      <a class="ops-action-card" href="{% url 'shop:staff_manage' %}"><strong>Équipe</strong><span>Créer les comptes staff et suivre check-in, pause, sortie.</span></a>
+      <a class="ops-action-card" href="{% url 'shop:purchase_orders' %}"><strong>Purchase orders</strong><span>Suivre fournisseurs, commandes et réceptions.</span></a>
+    </section>
+  </div>
+</section>
+{% endblock %}

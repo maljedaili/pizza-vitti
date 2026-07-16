@@ -1,0 +1,41 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="app-home">
+  <header class="app-hero">
+    <p class="ops-eyebrow">Application mobile Pizza Vitti</p>
+    <h1>Choisir votre espace</h1>
+    <p>Un seul endroit pour ouvrir le dashboard propriétaire, la cuisine ou le pointage staff.</p>
+    <div class="hero-actions">
+      <a class="button" href="{% url 'shop:app_role' 'proprietaire' %}">Propriétaire</a>
+      <a class="button ghost" href="{% url 'shop:app_role' 'cuisine' %}">Cuisine</a>
+      <button class="button ghost" type="button" data-install-app>Installer l’application</button>
+    </div>
+    <div class="app-install-note" data-install-instructions hidden>
+      <strong>Installation manuelle</strong>
+      <span>Android/Chrome : menu puis “Installer l’application”. iPhone/iPad : bouton Partager puis “Sur l’écran d’accueil”.</span>
+    </div>
+  </header>
+
+  <section class="app-role-grid">
+    <a href="{% url 'shop:app_role' 'proprietaire' %}" class="app-role-card">
+      <span>01</span>
+      <strong>Propriétaire (admin)</strong>
+      <p>Accès complet : commandes, tables, équipe, achats, rapports et cuisine.</p>
+      <small>Code : 1234</small>
+    </a>
+    <a href="{% url 'shop:app_role' 'cuisine' %}" class="app-role-card">
+      <span>02</span>
+      <strong>Cuisine (commandes)</strong>
+      <p>Préparation des commandes, alerte sonore, écran allumé et suivi des statuts.</p>
+      <small>Code : 1234</small>
+    </a>
+    <a href="{% url 'shop:app_role' 'staff' %}" class="app-role-card">
+      <span>03</span>
+      <strong>Staff (pointage)</strong>
+      <p>Entrée, pause, retour de pause et sortie avec le compte créé par le propriétaire.</p>
+      <small>Compte staff</small>
+    </a>
+  </section>
+</section>
+{% endblock %}
