@@ -6,4 +6,5 @@ __pycache__/
 *.pyc
 db.sqlite3
 staticfiles/
+camera-gateway/go2rtc.yaml
 .DS_Store

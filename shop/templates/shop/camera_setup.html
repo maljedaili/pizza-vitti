@@ -1,0 +1,145 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-shell">
+  {% include 'shop/partials/ops_nav.html' %}
+  <div class="ops-main">
+    <header class="ops-topbar">
+      <div>
+        <p class="ops-eyebrow">Configuration propriétaire</p>
+        <h1>Installer les caméras</h1>
+        <p>Enregistrez uniquement l’adresse HTTPS du gateway et le nom du flux. Les identifiants RTSP restent dans le boîtier installé sur place.</p>
+      </div>
+      <a class="button ghost" href="{% url 'shop:camera_center' %}">Voir les caméras</a>
+    </header>
+
+    <section class="camera-setup-guide">
+      <span>1</span><div><strong>Gateway sur place</strong><small>Mini PC, Raspberry Pi ou NVR avec go2rtc.</small></div>
+      <span>2</span><div><strong>Réseau privé HTTPS</strong><small>Tailscale installé sur le gateway et les appareils du propriétaire.</small></div>
+      <span>3</span><div><strong>Ajouter ici</strong><small>Lieu, URL HTTPS et noms des flux go2rtc.</small></div>
+      <span>4</span><div><strong>Tester le micro</strong><small>La caméra doit supporter ONVIF Profile T ou un protocole talk compatible.</small></div>
+    </section>
+
+    <section class="ops-grid two camera-setup-forms">
+      <form method="post" class="ops-panel ops-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_location">
+        <h2>1. Ajouter un lieu</h2>
+        <label>Nom du lieu<input name="name" placeholder="Restaurant Bordeaux Centre" required></label>
+        <label>Type
+          <select name="kind">{% for value, label in location_kinds %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+        </label>
+        <label>Adresse<input name="address" placeholder="Adresse du restaurant ou projet"></label>
+        <label>URL gateway HTTPS<input type="url" name="gateway_url" placeholder="https://camera-bordeaux.tailnet.ts.net" required></label>
+        <small>N’ajoutez jamais une adresse RTSP contenant un utilisateur ou un mot de passe ici.</small>
+        <label>Notes<textarea name="notes" placeholder="Nom du responsable sur place, détails réseau..."></textarea></label>
+        <button class="button">Ajouter le lieu</button>
+      </form>
+
+      <form method="post" class="ops-panel ops-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_camera">
+        <h2>2. Ajouter une caméra</h2>
+        <label>Lieu
+          <select name="location_id" required>
+            <option value="">Choisir...</option>
+            {% for location in locations %}<option value="{{ location.id }}">{{ location.name }}</option>{% endfor %}
+          </select>
+        </label>
+        <label>Nom visible<input name="name" placeholder="Cuisine principale" required></label>
+        <label>Nom du flux go2rtc<input name="stream_name" placeholder="cuisine-principale" required></label>
+        <div class="form-grid">
+          <label>Marque<input name="brand" placeholder="Dahua, Reolink, Tapo..."></label>
+          <label>Modèle<input name="model_name"></label>
+        </div>
+        <label>URL personnalisée optionnelle<input type="url" name="custom_view_url" placeholder="Laisser vide pour go2rtc"></label>
+        <div class="camera-capabilities">
+          <label><input type="checkbox" name="supports_audio" checked> Écouter le son</label>
+          <label><input type="checkbox" name="supports_talk"> Parler via le micro</label>
+        </div>
+        <label>Ordre<input type="number" min="0" name="sort_order" value="0"></label>
+        <label>Notes<textarea name="notes" placeholder="Angle, pièce, instructions..."></textarea></label>
+        <button class="button" {% if not locations %}disabled{% endif %}>Ajouter la caméra</button>
+      </form>
+    </section>
+
+    <section class="ops-panel camera-config-list">
+      <div class="ops-panel-head">
+        <h2>Lieux et caméras configurés</h2>
+        <a href="{% url 'shop:camera_gateway_guide' %}">Guide technique</a>
+      </div>
+      {% for location in locations %}
+        <article class="camera-config-location {% if not location.is_active %}inactive{% endif %}">
+          <header>
+            <div>
+              <strong>{{ location.name }}</strong>
+              <span>{{ location.get_kind_display }}{% if location.address %} · {{ location.address }}{% endif %}</span>
+              <small>{{ location.gateway_url }}</small>
+            </div>
+            <div class="camera-config-actions">
+              <a class="button ghost" href="{{ location.gateway_url }}" target="_blank" rel="noopener">Tester gateway</a>
+              <details class="camera-edit-details">
+                <summary class="button ghost">Modifier</summary>
+                <form method="post" class="ops-form camera-edit-form">
+                  {% csrf_token %}
+                  <input type="hidden" name="action" value="update_location">
+                  <input type="hidden" name="location_id" value="{{ location.id }}">
+                  <label>Nom<input name="name" value="{{ location.name }}" required></label>
+                  <label>Type
+                    <select name="kind">
+                      {% for value, label in location_kinds %}
+                        <option value="{{ value }}" {% if location.kind == value %}selected{% endif %}>{{ label }}</option>
+                      {% endfor %}
+                    </select>
+                  </label>
+                  <label>Adresse<input name="address" value="{{ location.address }}"></label>
+                  <label>URL gateway HTTPS<input type="url" name="gateway_url" value="{{ location.gateway_url }}" required></label>
+                  <label>Notes<textarea name="notes">{{ location.notes }}</textarea></label>
+                  <button class="button">Enregistrer le lieu</button>
+                </form>
+              </details>
+              <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_location"><input type="hidden" name="location_id" value="{{ location.id }}"><button class="button ghost">{% if location.is_active %}Désactiver{% else %}Activer{% endif %}</button></form>
+            </div>
+          </header>
+          <div class="camera-config-cameras">
+            {% for camera in location.cameras.all %}
+              <article class="camera-config-camera {% if not camera.is_active %}inactive{% endif %}">
+                <div class="camera-config-camera-row">
+                  <span><strong>{{ camera.name }}</strong><small>{{ camera.stream_name }}{% if camera.brand %} · {{ camera.brand }}{% endif %}</small></span>
+                  <span>{% if camera.supports_audio %}Audio{% endif %}{% if camera.supports_talk %} · Micro{% endif %}</span>
+                  <details class="camera-edit-details camera-edit-details-wide">
+                    <summary class="button ghost">Modifier</summary>
+                    <form method="post" class="ops-form camera-edit-form camera-edit-camera-form">
+                      {% csrf_token %}
+                      <input type="hidden" name="action" value="update_camera">
+                      <input type="hidden" name="camera_id" value="{{ camera.id }}">
+                      <label>Nom visible<input name="name" value="{{ camera.name }}" required></label>
+                      <label>Nom du flux<input name="stream_name" value="{{ camera.stream_name }}" required></label>
+                      <label>Marque<input name="brand" value="{{ camera.brand }}"></label>
+                      <label>Modèle<input name="model_name" value="{{ camera.model_name }}"></label>
+                      <label class="camera-edit-full">URL personnalisée<input type="url" name="custom_view_url" value="{{ camera.custom_view_url }}"></label>
+                      <div class="camera-capabilities camera-edit-full">
+                        <label><input type="checkbox" name="supports_audio" {% if camera.supports_audio %}checked{% endif %}> Écouter le son</label>
+                        <label><input type="checkbox" name="supports_talk" {% if camera.supports_talk %}checked{% endif %}> Parler via le micro</label>
+                      </div>
+                      <label>Ordre<input type="number" min="0" name="sort_order" value="{{ camera.sort_order }}"></label>
+                      <label class="camera-edit-full">Notes<textarea name="notes">{{ camera.notes }}</textarea></label>
+                      <button class="button camera-edit-full">Enregistrer la caméra</button>
+                    </form>
+                  </details>
+                  <form method="post">{% csrf_token %}<input type="hidden" name="action" value="toggle_camera"><input type="hidden" name="camera_id" value="{{ camera.id }}"><button class="button ghost">{% if camera.is_active %}Désactiver{% else %}Activer{% endif %}</button></form>
+                  <form method="post" onsubmit="return confirm('Supprimer cette caméra ?')">{% csrf_token %}<input type="hidden" name="action" value="delete_camera"><input type="hidden" name="camera_id" value="{{ camera.id }}"><button class="camera-delete-button">Supprimer</button></form>
+                </div>
+              </article>
+            {% empty %}
+              <p class="ops-empty">Aucune caméra dans ce lieu.</p>
+            {% endfor %}
+          </div>
+        </article>
+      {% empty %}
+        <p class="ops-empty">Ajoutez le premier lieu pour commencer.</p>
+      {% endfor %}
+    </section>
+  </div>
+</section>
+{% endblock %}

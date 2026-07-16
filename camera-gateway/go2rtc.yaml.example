@@ -1,0 +1,32 @@
+# Copy this file to go2rtc.yaml on the gateway computer.
+# Never commit the real file because it contains camera credentials.
+
+streams:
+  cuisine-principale:
+    - rtsp://CAMERA_USER:CAMERA_PASSWORD@192.168.1.20:554/CAMERA_STREAM_PATH
+  salle:
+    - rtsp://CAMERA_USER:CAMERA_PASSWORD@192.168.1.21:554/CAMERA_STREAM_PATH
+
+app:
+  modules: [api, rtsp, webrtc, exec, ffmpeg, mjpeg]
+
+api:
+  listen: "127.0.0.1:1984"
+  local_auth: true
+  allow_paths:
+    - /api
+    - /api/streams
+    - /api/webrtc
+    - /api/frame.jpeg
+
+rtsp:
+  listen: "127.0.0.1:8554"
+
+webrtc:
+  listen: ":8555"
+
+exec:
+  allow_paths: [ffmpeg]
+
+log:
+  level: info

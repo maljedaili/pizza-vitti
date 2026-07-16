@@ -1,0 +1,59 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-shell">
+  {% include 'shop/partials/ops_nav.html' %}
+  <div class="ops-main camera-detail-page">
+    <header class="ops-topbar">
+      <div>
+        <p class="ops-eyebrow">{{ camera.location.name }} · {{ camera.location.get_kind_display }}</p>
+        <h1>{{ camera.name }}</h1>
+        <p>{% if camera.brand %}{{ camera.brand }}{% if camera.model_name %} · {{ camera.model_name }}{% endif %}{% else %}Flux {{ camera.stream_name }}{% endif %}</p>
+      </div>
+      <div class="hero-actions">
+        <a class="button ghost" href="{% url 'shop:camera_center' %}">Toutes les caméras</a>
+        <a class="button ghost" href="{{ camera.location.gateway_url }}" target="_blank" rel="noopener">Ouvrir gateway</a>
+      </div>
+    </header>
+
+    <section class="camera-focus-panel" data-camera-focus>
+      <div class="camera-focus-frame">
+        <iframe
+          title="{{ camera.name }}"
+          src="{{ camera.viewer_url }}"
+          data-camera-focus-frame
+          allow="microphone; autoplay; fullscreen"
+          referrerpolicy="no-referrer"
+        ></iframe>
+      </div>
+      <div class="camera-focus-controls">
+        <div>
+          <strong>Contrôle en direct</strong>
+          <span data-camera-mode-status>Mode écoute actif.</span>
+        </div>
+        <button class="button ghost active" type="button" data-camera-listen data-url="{{ camera.viewer_url }}">Écouter</button>
+        {% if camera.supports_talk %}
+          <button class="button camera-talk-button" type="button" data-camera-talk data-url="{{ camera.talk_url }}">Maintenir / activer le micro</button>
+        {% else %}
+          <span class="camera-no-talk">Cette caméra n’est pas configurée pour parler.</span>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="camera-help-grid">
+      <article>
+        <strong>Pour parler</strong>
+        <span>Appuyez sur le bouton micro, autorisez le microphone, puis utilisez le contrôle micro dans la fenêtre caméra. Repassez en “Écouter” après la conversation.</span>
+      </article>
+      <article>
+        <strong>Si l’image ne s’ouvre pas</strong>
+        <span>Vérifiez Tailscale sur cet appareil, puis ouvrez le gateway une fois dans un nouvel onglet pour confirmer son accès.</span>
+      </article>
+      <article>
+        <strong>Confidentialité</strong>
+        <span>Le site ne stocke ni vidéo, ni audio, ni mot de passe caméra. L’enregistrement reste géré par le NVR ou la caméra.</span>
+      </article>
+    </section>
+  </div>
+</section>
+{% endblock %}

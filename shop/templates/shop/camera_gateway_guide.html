@@ -1,0 +1,110 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-shell">
+  {% include 'shop/partials/ops_nav.html' %}
+  <div class="ops-main gateway-guide">
+    <header class="ops-topbar">
+      <div>
+        <p class="ops-eyebrow">Installation par lieu</p>
+        <h1>Gateway caméras</h1>
+        <p>Cette installation est à réaliser une fois dans chaque restaurant, boutique ou projet.</p>
+      </div>
+      <a class="button" href="{% url 'shop:camera_setup' %}">Configuration dashboard</a>
+    </header>
+
+    <section class="gateway-architecture">
+      <div><strong>Caméras / NVR</strong><span>RTSP ou protocole fabricant</span></div>
+      <b>→</b>
+      <div><strong>Gateway local</strong><span>go2rtc sur mini PC</span></div>
+      <b>→</b>
+      <div><strong>Réseau privé</strong><span>Tailscale HTTPS</span></div>
+      <b>→</b>
+      <div><strong>Dashboard owner</strong><span>WebRTC + microphone</span></div>
+    </section>
+
+    <section class="ops-grid two">
+      <article class="ops-panel guide-steps">
+        <h2>Matériel nécessaire</h2>
+        <ol>
+          <li>Un mini PC Linux, Raspberry Pi 4/5 ou NVR compatible dans chaque lieu.</li>
+          <li>Les adresses IP locales, marques, modèles et comptes administrateur des caméras.</li>
+          <li>Une connexion internet stable. Ethernet est recommandé pour le gateway et les caméras.</li>
+          <li>Tailscale installé sur le gateway, le téléphone, la tablette et l’ordinateur du propriétaire.</li>
+        </ol>
+      </article>
+      <article class="ops-panel guide-steps">
+        <h2>Compatibilité pour parler</h2>
+        <ol>
+          <li>La caméra doit avoir un haut-parleur, pas uniquement un microphone.</li>
+          <li>Rechercher ONVIF Profile T ou une compatibilité talk go2rtc pour le modèle exact.</li>
+          <li>Le flux doit fonctionner en WebRTC avec `video+audio+microphone`.</li>
+          <li>Le navigateur doit ouvrir le dashboard en HTTPS et autoriser le microphone.</li>
+        </ol>
+      </article>
+    </section>
+
+    <section class="ops-panel guide-code">
+      <h2>1. Démarrer go2rtc avec Docker</h2>
+      <pre><code>services:
+  go2rtc:
+    image: alexxit/go2rtc:1.9.14
+    network_mode: host
+    restart: unless-stopped
+    volumes:
+      - ./go2rtc.yaml:/config/go2rtc.yaml:ro</code></pre>
+      <p>Les fichiers exemples complets se trouvent dans le dossier <code>camera-gateway/</code> du projet.</p>
+    </section>
+
+    <section class="ops-panel guide-code">
+      <h2>2. Ajouter les flux locaux</h2>
+      <pre><code>streams:
+  cuisine-principale:
+    - rtsp://UTILISATEUR:MOT_DE_PASSE@192.168.1.20:554/FLUX_CAMERA
+  salle:
+    - rtsp://UTILISATEUR:MOT_DE_PASSE@192.168.1.21:554/FLUX_CAMERA
+
+api:
+  listen: "127.0.0.1:1984"
+  local_auth: true</code></pre>
+      <p>Ce fichier reste uniquement dans le lieu. Il ne doit jamais être envoyé sur GitHub ou enregistré dans le dashboard.</p>
+    </section>
+
+    <section class="ops-panel guide-code">
+      <h2>3. Publier uniquement dans le réseau privé</h2>
+      <pre><code>sudo tailscale up
+sudo tailscale serve --bg 1984
+tailscale serve status</code></pre>
+      <p>Tailscale affiche une adresse du type <code>https://camera-bordeaux.nom-tailnet.ts.net</code>. C’est cette adresse qui doit être ajoutée comme URL gateway.</p>
+    </section>
+
+    <section class="ops-panel guide-code">
+      <h2>4. Autoriser uniquement le propriétaire</h2>
+      <pre><code>{
+  "groups": {
+    "group:camera-owners": ["EMAIL_PROPRIETAIRE"]
+  },
+  "tagOwners": {
+    "tag:camera-gateway": ["autogroup:admin"]
+  },
+  "grants": [{
+    "src": ["group:camera-owners"],
+    "dst": ["tag:camera-gateway"],
+    "ip": ["tcp:443", "tcp:8555", "udp:8555"]
+  }]
+}</code></pre>
+      <pre><code>sudo tailscale up --advertise-tags=tag:camera-gateway</code></pre>
+      <p>Ajoutez cette règle à la politique Tailscale existante, puis attribuez le tag à chaque boîtier. Les comptes cuisine et staff restent également bloqués par le dashboard.</p>
+    </section>
+
+    <section class="ops-panel guide-checklist">
+      <h2>Test avant mise en service</h2>
+      <label><input type="checkbox"> L’image s’ouvre depuis le téléphone du propriétaire hors du Wi-Fi du restaurant.</label>
+      <label><input type="checkbox"> Le son de la caméra est audible.</label>
+      <label><input type="checkbox"> Le navigateur demande l’autorisation du microphone.</label>
+      <label><input type="checkbox"> La voix sort clairement du haut-parleur de la caméra.</label>
+      <label><input type="checkbox"> Un appareil non autorisé par Tailscale ne peut pas ouvrir le gateway.</label>
+    </section>
+  </div>
+</section>
+{% endblock %}

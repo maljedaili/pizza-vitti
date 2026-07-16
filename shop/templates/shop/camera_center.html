@@ -1,0 +1,89 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="ops-shell">
+  {% include 'shop/partials/ops_nav.html' %}
+  <div class="ops-main camera-center">
+    <header class="ops-topbar">
+      <div>
+        <p class="ops-eyebrow">Surveillance multi-sites</p>
+        <h1>Centre caméras</h1>
+        <p>{{ camera_total }} caméra{{ camera_total|pluralize }} affichée{{ camera_total|pluralize }}. Les images restent entre le téléphone du propriétaire et chaque gateway privé.</p>
+      </div>
+      <div class="hero-actions">
+        <button class="button ghost" type="button" data-camera-wall-start>Tout afficher</button>
+        <button class="button ghost" type="button" data-camera-wall-stop>Mettre en pause</button>
+        <a class="button" href="{% url 'shop:camera_setup' %}">Configurer</a>
+      </div>
+    </header>
+
+    <nav class="camera-location-tabs" aria-label="Filtrer les lieux">
+      <a href="{% url 'shop:camera_center' %}" {% if not selected_location %}class="active"{% endif %}>Tous les lieux</a>
+      {% for location in all_locations %}
+        <a href="?location={{ location.id }}" {% if selected_location == location.id|stringformat:'s' %}class="active"{% endif %}>{{ location.name }}</a>
+      {% endfor %}
+    </nav>
+
+    <div class="camera-security-note">
+      <strong>Accès propriétaire uniquement</strong>
+      <span>Le téléphone ou la tablette doit être connecté au réseau privé Tailscale pour ouvrir les caméras.</span>
+    </div>
+
+    <div data-camera-wall>
+      {% for location in locations %}
+        <section class="camera-location-section">
+          <header>
+            <div>
+              <p class="ops-eyebrow">{{ location.get_kind_display }}</p>
+              <h2>{{ location.name }}</h2>
+              {% if location.address %}<span>{{ location.address }}</span>{% endif %}
+            </div>
+            <span>{{ location.cameras.all|length }} caméra{{ location.cameras.all|length|pluralize }}</span>
+          </header>
+          <div class="camera-grid">
+            {% for camera in location.cameras.all %}
+              <article class="camera-tile">
+                <div class="camera-frame">
+                  <iframe
+                    title="{{ camera.name }}"
+                    src="{{ camera.viewer_url }}"
+                    data-camera-src="{{ camera.viewer_url }}"
+                    loading="lazy"
+                    allow="autoplay; fullscreen"
+                    referrerpolicy="no-referrer"
+                  ></iframe>
+                  <div class="camera-offline" hidden data-camera-paused>
+                    <strong>Flux en pause</strong>
+                    <span>Utilisez “Tout afficher” pour reconnecter les caméras.</span>
+                  </div>
+                </div>
+                <div class="camera-tile-info">
+                  <div>
+                    <strong>{{ camera.name }}</strong>
+                    <span>{% if camera.brand %}{{ camera.brand }}{% if camera.model_name %} · {{ camera.model_name }}{% endif %}{% else %}{{ camera.stream_name }}{% endif %}</span>
+                  </div>
+                  <div class="camera-badges">
+                    {% if camera.supports_audio %}<span>Audio</span>{% endif %}
+                    {% if camera.supports_talk %}<span class="talk">Micro</span>{% endif %}
+                  </div>
+                </div>
+                <a class="camera-open-link" href="{% url 'shop:camera_detail' camera.id %}">
+                  {% if camera.supports_talk %}Ouvrir et parler{% else %}Ouvrir en grand{% endif %}
+                </a>
+              </article>
+            {% empty %}
+              <p class="ops-empty">Aucune caméra active dans ce lieu.</p>
+            {% endfor %}
+          </div>
+        </section>
+      {% empty %}
+        <section class="ops-panel camera-empty-state">
+          <h2>Aucune caméra configurée</h2>
+          <p>Ajoutez d’abord un lieu et son adresse gateway HTTPS, puis les noms des flux configurés dans go2rtc.</p>
+          <a class="button" href="{% url 'shop:camera_setup' %}">Commencer la configuration</a>
+        </section>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

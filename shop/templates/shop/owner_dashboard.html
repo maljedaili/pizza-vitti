@@ -18,6 +18,7 @@
       <article><span>En cuisine</span><strong>{{ active_orders_count }}</strong></article>
       <article><span>Équipe présente</span><strong>{{ staff_present_count }}</strong></article>
       <article><span>Achats ouverts</span><strong>{{ open_purchase_count }}</strong></article>
+      <article><span>Caméras</span><strong>{{ camera_count }}</strong><small>{{ camera_location_count }} lieu{{ camera_location_count|pluralize }}</small></article>
     </section>
 
     <section class="ops-grid two">
@@ -88,8 +89,9 @@
       </article>
     </section>
 
-    <section class="ops-grid three">
+    <section class="ops-grid four">
       <a class="ops-action-card" href="{% url 'shop:floor_plan' %}"><strong>Table management</strong><span>Plan de salle temps réel et commandes par table.</span></a>
+      <a class="ops-action-card" href="{% url 'shop:camera_center' %}"><strong>Centre caméras</strong><span>Voir les lieux, ouvrir les flux en direct et parler via les caméras compatibles.</span></a>
       <a class="ops-action-card" href="{% url 'shop:staff_manage' %}"><strong>Équipe</strong><span>Créer les comptes staff et suivre check-in, pause, sortie.</span></a>
       <a class="ops-action-card" href="{% url 'shop:purchase_orders' %}"><strong>Purchase orders</strong><span>Suivre fournisseurs, commandes et réceptions.</span></a>
     </section>

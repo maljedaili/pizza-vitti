@@ -7,16 +7,17 @@ from uuid import uuid4
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
-from django.db.models import Q, Case, When, IntegerField, Sum, Count
+from django.db.models import Q, Case, When, IntegerField, Sum, Count, Prefetch
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 import stripe
-from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder
+from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder, CameraLocation, SecurityCamera
 from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_path
 
 
@@ -629,6 +630,8 @@ def owner_dashboard(request):
         'active_orders_count': active_orders.count(),
         'staff_present_count': present_shifts.count(),
         'open_purchase_count': PurchaseOrder.objects.exclude(status__in=['received','cancelled']).count(),
+        'camera_count': SecurityCamera.objects.filter(is_active=True, location__is_active=True).count(),
+        'camera_location_count': CameraLocation.objects.filter(is_active=True).count(),
         'recent_orders': Order.objects.prefetch_related('items').order_by('-created_at')[:8],
         'most_ordered': most_ordered,
         'present_shifts': present_shifts[:6],
@@ -638,6 +641,151 @@ def owner_dashboard(request):
         'dashboard_now': timezone.localtime(),
         'kitchen_app': True,
         'meta_title': 'Dashboard propriétaire | Pizza Vitti',
+    })
+
+
+@owner_required
+def camera_center(request):
+    selected_location = request.GET.get('location', '').strip()
+    cameras_qs = SecurityCamera.objects.filter(is_active=True).order_by('sort_order', 'name')
+    locations = list(
+        CameraLocation.objects.filter(is_active=True)
+        .prefetch_related(Prefetch('cameras', queryset=cameras_qs))
+        .order_by('name')
+    )
+    if selected_location.isdigit():
+        locations = [location for location in locations if location.id == int(selected_location)]
+    camera_total = sum(len(location.cameras.all()) for location in locations)
+    return render(request, 'shop/camera_center.html', {
+        'locations': locations,
+        'all_locations': CameraLocation.objects.filter(is_active=True).order_by('name'),
+        'selected_location': selected_location,
+        'camera_total': camera_total,
+        'kitchen_app': True,
+        'meta_title': 'Centre caméras | Pizza Vitti',
+    })
+
+
+@owner_required
+def camera_detail(request, camera_id):
+    camera = get_object_or_404(
+        SecurityCamera.objects.select_related('location'),
+        id=camera_id,
+        is_active=True,
+        location__is_active=True,
+    )
+    return render(request, 'shop/camera_detail.html', {
+        'camera': camera,
+        'kitchen_app': True,
+        'meta_title': f'{camera.name} | Centre caméras',
+    })
+
+
+@owner_required
+def camera_setup(request):
+    if request.method == 'POST':
+        action = request.POST.get('action', '')
+
+        def posted_id(field_name, error_message):
+            value = request.POST.get(field_name, '').strip()
+            if not value.isdigit():
+                raise ValidationError(error_message)
+            return value
+
+        try:
+            if action == 'add_location':
+                location = CameraLocation(
+                    name=request.POST.get('name', '').strip(),
+                    kind=request.POST.get('kind', 'restaurant'),
+                    address=request.POST.get('address', '').strip(),
+                    gateway_url=request.POST.get('gateway_url', '').strip(),
+                    notes=request.POST.get('notes', '').strip(),
+                )
+                location.full_clean()
+                location.save()
+                messages.success(request, f'Lieu « {location.name} » ajouté.')
+            elif action == 'update_location':
+                location = get_object_or_404(CameraLocation, id=posted_id('location_id', 'Lieu invalide.'))
+                location.name = request.POST.get('name', '').strip()
+                location.kind = request.POST.get('kind', 'restaurant')
+                location.address = request.POST.get('address', '').strip()
+                location.gateway_url = request.POST.get('gateway_url', '').strip()
+                location.notes = request.POST.get('notes', '').strip()
+                location.full_clean()
+                location.save()
+                messages.success(request, f'Lieu « {location.name} » mis à jour.')
+            elif action == 'add_camera':
+                location = get_object_or_404(
+                    CameraLocation,
+                    id=posted_id('location_id', 'Choisissez un lieu valide.'),
+                )
+                camera = SecurityCamera(
+                    location=location,
+                    name=request.POST.get('name', '').strip(),
+                    stream_name=request.POST.get('stream_name', '').strip(),
+                    brand=request.POST.get('brand', '').strip(),
+                    model_name=request.POST.get('model_name', '').strip(),
+                    custom_view_url=request.POST.get('custom_view_url', '').strip(),
+                    supports_audio=request.POST.get('supports_audio') == 'on',
+                    supports_talk=request.POST.get('supports_talk') == 'on',
+                    sort_order=request.POST.get('sort_order') or 0,
+                    notes=request.POST.get('notes', '').strip(),
+                )
+                camera.full_clean()
+                camera.save()
+                messages.success(request, f'Caméra « {camera.name} » ajoutée.')
+            elif action == 'update_camera':
+                camera = get_object_or_404(SecurityCamera, id=posted_id('camera_id', 'Caméra invalide.'))
+                camera.name = request.POST.get('name', '').strip()
+                camera.stream_name = request.POST.get('stream_name', '').strip()
+                camera.brand = request.POST.get('brand', '').strip()
+                camera.model_name = request.POST.get('model_name', '').strip()
+                camera.custom_view_url = request.POST.get('custom_view_url', '').strip()
+                camera.supports_audio = request.POST.get('supports_audio') == 'on'
+                camera.supports_talk = request.POST.get('supports_talk') == 'on'
+                camera.sort_order = request.POST.get('sort_order') or 0
+                camera.notes = request.POST.get('notes', '').strip()
+                camera.full_clean()
+                camera.save()
+                messages.success(request, f'Caméra « {camera.name} » mise à jour.')
+            elif action == 'toggle_camera':
+                camera = get_object_or_404(SecurityCamera, id=posted_id('camera_id', 'Caméra invalide.'))
+                camera.is_active = not camera.is_active
+                camera.save(update_fields=['is_active','updated_at'])
+                messages.success(request, 'Statut de la caméra mis à jour.')
+            elif action == 'delete_camera':
+                camera = get_object_or_404(SecurityCamera, id=posted_id('camera_id', 'Caméra invalide.'))
+                camera_name = camera.name
+                camera.delete()
+                messages.success(request, f'Caméra « {camera_name} » supprimée.')
+            elif action == 'toggle_location':
+                location = get_object_or_404(CameraLocation, id=posted_id('location_id', 'Lieu invalide.'))
+                location.is_active = not location.is_active
+                location.save(update_fields=['is_active','updated_at'])
+                messages.success(request, 'Statut du lieu mis à jour.')
+            else:
+                messages.error(request, 'Action caméra inconnue.')
+        except ValidationError as error:
+            details = ' '.join(
+                message
+                for field_messages in error.message_dict.values()
+                for message in field_messages
+            ) if hasattr(error, 'message_dict') else ' '.join(error.messages)
+            messages.error(request, details)
+        return redirect('shop:camera_setup')
+    return render(request, 'shop/camera_setup.html', {
+        'locations': CameraLocation.objects.prefetch_related('cameras').order_by('name'),
+        'location_kinds': CameraLocation.KINDS,
+        'kitchen_app': True,
+        'meta_title': 'Configuration caméras | Pizza Vitti',
+    })
+
+
+@owner_required
+def camera_gateway_guide(request):
+    return render(request, 'shop/camera_gateway_guide.html', {
+        'kitchen_app': True,
+        'meta_title': 'Guide gateway caméras | Pizza Vitti',
     })
 
 

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, BlogPost, CustomerMessage, Order, OrderItem, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, PromoCode, GiftCard, DiningTable, StaffMember, StaffShift, PurchaseOrder, PurchaseOrderItem
+from .models import Category, Product, BlogPost, CustomerMessage, Order, OrderItem, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, PromoCode, GiftCard, DiningTable, StaffMember, StaffShift, PurchaseOrder, PurchaseOrderItem, CameraLocation, SecurityCamera
 
 admin.site.site_header = "Pizza Vitti — Administration"
 admin.site.site_title = "Pizza Vitti"
@@ -153,6 +153,29 @@ class PurchaseOrderAdmin(admin.ModelAdmin):
     list_editable = ('status','total')
     search_fields = ('supplier','reference','notes')
     inlines = [PurchaseOrderItemInline]
+
+
+class SecurityCameraInline(admin.TabularInline):
+    model = SecurityCamera
+    extra = 0
+    fields = ('name','stream_name','brand','supports_audio','supports_talk','sort_order','is_active')
+
+
+@admin.register(CameraLocation)
+class CameraLocationAdmin(admin.ModelAdmin):
+    list_display = ('name','kind','gateway_url','is_active','updated_at')
+    list_filter = ('kind','is_active')
+    list_editable = ('is_active',)
+    search_fields = ('name','address','gateway_url')
+    inlines = [SecurityCameraInline]
+
+
+@admin.register(SecurityCamera)
+class SecurityCameraAdmin(admin.ModelAdmin):
+    list_display = ('name','location','stream_name','brand','supports_audio','supports_talk','is_active')
+    list_filter = ('location','supports_audio','supports_talk','is_active')
+    list_editable = ('supports_audio','supports_talk','is_active')
+    search_fields = ('name','stream_name','brand','model_name','location__name')
 
 from .models import ProductTranslation, CategoryTranslation, Favorite
 

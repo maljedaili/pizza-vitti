@@ -199,6 +199,50 @@ document.querySelectorAll('[data-live-clock]').forEach(clock => {
   updateClock();
   setInterval(updateClock, 1000);
 });
+const cameraWall = document.querySelector('[data-camera-wall]');
+if (cameraWall) {
+  const frames = [...cameraWall.querySelectorAll('iframe[data-camera-src]')];
+  const setCameraWall = enabled => frames.forEach(frame => {
+    const paused = frame.closest('.camera-frame')?.querySelector('[data-camera-paused]');
+    if (enabled) {
+      if (!frame.src) frame.src = frame.dataset.cameraSrc;
+      if (paused) paused.hidden = true;
+    } else {
+      frame.removeAttribute('src');
+      if (paused) paused.hidden = false;
+    }
+  });
+  document.querySelector('[data-camera-wall-start]')?.addEventListener('click', () => setCameraWall(true));
+  document.querySelector('[data-camera-wall-stop]')?.addEventListener('click', () => setCameraWall(false));
+}
+const cameraFocus = document.querySelector('[data-camera-focus]');
+if (cameraFocus) {
+  const frame = cameraFocus.querySelector('[data-camera-focus-frame]');
+  const listenButton = cameraFocus.querySelector('[data-camera-listen]');
+  const talkButton = cameraFocus.querySelector('[data-camera-talk]');
+  const status = cameraFocus.querySelector('[data-camera-mode-status]');
+  const setMode = (button, url, text) => {
+    if (!frame || !url) return;
+    frame.src = url;
+    [listenButton, talkButton].forEach(item => item?.classList.remove('active'));
+    button?.classList.add('active');
+    if (status) status.textContent = text;
+  };
+  listenButton?.addEventListener('click', () => setMode(listenButton, listenButton.dataset.url, 'Mode écoute actif.'));
+  talkButton?.addEventListener('click', async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      if (status) status.textContent = 'Microphone non disponible. Utilisez HTTPS et vérifiez les permissions.';
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+      stream.getTracks().forEach(track => track.stop());
+      setMode(talkButton, talkButton.dataset.url, 'Mode parler actif. Utilisez le bouton micro dans la vidéo.');
+    } catch (error) {
+      if (status) status.textContent = 'Autorisation microphone refusée. Activez-la dans les réglages du navigateur.';
+    }
+  });
+}
 const botForm = document.querySelector('[data-bot-form]');
 const escapeHtml = text => text.replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
 if (botForm) {

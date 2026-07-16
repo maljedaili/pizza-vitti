@@ -7,6 +7,7 @@
     <a href="{% url 'shop:owner_dashboard' %}" {% if request.resolver_match.url_name == 'owner_dashboard' %}class="active"{% endif %}>Dashboard</a>
     <a href="{% url 'shop:kitchen_app' %}" {% if request.resolver_match.url_name == 'kitchen_app' or request.resolver_match.url_name == 'preparation_dashboard' %}class="active"{% endif %}>Cuisine</a>
     <a href="{% url 'shop:floor_plan' %}" {% if request.resolver_match.url_name == 'floor_plan' %}class="active"{% endif %}>Tables</a>
+    <a href="{% url 'shop:camera_center' %}" {% if request.resolver_match.url_name == 'camera_center' or request.resolver_match.url_name == 'camera_detail' or request.resolver_match.url_name == 'camera_setup' or request.resolver_match.url_name == 'camera_gateway_guide' %}class="active"{% endif %}>Caméras</a>
     <a href="{% url 'shop:staff_manage' %}" {% if request.resolver_match.url_name == 'staff_manage' %}class="active"{% endif %}>Équipe</a>
     <a href="{% url 'shop:purchase_orders' %}" {% if request.resolver_match.url_name == 'purchase_orders' %}class="active"{% endif %}>Achats</a>
     <a href="{% url 'shop:reports_dashboard' %}" {% if request.resolver_match.url_name == 'reports_dashboard' %}class="active"{% endif %}>Rapports</a>

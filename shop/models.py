@@ -1,8 +1,12 @@
 from decimal import Decimal
+from urllib.parse import quote
 from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.text import slugify
 
 class TimeStampedModel(models.Model):
@@ -440,3 +444,97 @@ class PurchaseOrderItem(models.Model):
 
     def __str__(self):
         return self.name
+
+
+def _validate_secure_camera_url(value):
+    if not value:
+        return
+    from urllib.parse import urlparse
+    parsed = urlparse(value)
+    if parsed.scheme != 'https' or not parsed.hostname:
+        raise ValidationError('Utilisez une adresse HTTPS valide.')
+    if parsed.username or parsed.password:
+        raise ValidationError('Ne placez jamais le nom utilisateur ou le mot de passe caméra dans cette adresse.')
+
+
+class CameraLocation(TimeStampedModel):
+    KINDS = [
+        ('restaurant', 'Restaurant'),
+        ('shop', 'Boutique'),
+        ('office', 'Bureau'),
+        ('project', 'Projet'),
+        ('other', 'Autre'),
+    ]
+    name = models.CharField(max_length=140, verbose_name='Nom du lieu')
+    kind = models.CharField(max_length=20, choices=KINDS, default='restaurant', verbose_name='Type de lieu')
+    address = models.CharField(max_length=240, blank=True, verbose_name='Adresse')
+    gateway_url = models.URLField(
+        max_length=500,
+        validators=[_validate_secure_camera_url],
+        help_text='Adresse HTTPS privée du gateway, sans identifiant caméra.',
+    )
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Lieu caméras'
+        verbose_name_plural = 'Lieux caméras'
+
+    def __str__(self):
+        return self.name
+
+
+class SecurityCamera(TimeStampedModel):
+    STREAM_NAME_VALIDATOR = RegexValidator(
+        regex=r'^[A-Za-z0-9_.-]+$',
+        message='Utilisez uniquement lettres, chiffres, tiret, point ou underscore.',
+    )
+    location = models.ForeignKey(CameraLocation, on_delete=models.CASCADE, related_name='cameras')
+    name = models.CharField(max_length=140, verbose_name='Nom caméra')
+    stream_name = models.CharField(
+        max_length=120,
+        validators=[STREAM_NAME_VALIDATOR],
+        verbose_name='Nom du flux gateway',
+    )
+    brand = models.CharField(max_length=100, blank=True, verbose_name='Marque')
+    model_name = models.CharField(max_length=100, blank=True, verbose_name='Modèle')
+    custom_view_url = models.URLField(
+        max_length=700,
+        blank=True,
+        validators=[_validate_secure_camera_url],
+        help_text='Optionnel : page HTTPS fournie par le fabricant ou le NVR.',
+    )
+    supports_audio = models.BooleanField(default=True, verbose_name='Écoute audio')
+    supports_talk = models.BooleanField(default=False, verbose_name='Micro / parler')
+    sort_order = models.PositiveIntegerField(default=0, verbose_name='Ordre')
+    notes = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['location__name', 'sort_order', 'name']
+        unique_together = ('location', 'stream_name')
+        verbose_name = 'Caméra'
+        verbose_name_plural = 'Caméras'
+
+    def __str__(self):
+        return f'{self.location.name} - {self.name}'
+
+    @property
+    def viewer_url(self):
+        if self.custom_view_url:
+            return self.custom_view_url
+        media = 'video+audio' if self.supports_audio else 'video'
+        return (
+            f"{self.location.gateway_url.rstrip('/')}/stream.html"
+            f"?src={quote(self.stream_name)}&mode=webrtc&media={media}"
+        )
+
+    @property
+    def talk_url(self):
+        if self.custom_view_url:
+            return self.custom_view_url
+        return (
+            f"{self.location.gateway_url.rstrip('/')}/webrtc.html"
+            f"?src={quote(self.stream_name)}&media=video+audio+microphone"
+        )

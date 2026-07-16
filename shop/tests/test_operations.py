@@ -1,11 +1,12 @@
 from datetime import timedelta
 from unittest.mock import patch
 
+from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from shop.models import StaffMember, StaffShift
+from shop.models import CameraLocation, SecurityCamera, StaffMember, StaffShift
 
 
 @override_settings(OWNER_DASHBOARD_PASSWORD='1234', KITCHEN_PASSWORD='1234')
@@ -32,6 +33,131 @@ class OperationsAccessTests(TestCase):
         self.client.get(reverse('shop:owner_logout'))
         self.assertEqual(self.client.get(reverse('shop:owner_dashboard')).status_code, 302)
         self.assertEqual(self.client.get(reverse('shop:kitchen_app')).status_code, 302)
+
+
+@override_settings(OWNER_DASHBOARD_PASSWORD='1234', KITCHEN_PASSWORD='1234')
+class CameraCenterTests(TestCase):
+    def setUp(self):
+        self.location = CameraLocation.objects.create(
+            name='Restaurant Centre',
+            kind='restaurant',
+            gateway_url='https://camera-centre.example-tailnet.ts.net',
+        )
+        self.camera = SecurityCamera.objects.create(
+            location=self.location,
+            name='Cuisine principale',
+            stream_name='cuisine-principale',
+            brand='Reolink',
+            supports_audio=True,
+            supports_talk=True,
+        )
+
+    def login_owner(self):
+        response = self.client.post(reverse('shop:app_login'), {
+            'role': 'owner',
+            'password': '1234',
+        })
+        self.assertRedirects(response, reverse('shop:owner_dashboard'))
+
+    def test_owner_can_open_camera_pages_and_microphone_view(self):
+        self.login_owner()
+        self.assertEqual(self.client.get(reverse('shop:camera_center')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('shop:camera_setup')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('shop:camera_gateway_guide')).status_code, 200)
+        response = self.client.get(reverse('shop:camera_detail', args=[self.camera.id]))
+        self.assertContains(response, 'allow="microphone; autoplay; fullscreen"')
+        self.assertContains(response, 'data-camera-talk')
+
+    def test_kitchen_session_cannot_open_camera_pages(self):
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'kitchen',
+            'password': '1234',
+        })
+        for url in [
+            reverse('shop:camera_center'),
+            reverse('shop:camera_setup'),
+            reverse('shop:camera_gateway_guide'),
+            reverse('shop:camera_detail', args=[self.camera.id]),
+        ]:
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 302)
+            self.assertIn(reverse('shop:owner_login'), response.url)
+
+    def test_staff_session_cannot_open_camera_center(self):
+        staff = StaffMember(
+            name='Alex Test',
+            username='alex',
+            role='server',
+            temporary_password='secret',
+        )
+        staff.save()
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'staff',
+            'username': 'alex',
+            'password': 'secret',
+        })
+        response = self.client.get(reverse('shop:camera_center'))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('shop:owner_login'), response.url)
+
+    def test_gateway_urls_require_https_and_cannot_contain_credentials(self):
+        for gateway_url in [
+            'http://camera.example.com',
+            'https://camera-user:camera-password@camera.example.com',
+        ]:
+            location = CameraLocation(name='Unsafe', gateway_url=gateway_url)
+            with self.assertRaises(ValidationError):
+                location.full_clean()
+
+    def test_camera_urls_are_built_without_camera_credentials(self):
+        self.assertEqual(
+            self.camera.viewer_url,
+            'https://camera-centre.example-tailnet.ts.net/stream.html'
+            '?src=cuisine-principale&mode=webrtc&media=video+audio',
+        )
+        self.assertEqual(
+            self.camera.talk_url,
+            'https://camera-centre.example-tailnet.ts.net/webrtc.html'
+            '?src=cuisine-principale&media=video+audio+microphone',
+        )
+
+    def test_owner_can_add_and_update_camera_configuration(self):
+        self.login_owner()
+        response = self.client.post(reverse('shop:camera_setup'), {
+            'action': 'add_camera',
+            'location_id': self.location.id,
+            'name': 'Salle',
+            'stream_name': 'salle',
+            'supports_audio': 'on',
+            'sort_order': '2',
+        })
+        self.assertRedirects(response, reverse('shop:camera_setup'))
+        camera = SecurityCamera.objects.get(stream_name='salle')
+        response = self.client.post(reverse('shop:camera_setup'), {
+            'action': 'update_camera',
+            'camera_id': camera.id,
+            'name': 'Salle principale',
+            'stream_name': 'salle-principale',
+            'supports_audio': 'on',
+            'supports_talk': 'on',
+            'sort_order': '1',
+        })
+        self.assertRedirects(response, reverse('shop:camera_setup'))
+        camera.refresh_from_db()
+        self.assertEqual(camera.name, 'Salle principale')
+        self.assertEqual(camera.stream_name, 'salle-principale')
+        self.assertTrue(camera.supports_talk)
+
+    def test_missing_location_shows_validation_message(self):
+        self.login_owner()
+        response = self.client.post(reverse('shop:camera_setup'), {
+            'action': 'add_camera',
+            'location_id': '',
+            'name': 'Salle',
+            'stream_name': 'salle',
+        }, follow=True)
+        self.assertContains(response, 'Choisissez un lieu valide.')
+        self.assertEqual(SecurityCamera.objects.count(), 1)
 
 
 class StaffPointageTests(TestCase):
