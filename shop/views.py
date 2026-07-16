@@ -1,4 +1,5 @@
 from decimal import Decimal
+import json
 from urllib.parse import quote
 from uuid import uuid4
 from django.conf import settings
@@ -491,6 +492,7 @@ def preparation_dashboard(request):
         'orders': orders,
         'latest_order_key': latest_order.order_number if latest_order else '',
         'now': timezone.now(),
+        'kitchen_app': True,
         'meta_title': 'Préparation commandes | Pizza Vitti',
     })
 
@@ -654,3 +656,55 @@ def robots_txt(request):
     sitemap_url = settings.SITE_URL.rstrip('/') + '/sitemap.xml'
     content = f"User-agent: *\nAllow: /\nSitemap: {sitemap_url}\n"
     return HttpResponse(content, content_type='text/plain')
+
+def manifest_webmanifest(request):
+    site_url = request.build_absolute_uri('/').rstrip('/')
+    manifest = {
+        'name': 'Pizza Vitti Préparation',
+        'short_name': 'Vitti Cuisine',
+        'description': 'Application cuisine pour suivre et préparer les commandes Pizza Vitti.',
+        'start_url': '/preparation/',
+        'scope': '/',
+        'display': 'standalone',
+        'orientation': 'any',
+        'background_color': '#fffaf0',
+        'theme_color': '#8d1f16',
+        'categories': ['food', 'business', 'productivity'],
+        'icons': [
+            {'src': f'{site_url}/static/shop/img/pwa/icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any maskable'},
+            {'src': f'{site_url}/static/shop/img/pwa/icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'any maskable'},
+        ],
+    }
+    return HttpResponse(json.dumps(manifest), content_type='application/manifest+json')
+
+def service_worker(request):
+    content = """
+const CACHE_NAME = 'pizza-vitti-kitchen-v1';
+const STATIC_ASSETS = [
+  '/static/shop/style.css',
+  '/static/shop/app.js',
+  '/static/shop/img/logo-vitti-header.png',
+  '/static/shop/img/pwa/icon-192.png',
+  '/static/shop/img/pwa/icon-512.png'
+];
+
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(STATIC_ASSETS)).then(() => self.skipWaiting()));
+});
+
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))).then(() => self.clients.claim()));
+});
+
+self.addEventListener('fetch', event => {
+  const request = event.request;
+  const url = new URL(request.url);
+  if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith('/static/')) {
+    event.respondWith(caches.match(request).then(cached => cached || fetch(request)));
+    return;
+  }
+  event.respondWith(fetch(request).catch(() => caches.match('/static/shop/style.css')));
+});
+"""
+    return HttpResponse(content.strip(), content_type='application/javascript')

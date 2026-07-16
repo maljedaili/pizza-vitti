@@ -15,6 +15,7 @@ urlpatterns = [
     path('table/<str:table>/', views.table_menu, name='table_menu'),
     path('<str:lang>/table/<str:table>/', views.table_menu, name='localized_table_menu'),
     path('admin-tables/qr/', views.qr_tables, name='qr_tables'),
+    path('kitchen/', views.preparation_dashboard, name='kitchen_app'),
     path('preparation/', views.preparation_dashboard, name='preparation_dashboard'),
     path('preparation/<str:order_number>/status/', views.update_order_status, name='update_order_status'),
     path('panier/', views.cart, name='cart'),
@@ -39,6 +40,8 @@ urlpatterns = [
     path('mentions-legales/', views.simple_page, {'title':'Mentions légales'}, name='mentions'),
     path('legal-notice/', views.simple_page, {'title':'Legal Notice'}, name='legal_notice'),
     path('cgv/', views.simple_page, {'title':'Conditions générales de vente'}, name='cgv'),
+    path('manifest.webmanifest', views.manifest_webmanifest, name='manifest_webmanifest'),
+    path('sw.js', views.service_worker, name='service_worker'),
     path('<str:lang>/', views.localized_dispatch, name='localized_home_short'),
     path('<str:lang>/<slug:page>/', views.localized_dispatch, name='localized_page'),
    

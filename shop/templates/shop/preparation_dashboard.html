@@ -4,8 +4,13 @@
 <section class="page-title prep-title">
   <p class="eyebrow">Préparation</p>
   <h1>Commandes en cuisine</h1>
-  <p>Les commandes QR à table apparaissent ici avec la table, le client, les plats et les actions de suivi.</p>
-  <div class="hero-actions"><a class="button ghost" href="{% url 'shop:qr_tables' %}">QR tables</a><button class="button ghost" type="button" data-prep-sound>Activer son</button><button class="button" onclick="window.location.reload()">Actualiser</button></div>
+  <p>Application cuisine pour recevoir les commandes, entendre les alertes et suivre la préparation sur tablette ou téléphone.</p>
+  <div class="hero-actions"><a class="button ghost" href="{% url 'shop:qr_tables' %}">QR tables</a><button class="button ghost" type="button" data-install-app hidden>Installer l’application</button><button class="button ghost" type="button" data-prep-sound>Activer son</button><button class="button" onclick="window.location.reload()">Actualiser</button></div>
+</section>
+
+<section class="prep-app-help">
+  <strong>Installation tablette</strong>
+  <span>Android/Chrome : menu ⋮ puis “Installer l’application”. iPhone/iPad : bouton Partager puis “Sur l’écran d’accueil”. Gardez cette page ouverte et cliquez sur “Activer son”.</span>
 </section>
 
 <section class="prep-live-alert" data-prep-alert hidden>

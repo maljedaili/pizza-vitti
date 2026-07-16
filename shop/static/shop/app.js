@@ -19,6 +19,23 @@ document.querySelectorAll('.menu-photo-card').forEach(card => {
     card.style.setProperty('--tilt-y', '0deg');
   });
 });
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+}
+let installPromptEvent = null;
+const installButton = document.querySelector('[data-install-app]');
+window.addEventListener('beforeinstallprompt', event => {
+  event.preventDefault();
+  installPromptEvent = event;
+  if (installButton) installButton.hidden = false;
+});
+installButton?.addEventListener('click', async () => {
+  if (!installPromptEvent) return;
+  installPromptEvent.prompt();
+  await installPromptEvent.userChoice;
+  installPromptEvent = null;
+  installButton.hidden = true;
+});
 const orderPreview = document.querySelector('[data-order-preview]');
 if (orderPreview) {
   document.querySelector('[data-order-preview-toggle]')?.addEventListener('click', () => orderPreview.classList.toggle('open'));

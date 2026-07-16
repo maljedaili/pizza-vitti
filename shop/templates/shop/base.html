@@ -4,6 +4,12 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ meta_title|default:"Pizza Vitti Bordeaux | Pizzeria italienne, commande en ligne" }}</title>
   <meta name="description" content="{{ meta_description|default:"Pizza Vitti à Bordeaux : pizzas italiennes, menu en ligne, réservation, retrait, livraison et paiement par carte Visa/Mastercard/CB." }}">
+  <meta name="theme-color" content="#8d1f16">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Vitti Cuisine">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="{% url 'shop:manifest_webmanifest' %}">
+  <link rel="apple-touch-icon" href="{% static 'shop/img/pwa/icon-192.png' %}">
   <link rel="canonical" href="{{ SITE_URL }}{{ request.path }}">
   {% for code,label,name,href in LANGUAGES_MENU %}<link rel="alternate" hreflang="{{ code }}" href="{{ SITE_URL }}{{ href }}">{% endfor %}
   <meta property="og:title" content="{{ meta_title|default:"Pizza Vitti Bordeaux" }}"><meta property="og:type" content="restaurant"><meta property="og:url" content="{{ SITE_URL }}{{ request.path }}">
@@ -12,7 +18,7 @@
   <link rel="stylesheet" href="{% static 'shop/style.css' %}">
   <script defer src="{% static 'shop/app.js' %}"></script>
 </head>
-<body class="lang-{{ current_lang }}">
+<body class="lang-{{ current_lang }}{% if kitchen_app %} kitchen-app{% endif %}">
 <header class="site-header">
   <a class="logo" href="{{ url_home }}"><img src="{% static 'shop/img/logo-vitti-header.png' %}" alt="Pizza Vitti logo"><span class="logo-text">Pizza Vitti</span></a>
   <button class="nav-toggle" data-nav>☰</button>
@@ -20,7 +26,7 @@
     <a href="{{ url_home }}">{{ T.home }}</a><a href="{{ url_menu }}">{{ T.menu }}</a><a href="{{ url_booking }}">{{ T.booking }}</a><a href="{{ url_gallery }}">{{ T.gallery }}</a><a href="{{ url_reviews }}">{{ T.reviews }}</a><a href="{{ url_blog }}">{{ T.blog }}</a><a href="{{ url_contact }}">{{ T.contact }}</a>{% if request.user.is_authenticated %}<a href="{% url 'shop:customer_dashboard' %}">👤 Mon compte</a>{% else %}<a href="/accounts/login/">Connexion</a>{% endif %}<a class="cart-link" href="{{ url_cart }}">{{ T.cart }} ({{ cart_count }})</a> {% if request.user.is_staff %}<a href="{% url 'shop:preparation_dashboard' %}">Préparation</a><a href="{% url 'shop:qr_tables' %}">QR tables</a><a class="admin-link" href="/admin/">{{ T.admin }}</a>{% endif %}
   </nav>
 </header>
-<div class="language-switch" data-lang><button type="button" class="language-current" data-lang-toggle>{{ current_lang|upper }} ▾</button><div class="language-menu" aria-label="{{ T.language }}">{% for code,label,name,href in LANGUAGES_MENU %}<a href="{{ href }}">{{ label }} — {{ name }}</a>{% endfor %}</div></div>
+{% if not kitchen_app %}<div class="language-switch" data-lang><button type="button" class="language-current" data-lang-toggle>{{ current_lang|upper }} ▾</button><div class="language-menu" aria-label="{{ T.language }}">{% for code,label,name,href in LANGUAGES_MENU %}<a href="{{ href }}">{{ label }} — {{ name }}</a>{% endfor %}</div></div>{% endif %}
 {% if messages %}<section class="messages">{% for message in messages %}<div class="message {{ message.tags }}">{{ message }}</div>{% endfor %}</section>{% endif %}
 <main>{% block content %}{% endblock %}</main>
 {% if cart_count %}
@@ -55,7 +61,7 @@
   </div>
 </aside>
 {% endif %}
-<div class="bot" data-bot>
+{% if not kitchen_app %}<div class="bot" data-bot>
   <button class="bot-toggle" data-bot-toggle>{{ T.help }}</button>
   <div class="bot-panel"><strong>Assistant Pizza Vitti</strong><div class="bot-log" data-bot-log><p>{{ T.assistant_hello }}</p></div><div class="bot-suggestions"><button type="button" data-bot-suggest="Voir le menu">Menu</button><button type="button" data-bot-suggest="Commander à table">Table</button><button type="button" data-bot-suggest="Fidélité">Fidélité</button><button type="button" data-bot-suggest="Réserver">Réserver</button></div><form data-bot-form data-url="{% url 'shop:bot_reply' %}">{% csrf_token %}<input name="message" placeholder="{{ T.message }}..."><button>{{ T.send }}</button></form></div>
 </div>
@@ -69,4 +75,5 @@
   </div>
   <p class="credit">{{ T.created }} <a href="https://kayan.fr" target="_blank" rel="noopener">Kayan.fr</a></p>
 </footer>
+{% endif %}
 </body></html>
