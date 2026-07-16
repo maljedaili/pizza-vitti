@@ -48,6 +48,7 @@ if (prepBoard) {
   const pendingAlertKey = 'pizzaVittiPendingPrepAlert';
   const soundButton = document.querySelector('[data-prep-sound]');
   const wakeButton = document.querySelector('[data-wake-lock]');
+  const testAlertButton = document.querySelector('[data-test-alert]');
   const alertBox = document.querySelector('[data-prep-alert]');
   const alertClose = document.querySelector('[data-prep-alert-close]');
   let wakeLock = null;
@@ -114,6 +115,12 @@ if (prepBoard) {
     localStorage.setItem(soundKey, 'on');
     setSoundLabel();
     speak('Son active. Vous recevrez une alerte a chaque nouvelle commande.');
+  });
+  testAlertButton?.addEventListener('click', () => {
+    localStorage.setItem(soundKey, 'on');
+    setSoundLabel();
+    showPrepAlert();
+    speak('Test alerte cuisine. Nouvelle commande recue.');
   });
   alertClose?.addEventListener('click', stopPrepAlert);
   setSoundLabel();
