@@ -37,8 +37,8 @@
     </div>
 
     <label for="app-password" data-password-label>Code secret</label>
-    <input id="app-password" type="password" name="password" autocomplete="current-password" inputmode="numeric" autofocus required>
-    <small data-app-login-note>Code par défaut : 1234</small>
+    <input id="app-password" type="password" name="password" autocomplete="current-password" inputmode="{% if selected_role == 'kitchen' %}numeric{% else %}text{% endif %}" autofocus required>
+    <small data-app-login-note>Entrez le code confidentiel de cet espace.</small>
     <button class="button">Entrer</button>
   </form>
 </section>

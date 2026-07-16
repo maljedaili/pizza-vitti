@@ -9,7 +9,11 @@ from django.utils import timezone
 from shop.models import CameraLocation, SecurityCamera, StaffMember, StaffShift
 
 
-@override_settings(OWNER_DASHBOARD_PASSWORD='1234', KITCHEN_PASSWORD='1234')
+@override_settings(
+    OWNER_DASHBOARD_PASSWORD='1234',
+    OWNER_DASHBOARD_PASSWORD_HASH='',
+    KITCHEN_PASSWORD='1234',
+)
 class OperationsAccessTests(TestCase):
     def test_kitchen_session_cannot_open_owner_dashboard(self):
         response = self.client.post(reverse('shop:app_login'), {
@@ -34,8 +38,61 @@ class OperationsAccessTests(TestCase):
         self.assertEqual(self.client.get(reverse('shop:owner_dashboard')).status_code, 302)
         self.assertEqual(self.client.get(reverse('shop:kitchen_app')).status_code, 302)
 
+    def test_kitchen_session_hides_owner_navigation_and_app_card(self):
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'kitchen',
+            'password': '1234',
+        })
+        kitchen_response = self.client.get(reverse('shop:kitchen_app'))
+        self.assertNotContains(kitchen_response, reverse('shop:owner_dashboard'))
+        app_response = self.client.get(reverse('shop:app_home'))
+        self.assertNotContains(app_response, 'Propriétaire (admin)')
+        self.assertNotContains(app_response, reverse('shop:app_role', args=['proprietaire']))
 
-@override_settings(OWNER_DASHBOARD_PASSWORD='1234', KITCHEN_PASSWORD='1234')
+    def test_owner_navigation_keeps_owner_and_kitchen_access(self):
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'owner',
+            'password': '1234',
+        })
+        response = self.client.get(reverse('shop:kitchen_app'))
+        self.assertContains(response, reverse('shop:owner_dashboard'))
+        app_response = self.client.get(reverse('shop:app_home'))
+        self.assertContains(app_response, 'Dashboard propriétaire')
+        self.assertContains(app_response, 'Cuisine (commandes)')
+
+    @override_settings(
+        OWNER_DASHBOARD_PASSWORD='SecureOwnerPass',
+        OWNER_DASHBOARD_PASSWORD_HASH='',
+    )
+    def test_new_owner_password_is_case_sensitive(self):
+        rejected = self.client.post(reverse('shop:app_login'), {
+            'role': 'owner',
+            'password': 'secureownerpass',
+        })
+        self.assertEqual(rejected.status_code, 200)
+        self.assertNotIn('owner_access', self.client.session)
+        accepted = self.client.post(reverse('shop:app_login'), {
+            'role': 'owner',
+            'password': 'SecureOwnerPass',
+        })
+        self.assertRedirects(accepted, reverse('shop:owner_dashboard'))
+        self.assertTrue(self.client.session['owner_access'])
+
+    def test_kitchen_session_cannot_switch_directly_to_owner_role(self):
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'kitchen',
+            'password': '1234',
+        })
+        response = self.client.get(reverse('shop:app_login'), {'role': 'owner'})
+        self.assertRedirects(response, reverse('shop:kitchen_app'))
+        self.assertNotIn('owner_access', self.client.session)
+
+
+@override_settings(
+    OWNER_DASHBOARD_PASSWORD='1234',
+    OWNER_DASHBOARD_PASSWORD_HASH='',
+    KITCHEN_PASSWORD='1234',
+)
 class CameraCenterTests(TestCase):
     def setUp(self):
         self.location = CameraLocation.objects.create(
@@ -203,6 +260,16 @@ class StaffPointageTests(TestCase):
         self.assertContains(response, 'Mes heures récentes')
         self.assertContains(response, '3 h 00')
 
+    def test_staff_session_hides_owner_and_kitchen_navigation(self):
+        self.login_staff()
+        portal_response = self.client.get(reverse('shop:staff_portal'))
+        self.assertNotContains(portal_response, reverse('shop:owner_dashboard'))
+        self.assertNotContains(portal_response, reverse('shop:kitchen_app'))
+        app_response = self.client.get(reverse('shop:app_home'))
+        self.assertNotContains(app_response, 'Propriétaire (admin)')
+        self.assertNotContains(app_response, 'Cuisine (commandes)')
+        self.assertContains(app_response, 'Staff (pointage)')
+
     def test_multiple_breaks_are_accumulated_through_pointage_actions(self):
         self.login_staff()
         start = timezone.now().replace(hour=8, minute=0, second=0, microsecond=0)
@@ -221,7 +288,7 @@ class StaffPointageTests(TestCase):
         self.assertEqual(shift.break_seconds, 45 * 60)
         self.assertEqual(shift.worked_seconds(), 4 * 60 * 60 + 30 * 60)
 
-    @override_settings(OWNER_DASHBOARD_PASSWORD='1234')
+    @override_settings(OWNER_DASHBOARD_PASSWORD='1234', OWNER_DASHBOARD_PASSWORD_HASH='')
     def test_owner_can_filter_and_print_staff_hours(self):
         StaffShift.objects.create(
             staff=self.staff,

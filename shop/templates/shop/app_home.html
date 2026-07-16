@@ -5,10 +5,19 @@
   <header class="app-hero">
     <p class="ops-eyebrow">Application mobile Pizza Vitti</p>
     <h1>Choisir votre espace</h1>
-    <p>Un seul endroit pour ouvrir le site de commande, le dashboard propriétaire, la cuisine ou le pointage staff.</p>
+    <p>{% if request.session.owner_access or request.user.is_staff %}Accès propriétaire complet aux opérations Pizza Vitti.{% elif request.session.kitchen_access %}Votre espace de préparation et de suivi des commandes.{% elif request.session.staff_id %}Votre espace personnel de pointage.{% else %}Choisissez votre espace sécurisé pour continuer.{% endif %}</p>
     <div class="hero-actions">
-      <a class="button" href="{% url 'shop:app_role' 'proprietaire' %}">Propriétaire</a>
-      <a class="button ghost" href="{% url 'shop:app_role' 'cuisine' %}">Cuisine</a>
+      {% if request.session.owner_access or request.user.is_staff %}
+        <a class="button" href="{% url 'shop:owner_dashboard' %}">Dashboard propriétaire</a>
+        <a class="button ghost" href="{% url 'shop:kitchen_app' %}">Cuisine</a>
+      {% elif request.session.kitchen_access %}
+        <a class="button" href="{% url 'shop:kitchen_app' %}">Ouvrir les commandes</a>
+      {% elif request.session.staff_id %}
+        <a class="button" href="{% url 'shop:staff_portal' %}">Ouvrir mon pointage</a>
+      {% else %}
+        <a class="button" href="{% url 'shop:app_role' 'proprietaire' %}">Propriétaire</a>
+        <a class="button ghost" href="{% url 'shop:app_role' 'cuisine' %}">Cuisine</a>
+      {% endif %}
       <button class="button ghost" type="button" data-install-app>Installer l’application</button>
     </div>
     <div class="app-install-note" data-install-instructions hidden>
@@ -18,24 +27,30 @@
   </header>
 
   <section class="app-role-grid">
+    {% if not request.session.kitchen_access and not request.session.staff_id or request.session.owner_access or request.user.is_staff %}
     <a href="{% url 'shop:app_role' 'proprietaire' %}" class="app-role-card">
       <span>01</span>
       <strong>Propriétaire (admin)</strong>
       <p>Accès complet : commandes, tables, équipe, achats, rapports et cuisine.</p>
-      <small>Code : 1234</small>
+      <small>Accès privé</small>
     </a>
+    {% endif %}
+    {% if not request.session.staff_id or request.session.owner_access or request.user.is_staff %}
     <a href="{% url 'shop:app_role' 'cuisine' %}" class="app-role-card">
       <span>02</span>
       <strong>Cuisine (commandes)</strong>
       <p>Préparation des commandes, alerte sonore, écran allumé et suivi des statuts.</p>
-      <small>Code : 1234</small>
+      <small>Accès cuisine</small>
     </a>
+    {% endif %}
+    {% if not request.session.kitchen_access or request.session.owner_access or request.user.is_staff %}
     <a href="{% url 'shop:app_role' 'staff' %}" class="app-role-card">
       <span>03</span>
       <strong>Staff (pointage)</strong>
       <p>Entrée, pause, retour de pause et sortie avec le compte créé par le propriétaire.</p>
       <small>Compte staff</small>
     </a>
+    {% endif %}
     <a href="{{ url_home }}" class="app-role-card">
       <span>04</span>
       <strong>Site et commandes</strong>

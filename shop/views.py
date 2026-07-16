@@ -6,6 +6,7 @@ from urllib.parse import quote
 from uuid import uuid4
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.hashers import check_password
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
@@ -23,6 +24,13 @@ from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_pa
 
 def _password_matches(raw_password, configured_password):
     return bool(raw_password) and raw_password == configured_password
+
+
+def _owner_password_matches(raw_password):
+    password_hash = getattr(settings, 'OWNER_DASHBOARD_PASSWORD_HASH', '')
+    if password_hash:
+        return bool(raw_password) and check_password(raw_password, password_hash)
+    return _password_matches(raw_password, settings.OWNER_DASHBOARD_PASSWORD)
 
 
 def _session_or_staff(request, key):
@@ -530,6 +538,10 @@ def app_login(request, default_role='owner'):
     selected_role = request.POST.get('role') or request.GET.get('role') or default_role
     if selected_role not in ['owner', 'kitchen', 'staff']:
         selected_role = 'owner'
+    if request.session.get('kitchen_access') and not _session_or_staff(request, 'owner_access'):
+        selected_role = 'kitchen'
+    elif request.session.get('staff_id') and not _session_or_staff(request, 'owner_access'):
+        selected_role = 'staff'
     fallback = _login_fallback(selected_role)
     if selected_role == 'owner' and _session_or_staff(request, 'owner_access'):
         return redirect(_safe_next_url(request, fallback))
@@ -539,12 +551,15 @@ def app_login(request, default_role='owner'):
         return redirect(_safe_next_url(request, fallback))
     if request.method == 'POST':
         password = request.POST.get('password', '')
-        if selected_role == 'owner' and _password_matches(password, settings.OWNER_DASHBOARD_PASSWORD):
+        if selected_role == 'owner' and _owner_password_matches(password):
+            request.session.pop('staff_id', None)
             request.session['owner_access'] = True
             request.session['kitchen_access'] = True
             messages.success(request, 'Accès propriétaire activé.')
             return redirect(_safe_next_url(request, reverse('shop:owner_dashboard')))
         if selected_role == 'kitchen' and _password_matches(password, settings.KITCHEN_PASSWORD):
+            request.session.pop('owner_access', None)
+            request.session.pop('staff_id', None)
             request.session['kitchen_access'] = True
             messages.success(request, 'Accès cuisine activé.')
             return redirect(_safe_next_url(request, reverse('shop:kitchen_app')))
@@ -552,6 +567,8 @@ def app_login(request, default_role='owner'):
             username = request.POST.get('username', '').strip()
             staff = StaffMember.objects.filter(username__iexact=username, is_active=True).first()
             if staff and staff.check_password(password):
+                request.session.pop('owner_access', None)
+                request.session.pop('kitchen_access', None)
                 request.session['staff_id'] = staff.id
                 messages.success(request, f'Bonjour {staff.name}.')
                 return redirect(_safe_next_url(request, reverse('shop:staff_portal')))
@@ -1258,7 +1275,6 @@ def manifest_webmanifest(request):
         'categories': ['food', 'business', 'productivity'],
         'shortcuts': [
             {'name': 'Commandes cuisine', 'short_name': 'Cuisine', 'url': '/app/cuisine/'},
-            {'name': 'Dashboard propriétaire', 'short_name': 'Propriétaire', 'url': '/app/proprietaire/'},
             {'name': 'Pointage staff', 'short_name': 'Pointage', 'url': '/app/staff/'},
             {'name': 'Carte Pizza Vitti', 'short_name': 'Menu', 'url': '/fr/'},
         ],
@@ -1271,7 +1287,7 @@ def manifest_webmanifest(request):
 
 def service_worker(request):
     content = """
-const CACHE_NAME = 'pizza-vitti-app-v3';
+const CACHE_NAME = 'pizza-vitti-app-v4';
 const STATIC_ASSETS = [
   '/static/shop/style.css',
   '/static/shop/app.js',

@@ -1,5 +1,15 @@
 document.addEventListener('click', e => {
-  if (e.target.matches('[data-nav]')) document.body.classList.toggle('nav-open');
+  if (e.target.matches('[data-nav]')) {
+    const isOpen = document.body.classList.toggle('nav-open');
+    e.target.setAttribute('aria-expanded', String(isOpen));
+    e.target.setAttribute('aria-label', isOpen ? 'Fermer le menu' : 'Ouvrir le menu');
+  }
+  if (e.target.closest('.site-header nav a') && document.body.classList.contains('nav-open')) {
+    document.body.classList.remove('nav-open');
+    const navToggle = document.querySelector('[data-nav]');
+    navToggle?.setAttribute('aria-expanded', 'false');
+    navToggle?.setAttribute('aria-label', 'Ouvrir le menu');
+  }
   if (e.target.matches('[data-bot-toggle]')) document.querySelector('[data-bot]').classList.toggle('open');
 });
 const observer = new IntersectionObserver(entries => entries.forEach(entry => {
@@ -172,9 +182,15 @@ if (appRole) {
     const staff = appRole.value === 'staff';
     if (staffFields) staffFields.hidden = !staff;
     if (username) username.required = staff;
-    if (password) password.inputMode = staff ? 'text' : 'numeric';
+    if (password) password.inputMode = appRole.value === 'kitchen' ? 'numeric' : 'text';
     if (passwordLabel) passwordLabel.textContent = staff ? 'Mot de passe staff' : 'Code secret';
-    if (note) note.textContent = staff ? 'Utilisez le compte créé dans le dashboard propriétaire.' : 'Code par défaut : 1234';
+    if (note) {
+      note.textContent = staff
+        ? 'Utilisez le compte créé dans le dashboard propriétaire.'
+        : appRole.value === 'owner'
+          ? 'Entrez le code confidentiel du propriétaire.'
+          : 'Entrez le code confidentiel de la cuisine.';
+    }
   };
   appRole.addEventListener('change', syncAppLogin);
   syncAppLogin();

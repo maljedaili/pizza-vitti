@@ -21,13 +21,25 @@
 <body class="lang-{{ current_lang }}{% if kitchen_app %} kitchen-app{% endif %}">
 <header class="site-header">
   <a class="logo" href="{% if kitchen_app %}{% url 'shop:app_home' %}{% else %}{{ url_home }}{% endif %}"><img src="{% static 'shop/img/logo-vitti-header.png' %}" alt="Pizza Vitti logo"><span class="logo-text">{% if kitchen_app %}Vitti App{% else %}Pizza Vitti{% endif %}</span></a>
-  <button class="nav-toggle" data-nav>☰</button>
+  <button class="nav-toggle" type="button" data-nav aria-label="Ouvrir le menu" aria-expanded="false">☰</button>
   {% if kitchen_app %}
   <nav>
     <a href="{% url 'shop:app_home' %}">Accueil app</a>
-    <a href="{% url 'shop:app_role' 'proprietaire' %}">Propriétaire</a>
-    <a href="{% url 'shop:app_role' 'cuisine' %}">Cuisine</a>
-    <a href="{% url 'shop:app_role' 'staff' %}">Staff</a>
+    {% if request.session.owner_access or request.user.is_staff %}
+      <a href="{% url 'shop:owner_dashboard' %}">Propriétaire</a>
+      <a href="{% url 'shop:kitchen_app' %}">Cuisine</a>
+      <a href="{% url 'shop:staff_manage' %}">Équipe</a>
+    {% elif request.session.kitchen_access %}
+      <a href="{% url 'shop:kitchen_app' %}">Cuisine</a>
+      <a href="{% url 'shop:kitchen_logout' %}">Déconnexion</a>
+    {% elif request.session.staff_id %}
+      <a href="{% url 'shop:staff_portal' %}">Pointage</a>
+      <a href="{% url 'shop:staff_logout' %}">Déconnexion</a>
+    {% else %}
+      <a href="{% url 'shop:app_role' 'proprietaire' %}">Propriétaire</a>
+      <a href="{% url 'shop:app_role' 'cuisine' %}">Cuisine</a>
+      <a href="{% url 'shop:app_role' 'staff' %}">Staff</a>
+    {% endif %}
     <a href="{{ url_home }}">Site client</a>
     <button class="button ghost" type="button" data-install-app>Installer</button>
   </nav>

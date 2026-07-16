@@ -15,7 +15,11 @@ GOOGLE_REVIEW_URL = os.getenv('GOOGLE_REVIEW_URL', 'https://www.google.com/searc
 INSTAGRAM_URL = os.getenv('INSTAGRAM_URL', 'https://www.instagram.com/')
 FACEBOOK_URL = os.getenv('FACEBOOK_URL', 'https://www.facebook.com/')
 KITCHEN_PASSWORD = os.getenv('KITCHEN_PASSWORD', '1234')
-OWNER_DASHBOARD_PASSWORD = os.getenv('OWNER_DASHBOARD_PASSWORD', '1234')
+OWNER_DASHBOARD_PASSWORD = os.getenv('OWNER_DASHBOARD_PASSWORD', '')
+OWNER_DASHBOARD_PASSWORD_HASH = os.getenv(
+    'OWNER_DASHBOARD_PASSWORD_HASH',
+    'pbkdf2_sha256$870000$WxeINHpgOZTDD41CJuBWJJ$yMI5koWNl25Lj9lunWEfsj5WQZGyEYZhTTeLlbKlUxk=',
+)
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Pizza Vitti <no-reply@pizza-vitti.fr>')
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', '')
