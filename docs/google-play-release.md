@@ -37,11 +37,42 @@ unique, puis le conserver dans un gestionnaire de mots de passe. Ne jamais ajout
 la clé ou son mot de passe dans Git. Une perte de cette clé peut bloquer les futures
 mises à jour de l'application.
 
+La clé d'importation Pizza Vitti a été créée localement dans :
+
+```text
+android/android.keystore
+android/.env.play-signing
+```
+
+Ces deux fichiers sont privés, ignorés par Git et doivent être sauvegardés ensemble
+dans un gestionnaire de mots de passe ou un coffre chiffré. Ne pas les envoyer par
+e-mail ou messagerie.
+
+Pour reconstruire une version signée sans saisir les mots de passe dans le terminal :
+
+```bash
+cd android
+set -a
+. ./.env.play-signing
+set +a
+npx --yes @bubblewrap/cli build
+```
+
 Le build signé produit notamment :
 
 ```text
 android/app-release-bundle.aab
+android/app-release-signed.apk
 ```
+
+Empreinte SHA-256 de la clé d'importation :
+
+```text
+2E:AF:ED:BC:64:E1:4A:51:0A:D1:93:43:EB:50:69:FF:14:30:E2:16:7E:24:C6:6F:AB:EE:86:9E:9B:E0:85:6D
+```
+
+Cette empreinte permet de tester l'APK signé directement. Après l'envoi sur Google
+Play, il faut également ajouter l'empreinte distincte fournie par Play App Signing.
 
 ## 3. Créer l'application dans Play Console
 

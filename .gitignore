@@ -19,3 +19,4 @@ android/*.keystore
 android/*.jks
 android/*.aab
 android/*.apk
+android/*.idsig

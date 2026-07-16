@@ -25,7 +25,10 @@ OWNER_DASHBOARD_PASSWORD_HASH = os.getenv(
 ANDROID_APP_PACKAGE = os.getenv('ANDROID_APP_PACKAGE', 'fr.kayen.pizzavitti')
 ANDROID_CERT_SHA256_FINGERPRINTS = [
     fingerprint.strip().upper()
-    for fingerprint in os.getenv('ANDROID_CERT_SHA256_FINGERPRINTS', '').split(',')
+    for fingerprint in os.getenv(
+        'ANDROID_CERT_SHA256_FINGERPRINTS',
+        '2E:AF:ED:BC:64:E1:4A:51:0A:D1:93:43:EB:50:69:FF:14:30:E2:16:7E:24:C6:6F:AB:EE:86:9E:9B:E0:85:6D',
+    ).split(',')
     if fingerprint.strip()
 ]
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Pizza Vitti <no-reply@pizza-vitti.fr>')
