@@ -9,7 +9,13 @@
       <a href="{% url 'shop:qr_tables' %}">QR tables</a>
     </nav>
     <div class="ops-sidebar-actions">
-      <a href="{% url 'shop:kitchen_logout' %}">Fermer session</a>
+      {% if request.session.owner_access %}
+        <a href="{% url 'shop:owner_dashboard' %}">Dashboard propriétaire</a>
+        <a href="{% url 'shop:owner_logout' %}">Déconnexion propriétaire</a>
+      {% else %}
+        <a href="{% url 'shop:app_home' %}">Changer d’espace</a>
+        <a href="{% url 'shop:kitchen_logout' %}">Fermer session cuisine</a>
+      {% endif %}
     </div>
   </aside>
 

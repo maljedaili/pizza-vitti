@@ -11,9 +11,10 @@
     <a href="{% url 'shop:purchase_orders' %}" {% if request.resolver_match.url_name == 'purchase_orders' %}class="active"{% endif %}>Achats</a>
     <a href="{% url 'shop:reports_dashboard' %}" {% if request.resolver_match.url_name == 'reports_dashboard' %}class="active"{% endif %}>Rapports</a>
     <a href="{% url 'shop:staff_qr' %}" {% if request.resolver_match.url_name == 'staff_qr' %}class="active"{% endif %}>QR équipe</a>
+    <a href="{{ url_home }}">Site client</a>
   </nav>
   <div class="ops-sidebar-actions">
-    <a href="{% url 'shop:kitchen_logout' %}">Fermer cuisine</a>
-    <a href="{% url 'shop:owner_logout' %}">Fermer owner</a>
+    <a href="{% url 'shop:app_home' %}">Changer d’espace</a>
+    <a href="{% url 'shop:owner_logout' %}">Déconnexion propriétaire</a>
   </div>
 </aside>

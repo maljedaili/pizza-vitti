@@ -6,29 +6,69 @@
   <div class="ops-main">
     <header class="ops-topbar">
       <div>
-        <p class="ops-eyebrow">Shift reports</p>
-        <h1>Rapports</h1>
+        <p class="ops-eyebrow">Rapports restaurant</p>
+        <h1>Ventes et heures</h1>
       </div>
+      <button class="button no-print" type="button" onclick="window.print()">Imprimer les heures</button>
     </header>
     <section class="ops-kpis">
       {% for label, stat in reports %}
         <article><span>{{ label }}</span><strong>{{ stat.revenue|floatformat:2 }} €</strong><small>{{ stat.count }} commandes</small></article>
       {% endfor %}
     </section>
-    <article class="ops-panel">
-      <h2>Pointages récents</h2>
-      <div class="ops-list">
-        {% for shift in staff_shifts %}
-          <div class="ops-list-row">
-            <span>{{ shift.staff.name }}</span>
-            <strong>{{ shift.get_status_display }}</strong>
-            <small>{{ shift.check_in_at|date:'d/m H:i' }}{% if shift.check_out_at %} - {{ shift.check_out_at|date:'H:i' }}{% endif %}</small>
-          </div>
-        {% empty %}
-          <p class="ops-empty">Les pointages apparaîtront ici.</p>
-        {% endfor %}
+    <section class="ops-panel timesheet-panel">
+      <div class="timesheet-print-title">
+        <span>Pizza Vitti · Rapport de pointage</span>
+        <strong>Du {{ date_from }} au {{ date_to }}</strong>
       </div>
-    </article>
+      <form method="get" class="timesheet-filters no-print">
+        <label>Du<input type="date" name="date_from" value="{{ date_from }}"></label>
+        <label>Au<input type="date" name="date_to" value="{{ date_to }}"></label>
+        <label>Employé
+          <select name="staff_id">
+            <option value="">Toute l’équipe</option>
+            {% for staff in staff_members %}<option value="{{ staff.id }}" {% if selected_staff_id == staff.id|stringformat:'s' %}selected{% endif %}>{{ staff.name }} · {{ staff.get_role_display }}</option>{% endfor %}
+          </select>
+        </label>
+        <button class="button">Afficher</button>
+      </form>
+
+      <div class="timesheet-summary">
+        {% for summary in staff_summaries %}
+          <article>
+            <span>{{ summary.staff.name }}</span>
+            <strong>{{ summary.hours_display }}</strong>
+            <small>{{ summary.staff.get_role_display }} · {{ summary.shifts }} service{{ summary.shifts|pluralize }}</small>
+          </article>
+        {% empty %}
+          <p class="ops-empty">Aucun pointage dans cette période.</p>
+        {% endfor %}
+        {% if staff_summaries %}<article class="timesheet-total"><span>Total équipe</span><strong>{{ total_staff_hours }}</strong><small>Période sélectionnée</small></article>{% endif %}
+      </div>
+
+      <div class="timesheet-table-wrap">
+        <table class="timesheet-table">
+          <thead><tr><th>Employé</th><th>Poste</th><th>Date</th><th>Entrée</th><th>Sortie</th><th>Pause</th><th>Heures travaillées</th><th>Statut</th></tr></thead>
+          <tbody>
+            {% for shift in staff_shifts %}
+              <tr>
+                <td><strong>{{ shift.staff.name }}</strong></td>
+                <td>{{ shift.staff.get_role_display }}</td>
+                <td>{{ shift.check_in_at|date:'d/m/Y' }}</td>
+                <td>{{ shift.check_in_at|date:'H:i' }}</td>
+                <td>{% if shift.check_out_at %}{{ shift.check_out_at|date:'H:i' }}{% else %}—{% endif %}</td>
+                <td>{{ shift.pause_display }}</td>
+                <td><strong>{{ shift.hours_display }}</strong></td>
+                <td>{{ shift.get_status_display }}</td>
+              </tr>
+            {% empty %}
+              <tr><td colspan="8">Aucun pointage dans cette période.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <p class="timesheet-signature">Signature responsable : ____________________</p>
+    </section>
   </div>
 </section>
 {% endblock %}

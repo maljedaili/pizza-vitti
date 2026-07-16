@@ -331,9 +331,15 @@ class DiningTable(TimeStampedModel):
 
 
 class StaffMember(TimeStampedModel):
+    ROLE_CHOICES = [
+        ('kitchen', 'Cuisine'),
+        ('server', 'Serveur / Serveuse'),
+        ('cleaner', 'Entretien'),
+        ('manager', 'Responsable'),
+    ]
     name = models.CharField(max_length=140, verbose_name='Nom')
     username = models.CharField(max_length=80, unique=True, verbose_name='Nom utilisateur')
-    role = models.CharField(max_length=80, default='Équipe', blank=True)
+    role = models.CharField(max_length=80, choices=ROLE_CHOICES, default='server')
     password_hash = models.CharField(max_length=256, editable=False, blank=True)
     temporary_password = models.CharField(max_length=80, blank=True, help_text='Écrivez un nouveau mot de passe ici puis enregistrez.')
     is_active = models.BooleanField(default=True)
@@ -367,6 +373,7 @@ class StaffShift(TimeStampedModel):
     check_in_at = models.DateTimeField(null=True, blank=True)
     break_started_at = models.DateTimeField(null=True, blank=True)
     break_ended_at = models.DateTimeField(null=True, blank=True)
+    break_seconds = models.PositiveIntegerField(default=0, verbose_name='Pause cumulée (secondes)')
     check_out_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True)
 
@@ -377,6 +384,22 @@ class StaffShift(TimeStampedModel):
 
     def __str__(self):
         return f'{self.staff.name} - {self.get_status_display()}'
+
+    def worked_seconds(self, at=None):
+        if not self.check_in_at:
+            return 0
+        end = self.check_out_at or at or timezone.now()
+        pause_seconds = self.break_seconds
+        if self.status == 'break' and self.break_started_at:
+            pause_seconds += max(0, int((end - self.break_started_at).total_seconds()))
+        elapsed = int((end - self.check_in_at).total_seconds())
+        return max(0, elapsed - pause_seconds)
+
+    @property
+    def worked_duration_display(self):
+        total_minutes = self.worked_seconds() // 60
+        hours, minutes = divmod(total_minutes, 60)
+        return f'{hours} h {minutes:02d}'
 
 
 class PurchaseOrder(TimeStampedModel):

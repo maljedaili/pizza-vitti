@@ -136,7 +136,7 @@ class StaffMemberAdmin(admin.ModelAdmin):
 
 @admin.register(StaffShift)
 class StaffShiftAdmin(admin.ModelAdmin):
-    list_display = ('staff','status','check_in_at','break_started_at','break_ended_at','check_out_at')
+    list_display = ('staff','status','check_in_at','break_started_at','break_ended_at','break_seconds','check_out_at')
     list_filter = ('status','check_in_at')
     search_fields = ('staff__name','staff__username','notes')
 

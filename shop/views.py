@@ -1,5 +1,5 @@
 from decimal import Decimal
-from datetime import timedelta
+from datetime import date, timedelta
 from functools import wraps
 import json
 from urllib.parse import quote
@@ -579,6 +579,7 @@ def owner_login(request):
 
 def owner_logout(request):
     request.session.pop('owner_access', None)
+    request.session.pop('kitchen_access', None)
     messages.success(request, 'Session propriétaire fermée.')
     return redirect('shop:app_login')
 
@@ -591,12 +592,30 @@ def _report_stats(start, end=None):
     return {'count': data['count'] or 0, 'revenue': data['revenue'] or Decimal('0.00')}
 
 
+def _format_duration(seconds):
+    total_minutes = max(0, int(seconds)) // 60
+    hours, minutes = divmod(total_minutes, 60)
+    return f'{hours} h {minutes:02d}'
+
+
+def _staff_shift_total(shifts, at=None):
+    return sum(shift.worked_seconds(at=at) for shift in shifts)
+
+
+def _safe_date(value, fallback):
+    try:
+        return date.fromisoformat(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
 @owner_required
 def owner_dashboard(request):
     today_start, now = _today_bounds()
     active_orders = Order.objects.filter(status__in=['received','preparing','ready'])
     today_orders = Order.objects.filter(created_at__gte=today_start)
-    today_staff = StaffShift.objects.filter(check_in_at__date=timezone.localdate())
+    today_staff = StaffShift.objects.select_related('staff').filter(check_in_at__date=timezone.localdate())
+    present_shifts = today_staff.exclude(status='checked_out')
     stats = today_orders.aggregate(count=Count('id'), revenue=Sum('total'))
     most_ordered = (
         OrderItem.objects.filter(order__created_at__gte=today_start)
@@ -608,10 +627,15 @@ def owner_dashboard(request):
         'orders_count': stats['count'] or 0,
         'revenue': stats['revenue'] or Decimal('0.00'),
         'active_orders_count': active_orders.count(),
-        'staff_present_count': today_staff.exclude(status='checked_out').count(),
+        'staff_present_count': present_shifts.count(),
         'open_purchase_count': PurchaseOrder.objects.exclude(status__in=['received','cancelled']).count(),
         'recent_orders': Order.objects.prefetch_related('items').order_by('-created_at')[:8],
         'most_ordered': most_ordered,
+        'present_shifts': present_shifts[:6],
+        'received_count': active_orders.filter(status='received').count(),
+        'preparing_count': active_orders.filter(status='preparing').count(),
+        'ready_count': active_orders.filter(status='ready').count(),
+        'dashboard_now': timezone.localtime(),
         'kitchen_app': True,
         'meta_title': 'Dashboard propriétaire | Pizza Vitti',
     })
@@ -676,7 +700,10 @@ def staff_manage(request):
         name = request.POST.get('name', '').strip()
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '').strip()
-        role = request.POST.get('role', '').strip() or 'Équipe'
+        role = request.POST.get('role', '').strip()
+        valid_roles = dict(StaffMember.ROLE_CHOICES)
+        if role not in valid_roles:
+            role = 'server'
         if name and username and password:
             staff, created = StaffMember.objects.get_or_create(username=username, defaults={'name': name, 'role': role})
             staff.name = name
@@ -693,8 +720,11 @@ def staff_manage(request):
         latest_shifts.setdefault(shift.staff_id, shift)
     for staff in staff_members:
         staff.latest_shift = latest_shifts.get(staff.id)
+        recent_shifts = list(staff.shifts.filter(check_in_at__gte=timezone.now() - timedelta(days=30)))
+        staff.month_hours = _format_duration(_staff_shift_total(recent_shifts))
     return render(request, 'shop/staff_manage.html', {
         'staff_members': staff_members,
+        'role_choices': StaffMember.ROLE_CHOICES,
         'kitchen_app': True,
         'meta_title': 'Équipe | Pizza Vitti',
     })
@@ -723,10 +753,50 @@ def reports_dashboard(request):
         ('Ce mois', _report_stats(month_start)),
         ('Cette année', _report_stats(year_start)),
     ]
-    staff_shifts = StaffShift.objects.select_related('staff').filter(check_in_at__gte=week_start)[:60]
+    today = timezone.localdate()
+    default_start = today - timedelta(days=today.weekday())
+    start_date = _safe_date(request.GET.get('date_from'), default_start)
+    end_date = _safe_date(request.GET.get('date_to'), today)
+    if end_date < start_date:
+        start_date, end_date = end_date, start_date
+    selected_staff_id = request.GET.get('staff_id', '').strip()
+    staff_shifts_qs = (
+        StaffShift.objects.select_related('staff')
+        .filter(check_in_at__date__gte=start_date, check_in_at__date__lte=end_date)
+        .order_by('-check_in_at')
+    )
+    if selected_staff_id.isdigit():
+        staff_shifts_qs = staff_shifts_qs.filter(staff_id=int(selected_staff_id))
+    staff_shifts = list(staff_shifts_qs)
+    staff_totals = {}
+    for shift in staff_shifts:
+        summary = staff_totals.setdefault(shift.staff_id, {
+            'staff': shift.staff,
+            'seconds': 0,
+            'shifts': 0,
+        })
+        summary['seconds'] += shift.worked_seconds(at=now)
+        summary['shifts'] += 1
+        shift.hours_display = _format_duration(shift.worked_seconds(at=now))
+        shift.pause_display = _format_duration(
+            shift.break_seconds + (
+                max(0, int((now - shift.break_started_at).total_seconds()))
+                if shift.status == 'break' and shift.break_started_at else 0
+            )
+        )
+    staff_summaries = sorted(staff_totals.values(), key=lambda item: item['staff'].name.lower())
+    for summary in staff_summaries:
+        summary['hours_display'] = _format_duration(summary['seconds'])
+    total_staff_seconds = sum(summary['seconds'] for summary in staff_summaries)
     return render(request, 'shop/reports_dashboard.html', {
         'reports': reports,
         'staff_shifts': staff_shifts,
+        'staff_summaries': staff_summaries,
+        'staff_members': StaffMember.objects.filter(is_active=True),
+        'selected_staff_id': selected_staff_id,
+        'date_from': start_date.isoformat(),
+        'date_to': end_date.isoformat(),
+        'total_staff_hours': _format_duration(total_staff_seconds),
         'kitchen_app': True,
         'meta_title': 'Rapports | Pizza Vitti',
     })
@@ -754,10 +824,23 @@ def staff_portal(request):
     if not staff:
         return redirect(f"{reverse('shop:app_login')}?role=staff")
     today = timezone.localdate()
-    shift = StaffShift.objects.filter(staff=staff, check_in_at__date=today).order_by('-created_at').first()
+    today_shifts = list(StaffShift.objects.filter(staff=staff, check_in_at__date=today).order_by('-created_at'))
+    shift = today_shifts[0] if today_shifts else None
+    week_start = today - timedelta(days=today.weekday())
+    month_start = today.replace(day=1)
+    history = list(StaffShift.objects.filter(staff=staff).order_by('-check_in_at')[:30])
+    week_shifts = list(StaffShift.objects.filter(staff=staff, check_in_at__date__gte=week_start))
+    month_shifts = list(StaffShift.objects.filter(staff=staff, check_in_at__date__gte=month_start))
+    for item in history:
+        item.hours_display = _format_duration(item.worked_seconds())
     return render(request, 'shop/staff_portal.html', {
         'staff_member': staff,
         'shift': shift,
+        'history': history,
+        'today_hours': _format_duration(_staff_shift_total(today_shifts)),
+        'week_hours': _format_duration(_staff_shift_total(week_shifts)),
+        'month_hours': _format_duration(_staff_shift_total(month_shifts)),
+        'active_work_seconds': shift.worked_seconds() if shift else 0,
         'kitchen_app': True,
         'meta_title': 'Pointage équipe | Pizza Vitti',
     })
@@ -775,25 +858,31 @@ def staff_action(request):
     if action == 'check_in':
         if not shift or shift.status == 'checked_out':
             StaffShift.objects.create(staff=staff, status='checked_in', check_in_at=now)
+            messages.success(request, 'Entrée enregistrée.')
         else:
-            shift.status = 'checked_in'
-            shift.save(update_fields=['status','updated_at'])
-        messages.success(request, 'Entrée enregistrée.')
-    elif shift and action == 'break':
+            messages.info(request, 'Vous êtes déjà pointé.')
+    elif shift and action == 'break' and shift.status == 'checked_in':
         shift.status = 'break'
         shift.break_started_at = now
         shift.save(update_fields=['status','break_started_at','updated_at'])
         messages.success(request, 'Pause démarrée.')
-    elif shift and action == 'back':
+    elif shift and action == 'back' and shift.status == 'break':
+        if shift.break_started_at:
+            shift.break_seconds += max(0, int((now - shift.break_started_at).total_seconds()))
         shift.status = 'checked_in'
         shift.break_ended_at = now
-        shift.save(update_fields=['status','break_ended_at','updated_at'])
+        shift.save(update_fields=['status','break_ended_at','break_seconds','updated_at'])
         messages.success(request, 'Retour de pause enregistré.')
-    elif shift and action == 'check_out':
+    elif shift and action == 'check_out' and shift.status != 'checked_out':
+        if shift.status == 'break' and shift.break_started_at:
+            shift.break_seconds += max(0, int((now - shift.break_started_at).total_seconds()))
+            shift.break_ended_at = now
         shift.status = 'checked_out'
         shift.check_out_at = now
-        shift.save(update_fields=['status','check_out_at','updated_at'])
+        shift.save(update_fields=['status','check_out_at','break_ended_at','break_seconds','updated_at'])
         messages.success(request, 'Sortie enregistrée.')
+    else:
+        messages.info(request, 'Cette action n’est pas disponible avec votre statut actuel.')
     return redirect('shop:staff_portal')
 
 
@@ -942,6 +1031,13 @@ def simple_page(request, title):
     return render(request, 'shop/simple.html', {'title': title})
 
 
+def privacy_policy(request):
+    return render(request, 'shop/privacy_policy.html', {
+        'meta_title': 'Politique de confidentialité | Pizza Vitti',
+        'meta_description': 'Informations sur les données utilisées par le site et l’application Pizza Vitti.',
+    })
+
+
 def localized_dispatch(request, lang, page=None):
     if lang not in TRANSLATIONS:
         return redirect('shop:home')
@@ -1003,13 +1099,21 @@ def manifest_webmanifest(request):
         'name': 'Pizza Vitti Application',
         'short_name': 'Vitti App',
         'description': 'Application Pizza Vitti pour le propriétaire, la cuisine et le pointage staff.',
+        'id': '/app/',
         'start_url': '/app/',
         'scope': '/',
         'display': 'standalone',
+        'display_override': ['window-controls-overlay', 'standalone'],
         'orientation': 'any',
         'background_color': '#171923',
         'theme_color': '#171923',
         'categories': ['food', 'business', 'productivity'],
+        'shortcuts': [
+            {'name': 'Commandes cuisine', 'short_name': 'Cuisine', 'url': '/app/cuisine/'},
+            {'name': 'Dashboard propriétaire', 'short_name': 'Propriétaire', 'url': '/app/proprietaire/'},
+            {'name': 'Pointage staff', 'short_name': 'Pointage', 'url': '/app/staff/'},
+            {'name': 'Carte Pizza Vitti', 'short_name': 'Menu', 'url': '/fr/'},
+        ],
         'icons': [
             {'src': f'{site_url}/static/shop/img/pwa/icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any maskable'},
             {'src': f'{site_url}/static/shop/img/pwa/icon-512.png', 'sizes': '512x512', 'type': 'image/png', 'purpose': 'any maskable'},
@@ -1019,7 +1123,7 @@ def manifest_webmanifest(request):
 
 def service_worker(request):
     content = """
-const CACHE_NAME = 'pizza-vitti-kitchen-v2';
+const CACHE_NAME = 'pizza-vitti-app-v3';
 const STATIC_ASSETS = [
   '/static/shop/style.css',
   '/static/shop/app.js',

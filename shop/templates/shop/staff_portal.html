@@ -1,19 +1,53 @@
 {% extends 'shop/base.html' %}
 
 {% block content %}
-<section class="ops-login staff-portal">
-  <div>
-    <p class="ops-eyebrow">Bonjour {{ staff_member.name }}</p>
-    <h1>Pointage</h1>
-    <p>Statut actuel : <strong>{% if shift %}{{ shift.get_status_display }}{% else %}Pas encore pointé{% endif %}</strong></p>
-    <a href="{% url 'shop:staff_logout' %}">Déconnexion</a>
-  </div>
-  <form method="post" action="{% url 'shop:staff_action' %}" class="ops-login-card staff-actions">
-    {% csrf_token %}
-    <button class="button" name="action" value="check_in">Check in</button>
-    <button class="button ghost" name="action" value="break">Pause</button>
-    <button class="button ghost" name="action" value="back">Retour pause</button>
-    <button class="button" name="action" value="check_out">Check out</button>
-  </form>
+<section class="staff-portal">
+  <header class="staff-clock-card">
+    <div>
+      <p class="ops-eyebrow">{{ staff_member.get_role_display }}</p>
+      <h1>Bonjour {{ staff_member.name }}</h1>
+      <p>Statut : <strong class="status-pill status-{{ shift.status|default:'off' }}">{% if shift %}{{ shift.get_status_display }}{% else %}Non pointé{% endif %}</strong></p>
+    </div>
+    <div class="live-clock" data-live-clock>
+      <strong data-clock-time>--:--:--</strong>
+      <span data-clock-date>Chargement…</span>
+    </div>
+  </header>
+
+  <section class="staff-hours-grid">
+    <article><span>Aujourd’hui</span><strong>{{ today_hours }}</strong></article>
+    <article><span>Cette semaine</span><strong>{{ week_hours }}</strong></article>
+    <article><span>Ce mois</span><strong>{{ month_hours }}</strong></article>
+  </section>
+
+  <section class="ops-grid two staff-portal-grid">
+    <form method="post" action="{% url 'shop:staff_action' %}" class="ops-panel staff-actions">
+      {% csrf_token %}
+      <h2>Pointer maintenant</h2>
+      <button class="button" name="action" value="check_in" {% if shift and shift.status != 'checked_out' %}disabled{% endif %}>Prise de poste</button>
+      <button class="button ghost" name="action" value="break" {% if not shift or shift.status != 'checked_in' %}disabled{% endif %}>Commencer la pause</button>
+      <button class="button ghost" name="action" value="back" {% if not shift or shift.status != 'break' %}disabled{% endif %}>Reprendre le travail</button>
+      <button class="button danger" name="action" value="check_out" {% if not shift or shift.status == 'checked_out' %}disabled{% endif %}>Fin de poste</button>
+      <a class="staff-logout" href="{% url 'shop:staff_logout' %}">Se déconnecter</a>
+    </form>
+
+    <article class="ops-panel">
+      <div class="ops-panel-head">
+        <h2>Mes heures récentes</h2>
+        <span>{{ history|length }} pointage{{ history|length|pluralize }}</span>
+      </div>
+      <div class="timesheet-mobile-list">
+        {% for item in history %}
+          <div>
+            <strong>{{ item.check_in_at|date:'D d M' }}</strong>
+            <span>{{ item.check_in_at|date:'H:i' }} - {% if item.check_out_at %}{{ item.check_out_at|date:'H:i' }}{% else %}en cours{% endif %}</span>
+            <b>{{ item.hours_display }}</b>
+          </div>
+        {% empty %}
+          <p class="ops-empty">Votre historique apparaîtra après le premier pointage.</p>
+        {% endfor %}
+      </div>
+    </article>
+  </section>
 </section>
 {% endblock %}

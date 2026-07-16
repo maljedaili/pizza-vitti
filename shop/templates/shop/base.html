@@ -4,7 +4,7 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ meta_title|default:"Pizza Vitti Bordeaux | Pizzeria italienne, commande en ligne" }}</title>
   <meta name="description" content="{{ meta_description|default:"Pizza Vitti à Bordeaux : pizzas italiennes, menu en ligne, réservation, retrait, livraison et paiement par carte Visa/Mastercard/CB." }}">
-  <meta name="theme-color" content="#8d1f16">
+  <meta name="theme-color" content="{% if kitchen_app %}#171923{% else %}#8d1f16{% endif %}">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Vitti Cuisine">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -28,6 +28,7 @@
     <a href="{% url 'shop:app_role' 'proprietaire' %}">Propriétaire</a>
     <a href="{% url 'shop:app_role' 'cuisine' %}">Cuisine</a>
     <a href="{% url 'shop:app_role' 'staff' %}">Staff</a>
+    <a href="{{ url_home }}">Site client</a>
     <button class="button ghost" type="button" data-install-app>Installer</button>
   </nav>
   {% else %}
@@ -80,7 +81,7 @@
 <footer>
   <div class="footer-grid">
     <div><strong>Pizza Vitti</strong><p>Restaurant italien — 236 Rue d'Ornano, 33000 Bordeaux · +33 5 56 42 14 49</p><!-- Google login will be enabled after OAuth setup --></p></div>
-    <div><strong>{{ T.links }}</strong><p><a href="{{ url_menu }}">{{ T.menu }}</a> · <a href="{{ url_booking }}">{{ T.booking }}</a> · <a href="{{ url_gallery }}">{{ T.gallery }}</a> · <a href="{{ url_reviews }}">{{ T.reviews }}</a> · <a href="{% url 'shop:legal_notice' %}">Mentions légales</a></p><p class="social-icons"><a aria-label="Instagram" href="{{ INSTAGRAM_URL }}" target="_blank" rel="noopener">📷</a><a aria-label="Facebook" href="{{ FACEBOOK_URL }}" target="_blank" rel="noopener">f</a></p></div>
+    <div><strong>{{ T.links }}</strong><p><a href="{{ url_menu }}">{{ T.menu }}</a> · <a href="{{ url_booking }}">{{ T.booking }}</a> · <a href="{{ url_gallery }}">{{ T.gallery }}</a> · <a href="{{ url_reviews }}">{{ T.reviews }}</a> · <a href="{% url 'shop:legal_notice' %}">Mentions légales</a> · <a href="{% url 'shop:privacy_policy' %}">Confidentialité</a></p><p class="social-icons"><a aria-label="Instagram" href="{{ INSTAGRAM_URL }}" target="_blank" rel="noopener">📷</a><a aria-label="Facebook" href="{{ FACEBOOK_URL }}" target="_blank" rel="noopener">f</a></p></div>
     <div><strong>{{ T.newsletter_title }}</strong><p>{{ T.newsletter_text }}</p><form class="newsletter" method="post" action="{% url 'shop:newsletter' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><input type="email" name="email" placeholder="{{ T.email_placeholder }}" required><button>OK</button></form></div>
   </div>
   <p class="credit">{{ T.created }} <a href="https://kayan.fr" target="_blank" rel="noopener">Kayan.fr</a></p>

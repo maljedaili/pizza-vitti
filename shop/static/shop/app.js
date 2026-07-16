@@ -179,6 +179,26 @@ if (appRole) {
   appRole.addEventListener('change', syncAppLogin);
   syncAppLogin();
 }
+document.querySelectorAll('[data-live-clock]').forEach(clock => {
+  const timeNode = clock.querySelector('[data-clock-time]');
+  const dateNode = clock.querySelector('[data-clock-date]');
+  const updateClock = () => {
+    const now = new Date();
+    if (timeNode) timeNode.textContent = new Intl.DateTimeFormat('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    }).format(now);
+    if (dateNode) dateNode.textContent = new Intl.DateTimeFormat('fr-FR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    }).format(now);
+  };
+  updateClock();
+  setInterval(updateClock, 1000);
+});
 const botForm = document.querySelector('[data-bot-form]');
 const escapeHtml = text => text.replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
 if (botForm) {

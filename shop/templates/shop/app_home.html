@@ -5,7 +5,7 @@
   <header class="app-hero">
     <p class="ops-eyebrow">Application mobile Pizza Vitti</p>
     <h1>Choisir votre espace</h1>
-    <p>Un seul endroit pour ouvrir le dashboard propriétaire, la cuisine ou le pointage staff.</p>
+    <p>Un seul endroit pour ouvrir le site de commande, le dashboard propriétaire, la cuisine ou le pointage staff.</p>
     <div class="hero-actions">
       <a class="button" href="{% url 'shop:app_role' 'proprietaire' %}">Propriétaire</a>
       <a class="button ghost" href="{% url 'shop:app_role' 'cuisine' %}">Cuisine</a>
@@ -35,6 +35,12 @@
       <strong>Staff (pointage)</strong>
       <p>Entrée, pause, retour de pause et sortie avec le compte créé par le propriétaire.</p>
       <small>Compte staff</small>
+    </a>
+    <a href="{{ url_home }}" class="app-role-card">
+      <span>04</span>
+      <strong>Site et commandes</strong>
+      <p>Ouvrir la carte Pizza Vitti, les commandes clients, les réservations et le site public.</p>
+      <small>Accès public</small>
     </a>
   </section>
 </section>

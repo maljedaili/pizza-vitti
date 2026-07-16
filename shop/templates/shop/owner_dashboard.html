@@ -6,10 +6,10 @@
   <div class="ops-main">
     <header class="ops-topbar">
       <div>
-        <p class="ops-eyebrow">Restaurant control</p>
+        <p class="ops-eyebrow">Pilotage restaurant · {{ dashboard_now|date:'l d F Y' }}</p>
         <h1>Dashboard propriétaire</h1>
       </div>
-      <a class="button" href="{% url 'shop:kitchen_app' %}">Ouvrir cuisine</a>
+      <div class="owner-live-time" data-live-clock><strong data-clock-time>{{ dashboard_now|date:'H:i:s' }}</strong><span data-clock-date>{{ dashboard_now|date:'d/m/Y' }}</span></div>
     </header>
 
     <section class="ops-kpis">
@@ -53,6 +53,36 @@
             </div>
           {% empty %}
             <p class="ops-empty">Les ventes du jour apparaîtront ici.</p>
+          {% endfor %}
+        </div>
+      </article>
+
+      <article class="ops-panel">
+        <div class="ops-panel-head">
+          <h2>Flux cuisine</h2>
+          <a href="{% url 'shop:kitchen_app' %}">Ouvrir</a>
+        </div>
+        <div class="order-flow">
+          <div><span>Reçues</span><strong>{{ received_count }}</strong></div>
+          <div><span>En préparation</span><strong>{{ preparing_count }}</strong></div>
+          <div><span>Prêtes</span><strong>{{ ready_count }}</strong></div>
+        </div>
+      </article>
+
+      <article class="ops-panel">
+        <div class="ops-panel-head">
+          <h2>Équipe présente</h2>
+          <a href="{% url 'shop:reports_dashboard' %}">Voir les heures</a>
+        </div>
+        <div class="ops-list">
+          {% for shift in present_shifts %}
+            <div class="ops-list-row">
+              <span>{{ shift.staff.name }}</span>
+              <strong>{{ shift.staff.get_role_display }}</strong>
+              <small>{{ shift.get_status_display }} depuis {{ shift.check_in_at|date:'H:i' }} · {{ shift.worked_duration_display }}</small>
+            </div>
+          {% empty %}
+            <p class="ops-empty">Aucun employé pointé actuellement.</p>
           {% endfor %}
         </div>
       </article>
