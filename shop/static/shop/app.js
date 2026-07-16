@@ -47,8 +47,31 @@ if (prepBoard) {
   const soundKey = 'pizzaVittiPrepSound';
   const pendingAlertKey = 'pizzaVittiPendingPrepAlert';
   const soundButton = document.querySelector('[data-prep-sound]');
+  const wakeButton = document.querySelector('[data-wake-lock]');
   const alertBox = document.querySelector('[data-prep-alert]');
   const alertClose = document.querySelector('[data-prep-alert-close]');
+  let wakeLock = null;
+  const setWakeLabel = text => { if (wakeButton) wakeButton.textContent = text; };
+  const requestWakeLock = async () => {
+    if (!('wakeLock' in navigator)) {
+      setWakeLabel('Écran allumé non supporté');
+      return;
+    }
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      setWakeLabel('Écran actif');
+      wakeLock.addEventListener('release', () => {
+        wakeLock = null;
+        if (document.visibilityState === 'visible') setWakeLabel('Garder écran allumé');
+      });
+    } catch (error) {
+      setWakeLabel('Garder écran allumé');
+    }
+  };
+  wakeButton?.addEventListener('click', requestWakeLock);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && wakeLock === null && wakeButton?.textContent === 'Écran actif') requestWakeLock();
+  });
   const ring = () => {
     try {
       const audio = new (window.AudioContext || window.webkitAudioContext)();
