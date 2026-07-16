@@ -8,3 +8,14 @@ db.sqlite3
 staticfiles/
 camera-gateway/go2rtc.yaml
 .DS_Store
+node_modules/
+
+# Android / Google Play
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/
+android/*.keystore
+android/*.jks
+android/*.aab
+android/*.apk

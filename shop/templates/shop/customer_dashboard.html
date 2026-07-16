@@ -1,14 +1,79 @@
-{% extends 'shop/base.html' %}{% block content %}
+{% extends 'shop/base.html' %}
+
+{% block content %}
 <section class="account-hero reveal">
-  <div><p class="eyebrow">Espace client</p><h1>Bonjour {{ request.user.get_username }}</h1><p>Retrouvez vos commandes, vos points fidélité et vos plats favoris Pizza Vitti.</p></div>
-  <div class="account-actions"><a class="button" href="{% url 'shop:customer_orders' %}">Mes commandes</a><a class="button ghost" href="{% url 'shop:customer_favorites' %}">Mes favoris</a><a class="button ghost" href="/accounts/logout/">Déconnexion</a></div>
+  <div>
+    <p class="eyebrow">Espace client</p>
+    <h1>Bonjour {{ request.user.first_name|default:request.user.get_username }}</h1>
+    <p>Retrouvez vos commandes, votre carte fidélité et vos plats favoris Pizza Vitti.</p>
+  </div>
+  <div class="account-actions">
+    <a class="button" href="{% url 'shop:customer_orders' %}">Mes commandes</a>
+    <a class="button ghost" href="{% url 'shop:customer_favorites' %}">Mes favoris</a>
+    <a class="button ghost" href="/accounts/logout/">Déconnexion</a>
+  </div>
 </section>
+
 <section class="dashboard-grid">
-  <article class="card loyalty-card"><p class="eyebrow">Loyalty tracking</p><h2>Votre fidélité</h2><div class="loyalty-pizzas"><span>{% if pizza_progress >= 1 %}🍕{% else %}⚪{% endif %}</span><span>{% if pizza_progress >= 2 %}🍕{% else %}⚪{% endif %}</span><span>{% if pizza_progress >= 3 %}🍕{% else %}⚪{% endif %}</span><span>{% if pizza_progress >= 4 %}🍕{% else %}⚪{% endif %}</span><span>{% if pizza_progress == 0 and pizza_count > 0 %}🍕{% elif pizza_progress >= 5 %}🍕{% else %}⚪{% endif %}</span></div><p><strong>{{ pizza_count }} pizza(s) achetée(s)</strong></p>{% if rewards_unlocked %}<p>🎁 {{ rewards_unlocked }} récompense(s) fidélité débloquée(s).</p>{% else %}<p>Encore {{ loyalty_remaining }} pizza(s) pour recevoir votre cadeau.</p>{% endif %}</article>
-  <article class="card"><p class="eyebrow">Google Login</p><h2>Connexion rapide</h2><p>Le site est prêt pour la connexion Google via django-allauth. Ajoutez les clés Google OAuth dans l’admin Django > Social applications.</p><a class="button ghost" href="/accounts/google/login/">Se connecter avec Google</a></article>
+  <article class="card loyalty-card">
+    <p class="eyebrow">Carte fidélité digitale</p>
+    <h2>{{ loyalty.pizzas_required }} pizzas = cadeau</h2>
+    <div class="loyalty-meter" data-loyalty-progress="{{ loyalty.progress_percent }}"></div>
+    <div class="loyalty-pizzas" aria-label="Progression fidélité">
+      {% for step in loyalty_steps %}
+        <span>{% if step <= loyalty.progress %}🍕{% else %}○{% endif %}</span>
+      {% endfor %}
+    </div>
+    <p><strong>{{ loyalty.pizza_count }} pizza(s) achetée(s) avec ce compte</strong></p>
+    {% if loyalty.available_rewards %}
+      <p>🎁 {{ loyalty.available_rewards }} cadeau(x) disponible(s) pour votre prochaine commande.</p>
+    {% else %}
+      <p>Encore {{ loyalty.remaining }} pizza(s) pour atteindre le prochain cadeau.</p>
+    {% endif %}
+    <small>{{ loyalty.redeemed_rewards }} cadeau(x) déjà attribué(s).</small>
+  </article>
+
+  <article class="card account-mobile-card">
+    <p class="eyebrow">Application mobile</p>
+    <h2>Votre fidélité vous suit partout</h2>
+    <p>Installez l’application Pizza Vitti pour retrouver rapidement votre carte, vos commandes et le menu.</p>
+    <button class="button" type="button" data-install-app>Installer l’application</button>
+  </article>
 </section>
-<section class="section-head compact"><p class="eyebrow">Order history</p><h2>Dernières commandes</h2></section>
-<section class="card account-list">{% for order in orders %}<div class="account-row"><div><strong>{{ order.order_number }}</strong><p>{{ order.created_at|date:'d/m/Y H:i' }} · {{ order.get_status_display }} · {{ order.get_order_type_display }}</p></div><div><strong>{{ order.total }} €</strong><a href="{{ order.get_absolute_url }}">Facture</a></div></div>{% empty %}<p>Aucune commande pour le moment.</p><a class="button" href="{{ url_home }}#menu-home">Commander maintenant</a>{% endfor %}</section>
-<section class="section-head compact"><p class="eyebrow">Saved favorites</p><h2>Vos favoris</h2></section>
-<section class="grid">{% for favorite in favorites %}{% with product=favorite.product %}{% include 'shop/product_card.html' %}{% endwith %}{% empty %}<p class="empty">Ajoutez des pizzas et plats en favoris avec le bouton cœur.</p>{% endfor %}</section>
+
+<section class="section-head compact">
+  <p class="eyebrow">Historique</p>
+  <h2>Dernières commandes</h2>
+</section>
+<section class="card account-list">
+  {% for order in orders %}
+    <div class="account-row">
+      <div>
+        <strong>{{ order.order_number }}</strong>
+        <p>{{ order.created_at|date:'d/m/Y H:i' }} · {{ order.get_status_display }} · {{ order.get_order_type_display }}</p>
+      </div>
+      <div>
+        <strong>{{ order.total }} €</strong>
+        <a href="{{ order.get_absolute_url }}">Facture</a>
+      </div>
+    </div>
+  {% empty %}
+    <p>Aucune commande pour le moment.</p>
+    <a class="button" href="{{ url_home }}#menu-home">Découvrir la carte</a>
+  {% endfor %}
+</section>
+
+<section class="section-head compact">
+  <p class="eyebrow">Favoris enregistrés</p>
+  <h2>Vos favoris</h2>
+</section>
+<section class="grid">
+  {% for favorite in favorites %}
+    {% with product=favorite.product %}
+      {% include 'shop/product_card.html' %}
+    {% endwith %}
+  {% empty %}
+    <p class="empty">Ajoutez des pizzas et plats en favoris avec le bouton cœur.</p>
+  {% endfor %}
+</section>
 {% endblock %}

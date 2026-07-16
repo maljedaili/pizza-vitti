@@ -1,21 +1,67 @@
 {% extends 'shop/base.html' %}
+{% load static %}
 
 {% block content %}
-<section class="hero reveal">
-  <div>
-    <p class="eyebrow">Pizza Vitti Bordeaux</p>
-    <h1>La vraie pizza italienne à Bordeaux.</h1>
-    <p>Pizzas maison, pastas généreuses, antipasti et desserts italiens préparés avec soin, à découvrir sur place ou à commander en ligne.</p>
-    <div class="hero-actions">
-      <a class="button" href="#menu-home">Voir la carte</a>
-      <a class="button ghost" href="{{ url_booking }}">Réserver</a>
-    </div>
+<section class="hero hero-slider reveal" data-hero-slider data-hero-motion aria-roledescription="carousel" aria-label="Découvrir la carte Pizza Vitti">
+  <div class="hero-slides">
+    <article class="hero-slide is-active" data-hero-slide style="--slide-image:url('{% static 'shop/img/hero/menu-pizza-vitti.jpg' %}')">
+      <div class="hero-slide-content">
+        <p class="eyebrow">Pizza Vitti Bordeaux</p>
+        <h1>Nos Pizza</h1>
+        <p>La vraie pizza italienne à Bordeaux, préparée avec soin et personnalisable avec vos suppléments préférés.</p>
+        <div class="hero-actions">
+          <a class="button" href="{% url 'shop:menu_group' 'pizzas' %}">Découvrir nos pizzas</a>
+          <a class="button ghost" href="{{ url_booking }}">Réserver</a>
+        </div>
+      </div>
+    </article>
+    <article class="hero-slide" data-hero-slide style="--slide-image:url('{% static 'shop/img/hero/menu-pasta.jpg' %}')">
+      <div class="hero-slide-content">
+        <p class="eyebrow">Pastas & ravioles</p>
+        <h1>Nos Pastas</h1>
+        <p>Tagliatelle, ravioles et recettes italiennes généreuses, servies bien chaudes.</p>
+        <div class="hero-actions">
+          <a class="button" href="{% url 'shop:menu_group' 'pastas' %}">Voir les pastas</a>
+        </div>
+      </div>
+    </article>
+    <article class="hero-slide" data-hero-slide style="--slide-image:url('{% static 'shop/img/hero/menu-bambino-pizza.jpg' %}')">
+      <div class="hero-slide-content">
+        <p class="eyebrow">Pour les petits gourmands</p>
+        <h1>Menu Bambino</h1>
+        <p>Des petites pizzas ludiques en forme de cœur ou de lapin, préparées comme les grandes.</p>
+        <div class="hero-actions">
+          <a class="button" href="{% url 'shop:menu_group' 'bambino' %}">Voir le menu enfant</a>
+        </div>
+      </div>
+    </article>
+    <article class="hero-slide" data-hero-slide style="--slide-image:url('{% static 'shop/img/hero/menu-tiramisu.jpg' %}')">
+      <div class="hero-slide-content">
+        <p class="eyebrow">La touche finale</p>
+        <h1>Nos douceurs</h1>
+        <p>Tiramisu italien, desserts et douceurs pour terminer le repas avec gourmandise.</p>
+        <div class="hero-actions">
+          <a class="button" href="{% url 'shop:menu_group' 'douceurs' %}">Découvrir les desserts</a>
+        </div>
+      </div>
+    </article>
   </div>
+
   <aside class="hero-card">
     <strong>Pizza Vitti</strong>
     <p>236 Rue d'Ornano, 33000 Bordeaux</p>
     <a class="button" href="https://maps.google.com/?q=Pizza+Vitti+236+Rue+d'Ornano+33000+Bordeaux" target="_blank" rel="noopener">Nous trouver</a>
   </aside>
+
+  <button class="hero-slider-arrow previous" type="button" data-hero-previous aria-label="Image précédente">‹</button>
+  <button class="hero-slider-arrow next" type="button" data-hero-next aria-label="Image suivante">›</button>
+  <div class="hero-slider-tabs" role="tablist" aria-label="Catégories mises en avant">
+    <button class="is-active" type="button" data-hero-go="0" role="tab" aria-selected="true">Pizza</button>
+    <button type="button" data-hero-go="1" role="tab" aria-selected="false">Pastas</button>
+    <button type="button" data-hero-go="2" role="tab" aria-selected="false">Bambino</button>
+    <button type="button" data-hero-go="3" role="tab" aria-selected="false">Douceurs</button>
+  </div>
+  <div class="hero-slider-progress" aria-hidden="true"><span></span></div>
 </section>
 
 <section id="menu-home" class="menu-first reveal">
@@ -47,6 +93,23 @@
       <p class="empty">Ajoutez vos catégories depuis l’administration Django.</p>
     {% endfor %}
   </div>
+</section>
+
+<section class="loyalty-signup-band reveal">
+  <div class="loyalty-signup-copy">
+    <p class="eyebrow">Carte fidélité digitale</p>
+    <h2>5 pizzas achetées, un cadeau débloqué.</h2>
+    <p>Créez votre compte client avant de commander. Chaque pizza achetée avec votre compte fait avancer votre carte fidélité, même sur plusieurs commandes.</p>
+    <div class="hero-actions">
+      {% if request.user.is_authenticated %}
+        <a class="button" href="{% url 'shop:customer_dashboard' %}">Voir ma fidélité</a>
+      {% else %}
+        <a class="button" href="{% url 'account_signup' %}">Créer mon compte fidélité</a>
+        <a class="button ghost" href="{% url 'account_login' %}">J’ai déjà un compte</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="loyalty-signup-photo" role="img" aria-label="Pizza italienne Pizza Vitti"></div>
 </section>
 
 <section class="section-head">

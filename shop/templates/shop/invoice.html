@@ -29,7 +29,11 @@
   <p class="eyebrow">Merci pour votre commande</p>
   <h2>Votre avis compte pour Pizza Vitti</h2>
   <p>Si vous avez apprécié votre commande, laissez un commentaire sur Google. Cela aide le restaurant à être mieux visible et à continuer d’améliorer l’expérience client.</p>
-  <p class="loyalty-mini">Chaque 5 pizzas commandées donnent droit à un cadeau. Pizza Vitti vous confirmera le cadeau.</p>
+  {% if order.selected_reward %}
+    <p class="loyalty-mini">🎁 Fidélité : {{ order.selected_reward }} attribué avec cette commande.</p>
+  {% else %}
+    <p class="loyalty-mini">Créez votre compte client : chaque pizza commandée vous rapproche du prochain cadeau.</p>
+  {% endif %}
   <div class="hero-actions">
     <a class="button" href="{{ url_reviews }}">Laisser un avis</a>
     <a class="button ghost" target="_blank" rel="noopener" href="{{ GOOGLE_REVIEW_URL }}">Avis Google</a>

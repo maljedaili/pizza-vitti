@@ -1,42 +1,121 @@
-# Pizza Vitti - publication Google Play
+# Publication Google Play - Pizza Vitti
 
-## Application
+L'application Android est une Trusted Web Activity qui ouvre la PWA Pizza Vitti.
 
-- Nom : Pizza Vitti
-- Langue principale : français
-- URL de départ : `https://pizza-vitti.kayen.fr/app/`
-- Domaine autorisé : `pizza-vitti.kayen.fr`
-- Package Android conseillé : `fr.kayen.pizzavitti`
-- Catégorie : Cuisine et boissons / Entreprise
-- Politique de confidentialité : `https://pizza-vitti.kayen.fr/politique-confidentialite/`
+## Identité de l'application
 
-## Description courte
+- Nom : `Pizza Vitti`
+- Package Android : `fr.kayen.pizzavitti`
+- URL de démarrage : `https://pizza-vitti.kayen.fr/app/`
+- Projet Android : `android/`
+- API Android ciblée : `36`
 
-Commandes, cuisine, tables, équipe et pointage Pizza Vitti dans une seule application.
+Le package Android devient définitif dès la création de l'application dans Google
+Play Console. Ne pas le modifier après cette étape.
 
-## Description complète
+## 1. Construire sans signature
 
-Pizza Vitti réunit le site de commande et les outils du restaurant dans une application simple :
+Cette commande vérifie que le projet Android compile sans demander de secret :
 
-- carte et commandes clients ;
-- préparation des commandes en cuisine ;
-- alertes pour les nouvelles commandes ;
-- gestion des tables et QR codes ;
-- pointage du personnel avec pauses et heures travaillées ;
-- rapports propriétaire et impression des heures ;
-- suivi des achats et fournisseurs.
+```bash
+cd android
+npx --yes @bubblewrap/cli build --skipSigning
+```
 
-Les accès propriétaire, cuisine et staff sont séparés selon le rôle.
+Les fichiers générés dans `android/app/build/` ne sont pas enregistrés dans Git.
 
-## Éléments à fournir dans Play Console
+## 2. Créer la clé d'importation
 
-1. Compte développeur Google Play du propriétaire.
-2. Nom légal, adresse, téléphone et e-mail de contact.
-3. Icône 512 x 512, bannière 1024 x 500 et captures téléphone/tablette.
-4. Formulaire Sécurité des données et classification du contenu.
-5. Compte de démonstration pour la vérification Google.
-6. Android App Bundle signé et empreinte SHA-256 pour l’association du domaine.
+Créer la clé une seule fois depuis le dossier `android/` :
 
-## Publication recommandée
+```bash
+npx --yes @bubblewrap/cli build
+```
 
-Publier d’abord en test interne, vérifier l’installation et les notifications sur le téléphone du restaurant, puis passer en production après validation du propriétaire.
+Bubblewrap propose de créer `android.keystore`. Choisir un mot de passe long et
+unique, puis le conserver dans un gestionnaire de mots de passe. Ne jamais ajouter
+la clé ou son mot de passe dans Git. Une perte de cette clé peut bloquer les futures
+mises à jour de l'application.
+
+Le build signé produit notamment :
+
+```text
+android/app-release-bundle.aab
+```
+
+## 3. Créer l'application dans Play Console
+
+1. Attendre la validation complète du compte développeur Google Play.
+2. Créer une application nommée `Pizza Vitti`.
+3. Utiliser le package `fr.kayen.pizzavitti`.
+4. Activer Play App Signing.
+5. Envoyer le fichier `.aab` dans le canal de test interne.
+6. Compléter la fiche Play Store, la politique de confidentialité, la sécurité des
+   données, la classification du contenu et la section d'accès à l'application.
+
+Pour la section d'accès, expliquer que certaines pages nécessitent un rôle
+Propriétaire, Cuisine ou Staff et fournir à Google un compte de test limité.
+
+## 4. Relier l'application au site
+
+Après l'envoi du bundle, ouvrir :
+
+`Play Console > Configuration > Intégrité de l'application > Signature de l'application`
+
+Copier l'empreinte SHA-256 du certificat de signature de l'application, puis ajouter
+sur Render :
+
+```env
+ANDROID_APP_PACKAGE=fr.kayen.pizzavitti
+ANDROID_CERT_SHA256_FINGERPRINTS=AA:BB:CC:...
+```
+
+Plusieurs empreintes peuvent être séparées par des virgules. Redéployer ensuite le
+site et vérifier :
+
+```text
+https://pizza-vitti.kayen.fr/.well-known/assetlinks.json
+```
+
+Le fichier doit contenir le package `fr.kayen.pizzavitti` et l'empreinte Play.
+Sans cette association, l'application peut afficher une barre de navigateur.
+
+## 5. Tester avant production
+
+- Installer la version du canal de test interne sur un téléphone Android.
+- Vérifier la connexion Propriétaire, Cuisine et Staff.
+- Vérifier qu'un compte Cuisine ou Staff ne peut pas ouvrir le dashboard
+  Propriétaire.
+- Tester les commandes, le son cuisine, le pointage, la caméra et les notifications.
+- Tester l'application avec une connexion lente et après une mise à jour.
+
+Les nouveaux comptes personnels Google Play peuvent devoir effectuer un test fermé
+avec le nombre de testeurs et la durée indiqués dans leur Play Console avant de
+demander l'accès à la production.
+
+## 6. Activer le badge du site
+
+Quand la fiche Play Store est visible, ajouter l'URL de l'application dans les
+variables Render :
+
+```env
+GOOGLE_PLAY_URL=https://play.google.com/store/apps/details?id=fr.kayen.pizzavitti
+```
+
+Redéployer ensuite le service. Le badge officiel Google Play présent dans le footer
+ouvrira alors la fiche publique au lieu du programme d'installation web.
+
+## Nouvelle version
+
+Avant chaque nouvel envoi, augmenter `appVersionCode` dans
+`android/twa-manifest.json`, mettre à jour `appVersionName`, puis exécuter :
+
+```bash
+cd android
+npx --yes @bubblewrap/cli update
+npx --yes @bubblewrap/cli build
+```
+
+Bubblewrap peut régénérer `android/app/build.gradle`. Après une mise à jour, vérifier
+que `targetSdkVersion` reste à `36` ou à une version plus récente exigée par Google
+Play.

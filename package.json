@@ -1,0 +1,13 @@
+{
+  "name": "pizza-vitti-frontend",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Node-based frontend build for the Pizza Vitti Django application.",
+  "scripts": {
+    "build": "node frontend/build.mjs",
+    "build:watch": "node frontend/build.mjs --watch"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.6"
+  }
+}

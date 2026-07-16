@@ -14,7 +14,7 @@ document.addEventListener('click', e => {
 });
 const observer = new IntersectionObserver(entries => entries.forEach(entry => {
   if (entry.isIntersecting) entry.target.classList.add('show');
-}), {threshold: .12});
+}), {threshold: .05});
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 document.querySelectorAll('.menu-photo-card').forEach(card => {
   card.addEventListener('mousemove', e => {

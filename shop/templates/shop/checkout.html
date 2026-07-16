@@ -16,17 +16,28 @@
     {% if loyalty_gift_eligible %}
       <div class="loyalty-note success">
         <strong>Cadeau fidélité débloqué</strong>
-        <span>Chaque 5 pizzas commandées donnent droit à un cadeau. Pizza Vitti confirmera le cadeau.</span>
+        <span>{{ loyalty.reward.get_reward_type_display|default:'Cadeau Pizza Vitti' }} sera transmis à la cuisine avec votre commande.</span>
       </div>
     {% else %}
       <div class="loyalty-note">
-        <strong>Votre fidélité</strong>
-        <span>{{ pizza_qty }} / 5 pizzas — encore {{ loyalty_remaining }} pizza(s) pour recevoir un cadeau choisi par le restaurant.</span>
+        <strong>{% if request.user.is_authenticated %}Votre carte fidélité{% else %}Créez votre carte fidélité{% endif %}</strong>
+        {% if request.user.is_authenticated %}
+          <span>{{ loyalty.projected_pizzas }} pizza(s) cumulée(s), commande actuelle comprise. Encore {{ loyalty_remaining }} pour le prochain cadeau.</span>
+        {% else %}
+          <span>Connectez-vous ou créez un compte avant de valider pour enregistrer les pizzas de cette commande.</span>
+        {% endif %}
       </div>
     {% endif %}
 
-    <label>{{ T.name }}<input name="name" required></label>
-    <label>{{ T.email }}<input name="email" type="email" required></label>
+    {% if loyalty_account_required %}
+      <div class="loyalty-account-cta">
+        <a class="button ghost" href="{% url 'account_signup' %}?next={{ url_checkout|urlencode }}">Créer ma carte fidélité</a>
+        <a href="{% url 'account_login' %}?next={{ url_checkout|urlencode }}">Me connecter</a>
+      </div>
+    {% endif %}
+
+    <label>{{ T.name }}<input name="name" value="{{ checkout_name }}" autocomplete="name" required></label>
+    <label>{{ T.email }}<input name="email" type="email" value="{{ checkout_email }}" autocomplete="email" required></label>
     <label>{{ T.phone }}<input name="phone"></label>
     <label>{{ T.address_label }}<textarea name="address" placeholder="Adresse seulement si nécessaire"></textarea></label>
     <label>Code promo<input name="promo_code" placeholder="WELCOME10"></label>
@@ -52,7 +63,7 @@
     {% endfor %}
     <div class="total"><span>{{ T.total }}</span><strong>{{ total }} €</strong></div>
     {% if loyalty_gift_eligible %}
-      <p class="loyalty-mini">🎁 Cadeau offert inclus avec cette commande.</p>
+      <p class="loyalty-mini">🎁 {{ loyalty.reward.get_reward_type_display|default:'Cadeau offert' }} inclus avec cette commande.</p>
     {% else %}
       <p class="loyalty-mini">Encore {{ loyalty_remaining }} pizza(s) pour obtenir un cadeau.</p>
     {% endif %}

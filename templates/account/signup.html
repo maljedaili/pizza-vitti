@@ -5,13 +5,13 @@
   <div class="auth-shell">
     <aside class="auth-brand-panel">
       <img src="{% static 'shop/img/logo-vitti-clean.png' %}" alt="Pizza Vitti" class="auth-logo">
-      <p class="eyebrow">Bienvenue chez Pizza Vitti</p>
-      <h1>Création de compte</h1>
-      <p>Créez votre compte client pour profiter du programme fidélité et commander plus rapidement.</p>
+      <p class="eyebrow">Carte fidélité Pizza Vitti</p>
+      <h1>5 pizzas, un cadeau.</h1>
+      <p>Créez votre compte avant de commander. Vos pizzas sont cumulées automatiquement, même sur plusieurs commandes.</p>
       <div class="auth-benefits">
-        <span>🎁 Cadeau après 5 pizzas</span>
-        <span>⭐ Meilleures ventes en favoris</span>
-        <span>🥡 Commandes à emporter rapides</span>
+        <span>🎁 Progression fidélité enregistrée</span>
+        <span>Commandes et factures centralisées</span>
+        <span>Pizzas préférées disponibles rapidement</span>
       </div>
     </aside>
 
@@ -21,8 +21,8 @@
         <a class="active" href="{% url 'account_signup' %}">Création de compte</a>
       </div>
 
-      <h2>Créer un compte</h2>
-      <p class="auth-subtitle">Inscrivez-vous pour suivre vos points fidélité, vos commandes et vos favoris.</p>
+      <h2>Créer ma carte fidélité</h2>
+      <p class="auth-subtitle">Votre compte est gratuit. Utilisez-le à chaque commande pour cumuler vos pizzas.</p>
 
       {% if form.non_field_errors %}
         <div class="auth-error">{{ form.non_field_errors }}</div>
@@ -41,7 +41,7 @@
           {% endif %}
         {% endfor %}
 
-        <button class="auth-submit" type="submit">Créer mon compte</button>
+        <button class="auth-submit" type="submit">Créer ma carte fidélité</button>
       </form>
 
       <div class="auth-separator"><span>ou</span></div>

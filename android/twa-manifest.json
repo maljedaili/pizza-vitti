@@ -1,0 +1,50 @@
+{
+  "packageId": "fr.kayen.pizzavitti",
+  "host": "pizza-vitti.kayen.fr",
+  "name": "Pizza Vitti",
+  "launcherName": "Vitti App",
+  "display": "standalone",
+  "themeColor": "#171923",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#171923",
+  "enableNotifications": true,
+  "startUrl": "/app/",
+  "iconUrl": "https://pizza-vitti.kayen.fr/static/shop/img/pwa/icon-512.png",
+  "maskableIconUrl": "https://pizza-vitti.kayen.fr/static/shop/img/pwa/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "android.keystore",
+    "alias": "android"
+  },
+  "appVersionName": "1.0.0",
+  "appVersionCode": 2,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://pizza-vitti.kayen.fr/manifest.webmanifest",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://pizza-vitti.kayen.fr/",
+  "minSdkVersion": 21,
+  "orientation": "any",
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": [],
+  "launchHandlerClientMode": "",
+  "displayOverride": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "appVersion": "1.0.0"
+}

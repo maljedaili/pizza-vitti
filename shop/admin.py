@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, BlogPost, CustomerMessage, Order, OrderItem, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, PromoCode, GiftCard, DiningTable, StaffMember, StaffShift, PurchaseOrder, PurchaseOrderItem, CameraLocation, SecurityCamera
+from .models import Category, Product, BlogPost, CustomerMessage, Order, OrderItem, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, LoyaltyRedemption, PromoCode, GiftCard, DiningTable, StaffMember, StaffShift, PurchaseOrder, PurchaseOrderItem, CameraLocation, SecurityCamera
 
 admin.site.site_header = "Pizza Vitti — Administration"
 admin.site.site_title = "Pizza Vitti"
@@ -102,6 +102,14 @@ class LoyaltyRewardAdmin(admin.ModelAdmin):
     list_editable = ('reward_type','pizzas_required','is_active')
     list_filter = ('reward_type','is_active')
     search_fields = ('name',)
+
+
+@admin.register(LoyaltyRedemption)
+class LoyaltyRedemptionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'milestone', 'reward', 'order', 'created_at')
+    list_filter = ('reward', 'created_at')
+    search_fields = ('user__email', 'user__first_name', 'user__last_name', 'order__order_number')
+    readonly_fields = ('user', 'milestone', 'reward', 'order', 'created_at', 'updated_at')
 
 @admin.register(PromoCode)
 class PromoCodeAdmin(admin.ModelAdmin):

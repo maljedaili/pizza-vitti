@@ -21,12 +21,21 @@ Site Django adapté pour **Pizza Vitti**, restaurant italien situé au 236 Rue d
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+npm install
+npm run build
 python manage.py migrate
 python manage.py seed_demo
 python manage.py runserver
 ```
 
 Ouvrir : http://127.0.0.1:8000/
+
+Le frontend public utilise un pipeline Node.js avec esbuild. Pour travailler sur
+les styles et animations avec reconstruction automatique :
+
+```bash
+npm run build:watch
+```
 
 ## Paiement Stripe
 
@@ -63,6 +72,16 @@ Pour la production, utiliser une base PostgreSQL Render et définir `DATABASE_UR
 Sans `DATABASE_URL`, Django utilise SQLite dans le conteneur Render, ce qui peut donner une base vide après déploiement.
 Définir aussi `ALLOWED_HOSTS` avec les domaines Render et client, par exemple `pizza-vitti.onrender.com,pizza-vitti.kayen.fr`.
 
+Après la publication de l'application Android, ajouter son URL publique pour que
+le badge du footer ouvre directement Google Play :
+
+```env
+GOOGLE_PLAY_URL=https://play.google.com/store/apps/details?id=fr.kayen.pizzavitti
+```
+
+Tant que cette variable est vide, le badge propose l'installation de la PWA depuis
+le navigateur et indique que la fiche Google Play est en préparation.
+
 Pour créer ou réparer l'accès admin Django sur Render, ajouter ces variables d'environnement puis redéployer :
 
 ```env
@@ -70,6 +89,21 @@ DJANGO_SUPERUSER_USERNAME=admin
 DJANGO_SUPERUSER_EMAIL=admin@pizza-vitti.fr
 DJANGO_SUPERUSER_PASSWORD=change-this-secure-password
 ```
+
+## Application Android
+
+Le projet Android Trusted Web Activity se trouve dans `android/`. Il ouvre directement
+`https://pizza-vitti.kayen.fr/app/` et utilise le package définitif
+`fr.kayen.pizzavitti`.
+
+Les étapes de signature, de test interne et de publication sont détaillées dans
+[`docs/google-play-release.md`](docs/google-play-release.md).
+
+## Fidélité client
+
+Les clients peuvent créer une carte fidélité depuis `/accounts/signup/`. Les pizzas
+des commandes connectées sont cumulées automatiquement. Le propriétaire choisit
+depuis son dashboard le cadeau actif et le nombre de pizzas nécessaires.
 
 
 ## V5 updates

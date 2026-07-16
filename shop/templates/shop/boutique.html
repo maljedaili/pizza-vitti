@@ -1,6 +1,6 @@
 {% extends 'shop/base.html' %}
 {% block content %}
-<section class="shop-hero menu-hero">
+<section class="shop-hero menu-hero reveal" data-hero-motion>
   <p class="eyebrow">Nouvelle carte Pizza Vitti</p>
   <h1>{% if menu_group %}{{ menu_group.title }}{% elif category %}{{ category.translated_name|default:category.name }}{% else %}Menu complet{% endif %}</h1>
   <p>{% if menu_group %}{{ menu_group.summary }}{% else %}Retrouvez toute la carte: apéritifs, boissons, entrées, antipasti, bruschetta, salades, pizzas, pastas, ravioles, menu bambino, desserts et vins.{% endif %}</p>

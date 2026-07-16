@@ -247,6 +247,39 @@ class LoyaltyReward(TimeStampedModel):
     def __str__(self):
         return f'{self.name} - {self.get_reward_type_display()}'
 
+
+class LoyaltyRedemption(TimeStampedModel):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='pizza_vitti_loyalty_redemptions',
+    )
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='loyalty_redemptions',
+    )
+    reward = models.ForeignKey(
+        LoyaltyReward,
+        on_delete=models.PROTECT,
+        related_name='redemptions',
+    )
+    milestone = models.PositiveIntegerField(verbose_name='Palier de pizzas')
+
+    class Meta:
+        ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['order', 'milestone'],
+                name='unique_loyalty_milestone_per_order',
+            ),
+        ]
+        verbose_name = 'Cadeau fidélité attribué'
+        verbose_name_plural = 'Cadeaux fidélité attribués'
+
+    def __str__(self):
+        return f'{self.user} - {self.milestone} pizzas - {self.reward}'
+
 class PromoCode(TimeStampedModel):
     code = models.CharField(max_length=40, unique=True)
     description = models.CharField(max_length=180, blank=True)

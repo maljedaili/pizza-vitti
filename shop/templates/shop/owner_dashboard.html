@@ -95,6 +95,33 @@
       <a class="ops-action-card" href="{% url 'shop:staff_manage' %}"><strong>Équipe</strong><span>Créer les comptes staff et suivre check-in, pause, sortie.</span></a>
       <a class="ops-action-card" href="{% url 'shop:purchase_orders' %}"><strong>Purchase orders</strong><span>Suivre fournisseurs, commandes et réceptions.</span></a>
     </section>
+
+    <section class="ops-panel loyalty-owner-panel">
+      <div class="ops-panel-head">
+        <div>
+          <p class="ops-eyebrow">Programme client</p>
+          <h2>Cadeau fidélité</h2>
+        </div>
+        {% if loyalty_reward %}<span>Actuel : {{ loyalty_reward.get_reward_type_display }}</span>{% endif %}
+      </div>
+      <form method="post" class="ops-form loyalty-owner-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_loyalty_reward">
+        <label>
+          Cadeau offert
+          <select name="reward_type" required>
+            {% for value, label in loyalty_reward_types %}
+              <option value="{{ value }}" {% if loyalty_reward.reward_type == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          Nombre de pizzas
+          <input type="number" name="pizzas_required" min="1" max="50" value="{{ loyalty_reward.pizzas_required|default:5 }}" required>
+        </label>
+        <button class="button" type="submit">Enregistrer l’offre</button>
+      </form>
+    </section>
   </div>
 </section>
 {% endblock %}

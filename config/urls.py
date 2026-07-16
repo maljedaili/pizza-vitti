@@ -11,6 +11,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('robots.txt', include('shop.urls_robots')), 
+    path('.well-known/assetlinks.json', shop_views.android_asset_links, name='android_asset_links'),
     path('manifest.webmanifest', shop_views.manifest_webmanifest, name='manifest_webmanifest'),
     path('sw.js', shop_views.service_worker, name='service_worker'),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),

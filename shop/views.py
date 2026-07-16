@@ -18,7 +18,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 import stripe
-from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder, CameraLocation, SecurityCamera
+from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, LoyaltyRedemption, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder, CameraLocation, SecurityCamera
 from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_path
 
 
@@ -100,7 +100,7 @@ MENU_GROUPS = [
         'eyebrow': 'Pizza',
         'summary': 'Toutes les pizzas maison avec les suppléments pour personnaliser votre commande.',
         'kind': 'is-pizza',
-        'image': '/media/gallery/2eef003fea54537e5b8f6516f9fcec6ac5afe20b.jpeg',
+        'image': '/static/shop/img/hero/menu-pizza-vitti.jpg',
         'matches': ('pizza', 'suppl'),
     },
     {
@@ -109,7 +109,7 @@ MENU_GROUPS = [
         'eyebrow': 'Pasta',
         'summary': 'Pastas italiennes, ravioles et recettes généreuses servies bien chaudes.',
         'kind': 'is-pasta',
-        'image': 'https://images.unsplash.com/photo-1621996346565-e3dbc646d9a9?auto=format&fit=crop&w=1200&q=82',
+        'image': '/static/shop/img/hero/menu-pasta.jpg',
         'matches': ('pasta', 'raviol'),
     },
     {
@@ -127,7 +127,7 @@ MENU_GROUPS = [
         'eyebrow': 'Enfants',
         'summary': 'Un menu simple et gourmand pensé pour les plus jeunes.',
         'kind': 'is-kids',
-        'image': 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&fit=crop&w=1200&q=82',
+        'image': '/static/shop/img/hero/menu-bambino-pizza.jpg',
         'matches': ('bambino',),
     },
     {
@@ -136,7 +136,7 @@ MENU_GROUPS = [
         'eyebrow': 'Desserts',
         'summary': 'Tiramisu, panna cotta, glaces et desserts italiens.',
         'kind': 'is-dessert',
-        'image': 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?auto=format&fit=crop&w=1200&q=82',
+        'image': '/static/shop/img/hero/menu-tiramisu.jpg',
         'matches': ('douceur', 'dessert', 'glace'),
     },
     {
@@ -210,6 +210,46 @@ def _customer_pizza_count(user):
             if 'pizza' in category_name or 'pizza' in item_name:
                 count += item.quantity
     return count
+
+
+def _active_loyalty_reward():
+    return LoyaltyReward.objects.filter(is_active=True).order_by('pizzas_required', 'name').first()
+
+
+def _loyalty_status(user, additional_pizzas=0):
+    reward = _active_loyalty_reward()
+    pizzas_required = max(1, reward.pizzas_required if reward else 5)
+    pizza_count = _customer_pizza_count(user)
+    projected_pizzas = pizza_count + max(0, additional_pizzas)
+    active_redemptions = LoyaltyRedemption.objects.none()
+    if user.is_authenticated:
+        active_redemptions = LoyaltyRedemption.objects.filter(user=user).exclude(
+            order__status__in=['cancelled', 'refunded'],
+        )
+    redeemed_milestones = set(active_redemptions.values_list('milestone', flat=True))
+    earned_milestones = list(range(pizzas_required, projected_pizzas + 1, pizzas_required))
+    available_milestones = [
+        milestone for milestone in earned_milestones
+        if milestone not in redeemed_milestones
+    ]
+    progress = projected_pizzas % pizzas_required
+    remaining = pizzas_required - progress
+    if available_milestones:
+        remaining = 0
+    return {
+        'reward': reward,
+        'pizzas_required': pizzas_required,
+        'pizza_count': pizza_count,
+        'projected_pizzas': projected_pizzas,
+        'progress': progress,
+        'progress_percent': round((progress / pizzas_required) * 100),
+        'remaining': remaining,
+        'available_milestones': available_milestones,
+        'available_rewards': len(available_milestones),
+        'redeemed_rewards': active_redemptions.count(),
+        'earned_rewards': projected_pizzas // pizzas_required,
+    }
+
 
 def _cart_items(request):
     cart = request.session.get('cart', {})
@@ -410,10 +450,14 @@ def add_to_cart(request, product_id):
 def cart(request):
     items, total = _cart_items(request)
     pizza_qty = _pizza_qty(items)
+    loyalty = _loyalty_status(request.user, pizza_qty)
+    guest_reward_count = pizza_qty // loyalty['pizzas_required'] if loyalty['reward'] else 0
     return render(request, 'shop/cart.html', {
         'items': items, 'total': total, 'pizza_qty': pizza_qty,
-        'loyalty_remaining': max(0, 5 - pizza_qty),
-        'loyalty_gift_eligible': pizza_qty >= 5,
+        'loyalty': loyalty,
+        'loyalty_remaining': loyalty['remaining'],
+        'loyalty_gift_eligible': bool(loyalty['available_rewards'] if request.user.is_authenticated else guest_reward_count),
+        'loyalty_account_required': not request.user.is_authenticated,
         'table_number': request.session.get('table_number', '').strip(),
     })
 
@@ -443,12 +487,20 @@ def checkout(request):
         messages.error(request, 'Votre panier est vide.')
         return redirect('shop:boutique')
     table_number = request.session.get('table_number', '').strip()
+    pizza_qty = _pizza_qty(items)
+    loyalty = _loyalty_status(request.user, pizza_qty)
+    guest_reward_count = pizza_qty // loyalty['pizzas_required'] if loyalty['reward'] else 0
+    reward_count = loyalty['available_rewards'] if request.user.is_authenticated else guest_reward_count
     if request.method == 'POST':
         payment_method = request.POST.get('payment_method', 'stripe')
         order_type = 'dine_in' if table_number else request.POST.get('order_type', 'pickup')
-        loyalty_reward = LoyaltyReward.objects.filter(is_active=True).first() if _pizza_qty(items) >= 5 else None
-        selected_reward = loyalty_reward.get_reward_type_display() if loyalty_reward else ''
-        loyalty_note = 'Cadeau fidélité à préparer.' if _pizza_qty(items) >= 5 else ''
+        loyalty_reward = loyalty['reward'] if reward_count else None
+        selected_reward = ''
+        if loyalty_reward:
+            selected_reward = loyalty_reward.get_reward_type_display()
+            if reward_count > 1:
+                selected_reward = f'{reward_count} × {selected_reward}'
+        loyalty_note = f'{reward_count} cadeau(x) fidélité à préparer.' if reward_count else ''
         order = Order.objects.create(
             order_number='PV-' + uuid4().hex[:8].upper(),
             user=request.user if request.user.is_authenticated else None,
@@ -460,6 +512,14 @@ def checkout(request):
         for item in items:
             OrderItem.objects.create(order=order, product=item['product'], name=item['product'].name,
                 quantity=item['qty'], unit_price=item['product'].price, line_total=item['line_total'])
+        if request.user.is_authenticated and loyalty_reward:
+            for milestone in loyalty['available_milestones']:
+                LoyaltyRedemption.objects.create(
+                    user=request.user,
+                    order=order,
+                    reward=loyalty_reward,
+                    milestone=milestone,
+                )
         _send_order_received_email(order)
         request.session['cart'] = {}
         if table_number:
@@ -468,11 +528,13 @@ def checkout(request):
             return redirect('shop:stripe_checkout', order_id=order.id)
         messages.success(request, 'Commande créée. Une facture est disponible.')
         return redirect(order.get_absolute_url())
-    pizza_qty = _pizza_qty(items)
+    checkout_name = request.user.get_full_name().strip() if request.user.is_authenticated else ''
+    checkout_email = request.user.email if request.user.is_authenticated else ''
     return render(request, 'shop/checkout.html', {
         'items': items, 'total': total, 'stripe_enabled': bool(settings.STRIPE_SECRET_KEY), 'loyalty_rewards': LoyaltyReward.objects.filter(is_active=True),
-        'pizza_qty': pizza_qty, 'loyalty_remaining': max(0, 5 - pizza_qty),
-        'loyalty_gift_eligible': pizza_qty >= 5, 'table_number': table_number,
+        'pizza_qty': pizza_qty, 'loyalty': loyalty, 'loyalty_remaining': loyalty['remaining'],
+        'loyalty_gift_eligible': bool(reward_count), 'loyalty_account_required': not request.user.is_authenticated,
+        'checkout_name': checkout_name, 'checkout_email': checkout_email, 'table_number': table_number,
     })
 
 def create_checkout_session(request, order_id):
@@ -629,6 +691,27 @@ def _safe_date(value, fallback):
 
 @owner_required
 def owner_dashboard(request):
+    if request.method == 'POST' and request.POST.get('action') == 'update_loyalty_reward':
+        reward_type = request.POST.get('reward_type', '')
+        valid_reward_types = dict(LoyaltyReward.REWARD_TYPES)
+        try:
+            pizzas_required = int(request.POST.get('pizzas_required', 5))
+        except (TypeError, ValueError):
+            pizzas_required = 0
+        if reward_type not in valid_reward_types or not 1 <= pizzas_required <= 50:
+            messages.error(request, 'Choisissez un cadeau valide et un palier entre 1 et 50 pizzas.')
+        else:
+            LoyaltyReward.objects.update(is_active=False)
+            reward, _ = LoyaltyReward.objects.get_or_create(
+                reward_type=reward_type,
+                pizzas_required=pizzas_required,
+                defaults={'name': 'Cadeau fidélité'},
+            )
+            reward.name = f'Cadeau fidélité - {valid_reward_types[reward_type]}'
+            reward.is_active = True
+            reward.save(update_fields=['name', 'is_active', 'updated_at'])
+            messages.success(request, 'Le cadeau fidélité a été mis à jour.')
+        return redirect('shop:owner_dashboard')
     today_start, now = _today_bounds()
     active_orders = Order.objects.filter(status__in=['received','preparing','ready'])
     today_orders = Order.objects.filter(created_at__gte=today_start)
@@ -656,6 +739,8 @@ def owner_dashboard(request):
         'preparing_count': active_orders.filter(status='preparing').count(),
         'ready_count': active_orders.filter(status='ready').count(),
         'dashboard_now': timezone.localtime(),
+        'loyalty_reward': _active_loyalty_reward(),
+        'loyalty_reward_types': LoyaltyReward.REWARD_TYPES,
         'kitchen_app': True,
         'meta_title': 'Dashboard propriétaire | Pizza Vitti',
     })
@@ -1146,7 +1231,10 @@ def bot_reply(request):
     elif any(w in msg for w in ['menu', 'pizza', 'pasta', 'pâtes', 'raviol', 'boisson', 'dessert']):
         answer = "Le menu est organisé par familles : pizzas, pastas et ravioles, antipasti, menu bambino, douceurs et boissons. Cliquez sur une photo de catégorie pour ouvrir la page correspondante."
     elif any(w in msg for w in ['fidélité', 'fidelite', 'cadeau', '5 pizza', '5 pizzas']):
-        answer = "Offre fidélité : chaque 5 pizzas commandées donnent droit à un cadeau. Pizza Vitti vous confirmera le cadeau selon disponibilité."
+        reward = _active_loyalty_reward()
+        pizzas_required = reward.pizzas_required if reward else 5
+        gift = reward.get_reward_type_display() if reward else 'un cadeau Pizza Vitti'
+        answer = f"Offre fidélité : {pizzas_required} pizzas commandées avec votre compte = {gift}. Créez votre carte fidélité ou connectez-vous avant de valider la commande."
     elif any(w in msg for w in ['payer', 'visa', 'carte', 'paiement', 'stripe', 'cash', 'espèce', 'espece']):
         answer = "Vous pouvez payer par carte bancaire si Stripe est configuré, ou choisir le paiement au retrait / sur place selon l’organisation du restaurant."
     elif any(w in msg for w in ['réserver', 'reserver', 'reservation', 'réservation']):
@@ -1219,14 +1307,12 @@ def localized_dispatch(request, lang, page=None):
 @login_required
 def customer_dashboard(request):
     orders = Order.objects.filter(user=request.user).prefetch_related('items')[:8]
-    pizza_count = _customer_pizza_count(request.user)
+    loyalty = _loyalty_status(request.user)
     favorites = Favorite.objects.filter(user=request.user).select_related('product', 'product__category')[:12]
     return render(request, 'shop/customer_dashboard.html', {
         'orders': orders,
-        'pizza_count': pizza_count,
-        'loyalty_remaining': max(0, 5 - (pizza_count % 5)) if pizza_count % 5 else 0,
-        'pizza_progress': pizza_count % 5,
-        'rewards_unlocked': pizza_count // 5,
+        'loyalty': loyalty,
+        'loyalty_steps': range(1, loyalty['pizzas_required'] + 1),
         'favorites': favorites,
         'meta_title': 'Mon compte | Pizza Vitti',
     })
@@ -1258,6 +1344,26 @@ def robots_txt(request):
     content = f"User-agent: *\nAllow: /\nSitemap: {sitemap_url}\n"
     return HttpResponse(content, content_type='text/plain')
 
+
+def android_asset_links(request):
+    fingerprints = settings.ANDROID_CERT_SHA256_FINGERPRINTS
+    links = []
+    if fingerprints:
+        links.append({
+            'relation': ['delegate_permission/common.handle_all_urls'],
+            'target': {
+                'namespace': 'android_app',
+                'package_name': settings.ANDROID_APP_PACKAGE,
+                'sha256_cert_fingerprints': fingerprints,
+            },
+        })
+    return HttpResponse(
+        json.dumps(links),
+        content_type='application/json',
+        headers={'Cache-Control': 'public, max-age=300'},
+    )
+
+
 def manifest_webmanifest(request):
     site_url = request.build_absolute_uri('/').rstrip('/')
     manifest = {
@@ -1287,11 +1393,21 @@ def manifest_webmanifest(request):
 
 def service_worker(request):
     content = """
-const CACHE_NAME = 'pizza-vitti-app-v4';
+const CACHE_NAME = 'pizza-vitti-app-v7';
 const STATIC_ASSETS = [
   '/static/shop/style.css',
   '/static/shop/app.js',
+  '/static/shop/dist/site.css',
+  '/static/shop/dist/site.js',
   '/static/shop/img/logo-vitti-header.png',
+  '/static/shop/img/store/google-play-badge-fr.png',
+  '/static/shop/img/hero/menu-pizza-vitti.jpg',
+  '/static/shop/img/hero/menu-pasta.jpg',
+  '/static/shop/img/hero/menu-bambino-pizza.jpg',
+  '/static/shop/img/hero/menu-tiramisu.jpg',
+  '/static/shop/img/hero/blog-pizza-vitti.jpg',
+  '/static/shop/img/hero/loyalty-pizza-vitti.jpg',
+  '/static/shop/img/chat/lets-chat-reference.png',
   '/static/shop/img/pwa/icon-192.png',
   '/static/shop/img/pwa/icon-512.png'
 ];

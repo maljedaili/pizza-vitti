@@ -12,23 +12,24 @@
   {% endif %}
 
   <div class="loyalty-tracker">
-    <strong>Votre fidélité</strong>
-    <div class="loyalty-pizzas">
-      {% for i in "12345" %}
-        {% if forloop.counter <= pizza_qty %}<span>🍕</span>{% else %}<span>⚪</span>{% endif %}
-      {% endfor %}
-    </div>
-    <p>{{ pizza_qty }} / 5 pizzas{% if loyalty_gift_eligible %} — cadeau débloqué !{% else %} — encore {{ loyalty_remaining }} pizza(s) pour recevoir votre cadeau.{% endif %}</p>
+    <strong>{% if request.user.is_authenticated %}Votre carte fidélité{% else %}Fidélité Pizza Vitti{% endif %}</strong>
+    <div class="loyalty-meter" data-loyalty-progress="{{ loyalty.progress_percent }}"></div>
+    {% if request.user.is_authenticated %}
+      <p>{{ loyalty.projected_pizzas }} pizza(s) cumulée(s), commande actuelle comprise.</p>
+    {% else %}
+      <p>{{ pizza_qty }} pizza(s) dans cette commande. Créez votre compte avant de valider pour commencer votre carte fidélité digitale.</p>
+      <a class="button ghost" href="{% url 'account_signup' %}?next={{ url_cart|urlencode }}">Créer ma carte fidélité</a>
+    {% endif %}
   </div>
 
   {% if items %}
     <div class="loyalty-note {% if loyalty_gift_eligible %}success{% endif %}">
       {% if loyalty_gift_eligible %}
         <strong>Cadeau fidélité débloqué !</strong>
-        <span>Votre commande contient {{ pizza_qty }} pizzas : le restaurant confirmera le cadeau selon disponibilité.</span>
+        <span>{{ loyalty.reward.get_reward_type_display|default:'Un cadeau Pizza Vitti' }} sera ajouté à cette commande.</span>
       {% else %}
         <strong>Offre fidélité</strong>
-        <span>Ajoutez encore {{ loyalty_remaining }} pizza(s) pour recevoir un cadeau : dessert, pizza, pâtes ou surprise maison.</span>
+        <span>Encore {{ loyalty_remaining }} pizza(s) pour atteindre le prochain cadeau.</span>
       {% endif %}
     </div>
 

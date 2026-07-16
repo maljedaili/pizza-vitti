@@ -16,11 +16,13 @@
   <meta property="og:description" content="Pizzeria italienne au 236 Rue d'Ornano, Bordeaux. Commandez en ligne et payez en avance.">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"Restaurant","name":"Pizza Vitti","servesCuisine":"Italian, Pizza","address":{"@type":"PostalAddress","streetAddress":"236 Rue d'Ornano","addressLocality":"Bordeaux","postalCode":"33000","addressCountry":"FR"},"telephone":"+33 5 56 42 14 49","url":"{{ SITE_URL }}","hasMenu":"{{ SITE_URL }}{{ url_menu }}","acceptsReservations":true,"paymentAccepted":"Cash, Visa, Mastercard, CB"}</script>
   <link rel="stylesheet" href="{% static 'shop/style.css' %}">
+  <link rel="stylesheet" href="{% static 'shop/dist/site.css' %}">
   <script defer src="{% static 'shop/app.js' %}"></script>
+  <script defer src="{% static 'shop/dist/site.js' %}"></script>
 </head>
-<body class="lang-{{ current_lang }}{% if kitchen_app %} kitchen-app{% endif %}">
+<body class="lang-{{ current_lang }}{% if kitchen_app %} kitchen-app{% else %} public-site{% endif %}">
 <header class="site-header">
-  <a class="logo" href="{% if kitchen_app %}{% url 'shop:app_home' %}{% else %}{{ url_home }}{% endif %}"><img src="{% static 'shop/img/logo-vitti-header.png' %}" alt="Pizza Vitti logo"><span class="logo-text">{% if kitchen_app %}Vitti App{% else %}Pizza Vitti{% endif %}</span></a>
+  <a class="logo" href="{% if kitchen_app %}{% url 'shop:app_home' %}{% else %}{{ url_home }}{% endif %}"><img src="{% static 'shop/img/logo-vitti-header.png' %}" alt="Pizza Vitti logo"><span class="logo-text">{% if kitchen_app %}Vitti App{% else %}L’Italie à Bordeaux{% endif %}</span></a>
   <button class="nav-toggle" type="button" data-nav aria-label="Ouvrir le menu" aria-expanded="false">☰</button>
   {% if kitchen_app %}
   <nav>
@@ -45,7 +47,7 @@
   </nav>
   {% else %}
   <nav>
-    <a href="{{ url_home }}">{{ T.home }}</a><a href="{{ url_menu }}">{{ T.menu }}</a><a href="{{ url_booking }}">{{ T.booking }}</a><a href="{{ url_gallery }}">{{ T.gallery }}</a><a href="{{ url_reviews }}">{{ T.reviews }}</a><a href="{{ url_blog }}">{{ T.blog }}</a><a href="{{ url_contact }}">{{ T.contact }}</a><a href="{% url 'shop:app_home' %}">Application</a>{% if request.user.is_authenticated %}<a href="{% url 'shop:customer_dashboard' %}">👤 Mon compte</a>{% else %}<a href="/accounts/login/">Connexion</a>{% endif %}<a class="cart-link" href="{{ url_cart }}">{{ T.cart }} ({{ cart_count }})</a> {% if request.user.is_staff %}<a href="{% url 'shop:preparation_dashboard' %}">Préparation</a><a href="{% url 'shop:qr_tables' %}">QR tables</a><a class="admin-link" href="/admin/">{{ T.admin }}</a>{% endif %}
+    <a href="{{ url_menu }}">{{ T.menu }}</a><a href="{{ url_booking }}">{{ T.booking }}</a><a href="{{ url_reviews }}">{{ T.reviews }}</a><a href="{{ url_blog }}">{{ T.blog }}</a><a href="{{ url_contact }}">{{ T.contact }}</a>{% if request.user.is_authenticated %}<a href="{% url 'shop:customer_dashboard' %}">Mon compte</a>{% else %}<a href="{% url 'account_login' %}">Connexion</a>{% endif %}<a class="cart-link" href="{{ url_cart }}">{{ T.cart }} ({{ cart_count }})</a> {% if request.user.is_staff %}<a href="{% url 'shop:preparation_dashboard' %}">Préparation</a><a href="{% url 'shop:qr_tables' %}">QR tables</a><a class="admin-link" href="/admin/">{{ T.admin }}</a>{% endif %}
   </nav>
   {% endif %}
 </header>
@@ -85,14 +87,31 @@
 </aside>
 {% endif %}
 {% if not kitchen_app %}<div class="bot" data-bot>
-  <button class="bot-toggle" data-bot-toggle>{{ T.help }}</button>
+  <button class="bot-toggle bot-toggle-photo" data-bot-toggle aria-label="{{ T.help }}"><span class="visually-hidden">{{ T.help }}</span></button>
   <div class="bot-panel"><strong>Assistant Pizza Vitti</strong><div class="bot-log" data-bot-log><p>{{ T.assistant_hello }}</p></div><div class="bot-suggestions"><button type="button" data-bot-suggest="Voir le menu">Menu</button><button type="button" data-bot-suggest="Commander à table">Table</button><button type="button" data-bot-suggest="Fidélité">Fidélité</button><button type="button" data-bot-suggest="Réserver">Réserver</button></div><form data-bot-form data-url="{% url 'shop:bot_reply' %}">{% csrf_token %}<input name="message" placeholder="{{ T.message }}..."><button>{{ T.send }}</button></form></div>
 </div>
 {% if WHATSAPP_NUMBER %}<a class="chat" href="https://wa.me/{{ WHATSAPP_NUMBER }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
 {% include 'shop/partials/review_links.html' %}
 <footer>
+  <section class="mobile-app-promo" data-mobile-app-promo>
+    <div>
+      <p class="eyebrow">Pizza Vitti sur mobile</p>
+      <h2>Le menu, vos commandes et votre fidélité dans l’application.</h2>
+      <p>Installez Pizza Vitti sur Android. Les espaces Propriétaire, Cuisine et Staff restent protégés par leurs accès séparés.</p>
+    </div>
+    {% if GOOGLE_PLAY_URL %}
+      <a class="google-play-action" href="{{ GOOGLE_PLAY_URL }}" target="_blank" rel="noopener" aria-label="Télécharger Pizza Vitti sur Google Play">
+        <img src="{% static 'shop/img/store/google-play-badge-fr.png' %}" alt="Disponible sur Google Play">
+      </a>
+    {% else %}
+      <button class="google-play-action" type="button" data-install-app aria-label="Installer l’application Pizza Vitti">
+        <img src="{% static 'shop/img/store/google-play-badge-fr.png' %}" alt="Application Android Pizza Vitti">
+        <small>Google Play en préparation · installer maintenant</small>
+      </button>
+    {% endif %}
+  </section>
   <div class="footer-grid">
-    <div><strong>Pizza Vitti</strong><p>Restaurant italien — 236 Rue d'Ornano, 33000 Bordeaux · +33 5 56 42 14 49</p><!-- Google login will be enabled after OAuth setup --></p></div>
+    <div><strong>Pizza Vitti</strong><p>Restaurant italien — 236 Rue d'Ornano, 33000 Bordeaux · +33 5 56 42 14 49</p><!-- Google login will be enabled after OAuth setup --></div>
     <div><strong>{{ T.links }}</strong><p><a href="{{ url_menu }}">{{ T.menu }}</a> · <a href="{{ url_booking }}">{{ T.booking }}</a> · <a href="{{ url_gallery }}">{{ T.gallery }}</a> · <a href="{{ url_reviews }}">{{ T.reviews }}</a> · <a href="{% url 'shop:legal_notice' %}">Mentions légales</a> · <a href="{% url 'shop:privacy_policy' %}">Confidentialité</a></p><p class="social-icons"><a aria-label="Instagram" href="{{ INSTAGRAM_URL }}" target="_blank" rel="noopener">📷</a><a aria-label="Facebook" href="{{ FACEBOOK_URL }}" target="_blank" rel="noopener">f</a></p></div>
     <div><strong>{{ T.newsletter_title }}</strong><p>{{ T.newsletter_text }}</p><form class="newsletter" method="post" action="{% url 'shop:newsletter' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><input type="email" name="email" placeholder="{{ T.email_placeholder }}" required><button>OK</button></form></div>
   </div>

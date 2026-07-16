@@ -47,6 +47,7 @@ def site_settings(request):
         'GOOGLE_REVIEW_URL': settings.GOOGLE_REVIEW_URL,
         'INSTAGRAM_URL': settings.INSTAGRAM_URL,
         'FACEBOOK_URL': settings.FACEBOOK_URL,
+        'GOOGLE_PLAY_URL': settings.GOOGLE_PLAY_URL,
         'nav_categories': _menu_category_order(Category.objects.filter(is_active=True)),
         'current_lang': lang,
         'T': T,

@@ -1,12 +1,145 @@
 from datetime import timedelta
+from decimal import Decimal
 from unittest.mock import patch
 
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from shop.models import CameraLocation, SecurityCamera, StaffMember, StaffShift
+from shop.models import (
+    CameraLocation,
+    Category,
+    LoyaltyRedemption,
+    LoyaltyReward,
+    Order,
+    OrderItem,
+    Product,
+    SecurityCamera,
+    StaffMember,
+    StaffShift,
+)
+
+
+class AndroidAppVerificationTests(TestCase):
+    @override_settings(
+        ANDROID_APP_PACKAGE='fr.kayen.pizzavitti',
+        ANDROID_CERT_SHA256_FINGERPRINTS=['AA:BB:CC', '11:22:33'],
+    )
+    def test_asset_links_exposes_package_and_signing_fingerprints(self):
+        response = self.client.get(reverse('android_asset_links'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/json')
+        self.assertEqual(response.json(), [{
+            'relation': ['delegate_permission/common.handle_all_urls'],
+            'target': {
+                'namespace': 'android_app',
+                'package_name': 'fr.kayen.pizzavitti',
+                'sha256_cert_fingerprints': ['AA:BB:CC', '11:22:33'],
+            },
+        }])
+
+    @override_settings(ANDROID_CERT_SHA256_FINGERPRINTS=[])
+    def test_asset_links_is_empty_until_play_fingerprint_is_configured(self):
+        response = self.client.get(reverse('android_asset_links'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), [])
+
+
+class CustomerLoyaltyTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            username='cliente@example.com',
+            email='cliente@example.com',
+            password='SecurePass123',
+            first_name='Camille',
+            last_name='Martin',
+        )
+        self.category = Category.objects.create(name='Nos Pizza', slug='nos-pizza')
+        self.product = Product.objects.create(
+            category=self.category,
+            name='Margherita fidélité',
+            slug='margherita-fidelite',
+            description='Pizza de test',
+            price=Decimal('12.00'),
+        )
+        self.reward = LoyaltyReward.objects.create(
+            name='Cadeau dessert',
+            reward_type='free_dessert',
+            pizzas_required=5,
+            is_active=True,
+        )
+
+    def create_order(self, quantity, number):
+        order = Order.objects.create(
+            order_number=number,
+            user=self.user,
+            customer_name='Camille Martin',
+            email=self.user.email,
+            total=quantity * self.product.price,
+        )
+        OrderItem.objects.create(
+            order=order,
+            product=self.product,
+            name=self.product.name,
+            quantity=quantity,
+            unit_price=self.product.price,
+            line_total=quantity * self.product.price,
+        )
+        return order
+
+    def test_signed_in_orders_accumulate_and_unlock_owner_selected_reward(self):
+        self.create_order(2, 'PV-LOYALTY-1')
+        self.client.force_login(self.user)
+        session = self.client.session
+        session['cart'] = {str(self.product.id): 3}
+        session.save()
+
+        response = self.client.post(reverse('shop:checkout'), {
+            'name': 'Camille Martin',
+            'email': self.user.email,
+            'payment_method': 'cash',
+        })
+
+        order = Order.objects.exclude(order_number='PV-LOYALTY-1').get()
+        self.assertRedirects(response, order.get_absolute_url())
+        self.assertEqual(order.selected_reward, 'Dessert offert')
+        redemption = LoyaltyRedemption.objects.get(order=order)
+        self.assertEqual(redemption.user, self.user)
+        self.assertEqual(redemption.milestone, 5)
+        dashboard = self.client.get(reverse('shop:customer_dashboard'))
+        self.assertContains(dashboard, '5 pizza(s) achetée(s)')
+        self.assertContains(dashboard, '1 cadeau(x) déjà attribué(s)')
+
+    def test_customer_signup_collects_name_for_faster_checkout(self):
+        response = self.client.post(reverse('account_signup'), {
+            'first_name': 'Nina',
+            'last_name': 'Rossi',
+            'email': 'nina@example.com',
+            'password1': 'VittiSecure742!',
+            'password2': 'VittiSecure742!',
+        })
+        self.assertEqual(response.status_code, 302)
+        user = get_user_model().objects.get(email='nina@example.com')
+        self.assertEqual(user.first_name, 'Nina')
+        self.assertEqual(user.last_name, 'Rossi')
+
+    def test_public_footer_promotes_android_application(self):
+        response = self.client.get(reverse('shop:home'))
+        self.assertContains(response, 'google-play-badge-fr.png')
+        self.assertContains(response, 'Le menu, vos commandes et votre fidélité dans l’application.')
+
+    def test_public_navigation_is_reduced_and_home_uses_category_slider(self):
+        response = self.client.get(reverse('shop:home'))
+        self.assertContains(response, 'data-hero-slider')
+        self.assertContains(response, 'menu-bambino-pizza.jpg')
+        self.assertContains(response, 'menu-tiramisu.jpg')
+        self.assertContains(response, 'bot-toggle-photo')
+        self.assertContains(response, 'L’Italie à Bordeaux')
+        self.assertNotContains(response, f'<a href="{reverse("shop:home")}">Accueil</a>', html=True)
+        self.assertNotContains(response, '>Fidélité</a>')
+        self.assertNotContains(response, '>Application</a>')
 
 
 @override_settings(
@@ -86,6 +219,21 @@ class OperationsAccessTests(TestCase):
         response = self.client.get(reverse('shop:app_login'), {'role': 'owner'})
         self.assertRedirects(response, reverse('shop:kitchen_app'))
         self.assertNotIn('owner_access', self.client.session)
+
+    def test_owner_can_choose_the_loyalty_gift_from_dashboard(self):
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'owner',
+            'password': '1234',
+        })
+        response = self.client.post(reverse('shop:owner_dashboard'), {
+            'action': 'update_loyalty_reward',
+            'reward_type': 'free_pizza',
+            'pizzas_required': '7',
+        })
+        self.assertRedirects(response, reverse('shop:owner_dashboard'))
+        reward = LoyaltyReward.objects.get(is_active=True)
+        self.assertEqual(reward.reward_type, 'free_pizza')
+        self.assertEqual(reward.pizzas_required, 7)
 
 
 @override_settings(
