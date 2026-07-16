@@ -20,7 +20,7 @@ document.querySelectorAll('.menu-photo-card').forEach(card => {
   });
 });
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').then(registration => registration.update()).catch(() => {}));
 }
 let installPromptEvent = null;
 const installButton = document.querySelector('[data-install-app]');

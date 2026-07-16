@@ -679,7 +679,7 @@ def manifest_webmanifest(request):
 
 def service_worker(request):
     content = """
-const CACHE_NAME = 'pizza-vitti-kitchen-v1';
+const CACHE_NAME = 'pizza-vitti-kitchen-v2';
 const STATIC_ASSETS = [
   '/static/shop/style.css',
   '/static/shop/app.js',
@@ -700,11 +700,23 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith('/static/')) {
-    event.respondWith(caches.match(request).then(cached => cached || fetch(request)));
+  if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
+    event.respondWith(fetch(request));
     return;
   }
-  event.respondWith(fetch(request).catch(() => caches.match('/static/shop/style.css')));
+  if (url.pathname.startsWith('/static/')) {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+  event.respondWith(fetch(request));
 });
 """
     return HttpResponse(content.strip(), content_type='application/javascript')
