@@ -33,6 +33,10 @@ def _owner_password_matches(raw_password):
     return _password_matches(raw_password, settings.OWNER_DASHBOARD_PASSWORD)
 
 
+def _owner_username_matches(raw_username):
+    return bool(raw_username) and raw_username == settings.OWNER_DASHBOARD_USERNAME
+
+
 def _session_or_staff(request, key):
     return bool(request.session.get(key) or request.user.is_staff)
 
@@ -612,8 +616,9 @@ def app_login(request, default_role='owner'):
     if selected_role == 'staff' and request.session.get('staff_id'):
         return redirect(_safe_next_url(request, fallback))
     if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
-        if selected_role == 'owner' and _owner_password_matches(password):
+        if selected_role == 'owner' and _owner_username_matches(username) and _owner_password_matches(password):
             request.session.pop('staff_id', None)
             request.session['owner_access'] = True
             request.session['kitchen_access'] = True
@@ -626,7 +631,6 @@ def app_login(request, default_role='owner'):
             messages.success(request, 'Accès cuisine activé.')
             return redirect(_safe_next_url(request, reverse('shop:kitchen_app')))
         if selected_role == 'staff':
-            username = request.POST.get('username', '').strip()
             staff = StaffMember.objects.filter(username__iexact=username, is_active=True).first()
             if staff and staff.check_password(password):
                 request.session.pop('owner_access', None)

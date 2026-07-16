@@ -173,23 +173,29 @@ if (typeSelect && proBox) {
 }
 const appRole = document.querySelector('[data-app-role]');
 if (appRole) {
-  const staffFields = document.querySelector('[data-staff-fields]');
+  const usernameFields = document.querySelector('[data-username-fields]');
   const username = document.querySelector('#app-username');
+  const usernameLabel = document.querySelector('[data-username-label]');
   const password = document.querySelector('#app-password');
   const passwordLabel = document.querySelector('[data-password-label]');
   const note = document.querySelector('[data-app-login-note]');
   const syncAppLogin = () => {
     const staff = appRole.value === 'staff';
-    if (staffFields) staffFields.hidden = !staff;
-    if (username) username.required = staff;
+    const kitchen = appRole.value === 'kitchen';
+    if (usernameFields) usernameFields.hidden = kitchen;
+    if (username) {
+      username.required = !kitchen;
+      if (kitchen) username.value = '';
+    }
+    if (usernameLabel) usernameLabel.textContent = staff ? 'Nom d’utilisateur staff' : 'Nom d’utilisateur propriétaire';
     if (password) password.inputMode = appRole.value === 'kitchen' ? 'numeric' : 'text';
-    if (passwordLabel) passwordLabel.textContent = staff ? 'Mot de passe staff' : 'Code secret';
+    if (passwordLabel) passwordLabel.textContent = staff ? 'Mot de passe staff' : kitchen ? 'Code cuisine' : 'Mot de passe propriétaire';
     if (note) {
       note.textContent = staff
         ? 'Utilisez le compte créé dans le dashboard propriétaire.'
         : appRole.value === 'owner'
-          ? 'Entrez le code confidentiel du propriétaire.'
-          : 'Entrez le code confidentiel de la cuisine.';
+          ? 'Entrez le nom d’utilisateur et le mot de passe propriétaire.'
+          : 'Entrez uniquement le code confidentiel de la cuisine.';
     }
   };
   appRole.addEventListener('change', syncAppLogin);

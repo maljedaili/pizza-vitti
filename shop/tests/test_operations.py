@@ -142,7 +142,30 @@ class CustomerLoyaltyTests(TestCase):
         self.assertNotContains(response, '>Application</a>')
 
 
+class DefaultAppCredentialsTests(TestCase):
+    def test_owner_uses_admin_username_and_rootvitti_password(self):
+        response = self.client.post(reverse('shop:app_login'), {
+            'role': 'owner',
+            'username': 'admin',
+            'password': 'Rootvitti',
+        })
+        self.assertRedirects(response, reverse('shop:owner_dashboard'))
+        self.assertTrue(self.client.session['owner_access'])
+
+    def test_kitchen_uses_password_only(self):
+        login_page = self.client.get(reverse('shop:app_login'), {'role': 'kitchen'})
+        self.assertContains(login_page, 'data-username-fields hidden')
+        response = self.client.post(reverse('shop:app_login'), {
+            'role': 'kitchen',
+            'password': '123',
+        })
+        self.assertRedirects(response, reverse('shop:kitchen_app'))
+        self.assertTrue(self.client.session['kitchen_access'])
+        self.assertNotIn('owner_access', self.client.session)
+
+
 @override_settings(
+    OWNER_DASHBOARD_USERNAME='admin',
     OWNER_DASHBOARD_PASSWORD='1234',
     OWNER_DASHBOARD_PASSWORD_HASH='',
     KITCHEN_PASSWORD='1234',
@@ -162,6 +185,7 @@ class OperationsAccessTests(TestCase):
     def test_owner_session_can_open_owner_and_kitchen_pages(self):
         response = self.client.post(reverse('shop:app_login'), {
             'role': 'owner',
+            'username': 'admin',
             'password': '1234',
         })
         self.assertRedirects(response, reverse('shop:owner_dashboard'))
@@ -185,6 +209,7 @@ class OperationsAccessTests(TestCase):
     def test_owner_navigation_keeps_owner_and_kitchen_access(self):
         self.client.post(reverse('shop:app_login'), {
             'role': 'owner',
+            'username': 'admin',
             'password': '1234',
         })
         response = self.client.get(reverse('shop:kitchen_app'))
@@ -200,16 +225,28 @@ class OperationsAccessTests(TestCase):
     def test_new_owner_password_is_case_sensitive(self):
         rejected = self.client.post(reverse('shop:app_login'), {
             'role': 'owner',
+            'username': 'admin',
             'password': 'secureownerpass',
         })
         self.assertEqual(rejected.status_code, 200)
         self.assertNotIn('owner_access', self.client.session)
         accepted = self.client.post(reverse('shop:app_login'), {
             'role': 'owner',
+            'username': 'admin',
             'password': 'SecureOwnerPass',
         })
         self.assertRedirects(accepted, reverse('shop:owner_dashboard'))
         self.assertTrue(self.client.session['owner_access'])
+
+    def test_owner_username_is_required_and_case_sensitive(self):
+        for username in ['', 'Admin']:
+            response = self.client.post(reverse('shop:app_login'), {
+                'role': 'owner',
+                'username': username,
+                'password': '1234',
+            })
+            self.assertEqual(response.status_code, 200)
+            self.assertNotIn('owner_access', self.client.session)
 
     def test_kitchen_session_cannot_switch_directly_to_owner_role(self):
         self.client.post(reverse('shop:app_login'), {
@@ -223,6 +260,7 @@ class OperationsAccessTests(TestCase):
     def test_owner_can_choose_the_loyalty_gift_from_dashboard(self):
         self.client.post(reverse('shop:app_login'), {
             'role': 'owner',
+            'username': 'admin',
             'password': '1234',
         })
         response = self.client.post(reverse('shop:owner_dashboard'), {
@@ -237,6 +275,7 @@ class OperationsAccessTests(TestCase):
 
 
 @override_settings(
+    OWNER_DASHBOARD_USERNAME='admin',
     OWNER_DASHBOARD_PASSWORD='1234',
     OWNER_DASHBOARD_PASSWORD_HASH='',
     KITCHEN_PASSWORD='1234',
@@ -260,6 +299,7 @@ class CameraCenterTests(TestCase):
     def login_owner(self):
         response = self.client.post(reverse('shop:app_login'), {
             'role': 'owner',
+            'username': 'admin',
             'password': '1234',
         })
         self.assertRedirects(response, reverse('shop:owner_dashboard'))
@@ -436,17 +476,18 @@ class StaffPointageTests(TestCase):
         self.assertEqual(shift.break_seconds, 45 * 60)
         self.assertEqual(shift.worked_seconds(), 4 * 60 * 60 + 30 * 60)
 
-    @override_settings(OWNER_DASHBOARD_PASSWORD='1234', OWNER_DASHBOARD_PASSWORD_HASH='')
+    @override_settings(OWNER_DASHBOARD_USERNAME='admin', OWNER_DASHBOARD_PASSWORD='1234', OWNER_DASHBOARD_PASSWORD_HASH='')
     def test_owner_can_filter_and_print_staff_hours(self):
+        report_day = timezone.localtime().replace(hour=12, minute=0, second=0, microsecond=0)
         StaffShift.objects.create(
             staff=self.staff,
             status='checked_out',
-            check_in_at=timezone.now() - timedelta(hours=5),
-            check_out_at=timezone.now() - timedelta(hours=1),
+            check_in_at=report_day - timedelta(hours=5),
+            check_out_at=report_day - timedelta(hours=1),
             break_seconds=15 * 60,
         )
-        self.client.post(reverse('shop:app_login'), {'role': 'owner', 'password': '1234'})
-        today = timezone.localdate().isoformat()
+        self.client.post(reverse('shop:app_login'), {'role': 'owner', 'username': 'admin', 'password': '1234'})
+        today = report_day.date().isoformat()
         response = self.client.get(reverse('shop:reports_dashboard'), {
             'date_from': today,
             'date_to': today,

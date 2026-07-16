@@ -31,14 +31,14 @@
       <option value="staff" {% if selected_role == 'staff' %}selected{% endif %}>Staff (pointage)</option>
     </select>
 
-    <div data-staff-fields>
-      <label for="app-username">Nom utilisateur staff</label>
-      <input id="app-username" name="username" autocomplete="username">
+    <div data-username-fields {% if selected_role == 'kitchen' %}hidden{% endif %}>
+      <label for="app-username" data-username-label>{% if selected_role == 'owner' %}Nom d’utilisateur propriétaire{% else %}Nom d’utilisateur staff{% endif %}</label>
+      <input id="app-username" name="username" autocomplete="username" {% if selected_role != 'kitchen' %}required{% endif %}>
     </div>
 
-    <label for="app-password" data-password-label>Code secret</label>
+    <label for="app-password" data-password-label>{% if selected_role == 'owner' %}Mot de passe propriétaire{% elif selected_role == 'kitchen' %}Code cuisine{% else %}Mot de passe staff{% endif %}</label>
     <input id="app-password" type="password" name="password" autocomplete="current-password" inputmode="{% if selected_role == 'kitchen' %}numeric{% else %}text{% endif %}" autofocus required>
-    <small data-app-login-note>Entrez le code confidentiel de cet espace.</small>
+    <small data-app-login-note>{% if selected_role == 'owner' %}Entrez le nom d’utilisateur et le mot de passe propriétaire.{% elif selected_role == 'kitchen' %}Entrez uniquement le code confidentiel de la cuisine.{% else %}Utilisez le compte créé dans le dashboard propriétaire.{% endif %}</small>
     <button class="button">Entrer</button>
   </form>
 </section>
