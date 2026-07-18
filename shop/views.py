@@ -6,11 +6,13 @@ from urllib.parse import quote
 from uuid import uuid4
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Q, Case, When, IntegerField, Sum, Count, Prefetch
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1292,6 +1294,60 @@ def privacy_policy(request):
     return render(request, 'shop/privacy_policy.html', {
         'meta_title': 'Politique de confidentialité | Pizza Vitti',
         'meta_description': 'Informations sur les données utilisées par le site et l’application Pizza Vitti.',
+    })
+
+
+def account_deletion(request):
+    if request.method == 'POST' and request.POST.get('action') == 'delete_now':
+        if not request.user.is_authenticated:
+            messages.error(request, 'Connectez-vous pour supprimer directement votre compte.')
+            return redirect(f"{reverse('account_login')}?next={reverse('shop:account_deletion')}")
+        if request.POST.get('confirm') != 'yes':
+            messages.error(request, 'Cochez la confirmation avant de supprimer le compte.')
+            return redirect('shop:account_deletion')
+
+        user = request.user
+        email = user.email.strip()
+        with transaction.atomic():
+            Order.objects.filter(user=user).update(
+                user=None,
+                customer_name='Compte supprimé',
+                email='',
+                phone='',
+                address='',
+                notes='',
+                delivery_issue_note='',
+                stripe_session_id='',
+            )
+            if email:
+                NewsletterSubscriber.objects.filter(email__iexact=email).delete()
+                Reservation.objects.filter(email__iexact=email).delete()
+                CustomerMessage.objects.filter(email__iexact=email).delete()
+            user.delete()
+        logout(request)
+        messages.success(request, 'Votre compte Pizza Vitti et les données associées ont été supprimés.')
+        return redirect('shop:home')
+
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip().lower()
+        if not email:
+            messages.error(request, 'Indiquez l’adresse e-mail du compte à supprimer.')
+        else:
+            CustomerMessage.objects.create(
+                name='Demande de suppression de compte',
+                email=email,
+                subject='Suppression de compte Pizza Vitti',
+                message='Demande de suppression envoyée depuis la page publique Google Play.',
+            )
+            messages.success(
+                request,
+                'Votre demande est enregistrée. Pizza Vitti la traitera dans les meilleurs délais.',
+            )
+            return redirect('shop:account_deletion')
+
+    return render(request, 'shop/account_deletion.html', {
+        'meta_title': 'Supprimer mon compte | Pizza Vitti',
+        'meta_description': 'Supprimer un compte client Pizza Vitti et ses données associées.',
     })
 
 

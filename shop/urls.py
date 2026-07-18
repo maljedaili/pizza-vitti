@@ -60,6 +60,7 @@ urlpatterns = [
     path('favori/<int:product_id>/', views.toggle_favorite, name='toggle_favorite'),
     path('mentions-legales/', views.simple_page, {'title':'Mentions légales'}, name='mentions'),
     path('politique-confidentialite/', views.privacy_policy, name='privacy_policy'),
+    path('suppression-compte/', views.account_deletion, name='account_deletion'),
     path('legal-notice/', views.simple_page, {'title':'Legal Notice'}, name='legal_notice'),
     path('cgv/', views.simple_page, {'title':'Conditions générales de vente'}, name='cgv'),
     path('manifest.webmanifest', views.manifest_webmanifest, name='manifest_webmanifest'),

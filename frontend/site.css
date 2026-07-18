@@ -1004,3 +1004,77 @@ body.public-site {
     animation: none;
   }
 }
+
+.public-site .button.danger {
+  background: #a12722;
+  color: #fff;
+  border-color: #a12722;
+}
+
+.public-site .account-deletion-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 28px;
+  width: min(1120px, 92%);
+  margin: 24px auto 72px;
+  align-items: start;
+}
+
+.public-site .account-deletion-copy {
+  line-height: 1.7;
+}
+
+.public-site .account-deletion-form {
+  display: grid;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-top: 4px solid #a12722;
+  border-radius: 8px;
+  padding: 28px;
+  box-shadow: 0 18px 42px rgba(35, 18, 11, 0.1);
+}
+
+.public-site .account-deletion-form h2,
+.public-site .account-deletion-form p {
+  margin: 0;
+}
+
+.public-site .account-deletion-form > label:not(.deletion-confirm) {
+  font-weight: 900;
+}
+
+.public-site .account-deletion-form input[type="email"] {
+  min-height: 52px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 14px;
+  font: inherit;
+}
+
+.public-site .deletion-confirm {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  background: #fff1ef;
+  border: 1px solid #e9aaa4;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.public-site .deletion-confirm input {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 760px) {
+  .public-site .account-deletion-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .public-site .account-deletion-form {
+    padding: 20px;
+  }
+}

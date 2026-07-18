@@ -1,0 +1,48 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<header class="page-title account-deletion-title">
+  <p class="eyebrow">Confidentialité Pizza Vitti</p>
+  <h1>Supprimer un compte</h1>
+  <p>Supprimez votre compte client, vos favoris, votre fidélité et les informations personnelles associées.</p>
+</header>
+
+<section class="account-deletion-layout">
+  <article class="account-deletion-copy">
+    <h2>Ce qui sera supprimé</h2>
+    <ul>
+      <li>Le compte client et les informations de connexion.</li>
+      <li>Les favoris et la progression fidélité.</li>
+      <li>Les réservations, messages et inscription newsletter associés à l’e-mail.</li>
+    </ul>
+    <p>Les commandes nécessaires à la comptabilité du restaurant restent conservées sans nom, e-mail, téléphone, adresse, notes ni lien vers le compte.</p>
+    <p><a href="{% url 'shop:privacy_policy' %}#suppression">Consulter la politique de confidentialité</a></p>
+  </article>
+
+  {% if request.user.is_authenticated %}
+    <form method="post" class="account-deletion-form">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="delete_now">
+      <p class="eyebrow">Compte connecté</p>
+      <h2>{{ request.user.email|default:request.user.get_username }}</h2>
+      <label class="deletion-confirm">
+        <input type="checkbox" name="confirm" value="yes" required>
+        <span>Je comprends que cette suppression est définitive.</span>
+      </label>
+      <button class="button danger" type="submit">Supprimer définitivement mon compte</button>
+      <a class="button ghost" href="{% url 'shop:customer_dashboard' %}">Annuler</a>
+    </form>
+  {% else %}
+    <form method="post" class="account-deletion-form">
+      {% csrf_token %}
+      <p class="eyebrow">Demande sans connexion</p>
+      <h2>Demander la suppression</h2>
+      <label for="deletion-email">E-mail du compte</label>
+      <input id="deletion-email" type="email" name="email" autocomplete="email" required>
+      <button class="button danger" type="submit">Envoyer la demande</button>
+      <p><small>Vous pouvez aussi vous connecter pour supprimer immédiatement votre compte.</small></p>
+      <a class="button ghost" href="{% url 'account_login' %}?next={% url 'shop:account_deletion' %}">Se connecter</a>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

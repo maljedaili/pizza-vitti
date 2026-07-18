@@ -11,11 +11,15 @@ from django.utils import timezone
 from shop.models import (
     CameraLocation,
     Category,
+    CustomerMessage,
+    Favorite,
     LoyaltyRedemption,
     LoyaltyReward,
+    NewsletterSubscriber,
     Order,
     OrderItem,
     Product,
+    Reservation,
     SecurityCamera,
     StaffMember,
     StaffShift,
@@ -129,6 +133,56 @@ class CustomerLoyaltyTests(TestCase):
         response = self.client.get(reverse('shop:home'))
         self.assertContains(response, 'google-play-badge-fr.png')
         self.assertContains(response, 'Le menu, vos commandes et votre fidélité dans l’application.')
+        self.assertContains(response, reverse('shop:account_deletion'))
+
+    def test_customer_can_delete_account_and_associated_data(self):
+        order = self.create_order(2, 'PV-DELETE-1')
+        Favorite.objects.create(user=self.user, product=self.product)
+        LoyaltyRedemption.objects.create(
+            user=self.user,
+            order=order,
+            reward=self.reward,
+            milestone=5,
+        )
+        NewsletterSubscriber.objects.create(email=self.user.email)
+        Reservation.objects.create(
+            name='Camille Martin',
+            email=self.user.email,
+            date=timezone.localdate() + timedelta(days=1),
+            time=timezone.localtime().time(),
+        )
+        CustomerMessage.objects.create(
+            name='Camille Martin',
+            email=self.user.email,
+            message='Message à supprimer',
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.post(reverse('shop:account_deletion'), {
+            'action': 'delete_now',
+            'confirm': 'yes',
+        })
+
+        self.assertRedirects(response, reverse('shop:home'))
+        self.assertFalse(get_user_model().objects.filter(pk=self.user.pk).exists())
+        self.assertFalse(Favorite.objects.exists())
+        self.assertFalse(LoyaltyRedemption.objects.exists())
+        self.assertFalse(NewsletterSubscriber.objects.exists())
+        self.assertFalse(Reservation.objects.exists())
+        self.assertFalse(CustomerMessage.objects.exists())
+        order.refresh_from_db()
+        self.assertIsNone(order.user)
+        self.assertEqual(order.customer_name, 'Compte supprimé')
+        self.assertEqual(order.email, '')
+        self.assertEqual(order.phone, '')
+
+    def test_public_account_deletion_request_is_recorded(self):
+        response = self.client.post(reverse('shop:account_deletion'), {
+            'email': 'ancien-client@example.com',
+        })
+        self.assertRedirects(response, reverse('shop:account_deletion'))
+        request_message = CustomerMessage.objects.get(email='ancien-client@example.com')
+        self.assertEqual(request_message.subject, 'Suppression de compte Pizza Vitti')
 
     def test_public_navigation_is_reduced_and_home_uses_category_slider(self):
         response = self.client.get(reverse('shop:home'))

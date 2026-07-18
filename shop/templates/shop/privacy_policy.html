@@ -26,7 +26,9 @@
   <h2>Services externes</h2>
   <p>Selon les fonctions utilisées, certaines données peuvent être traitées par des prestataires comme l’hébergeur, le service d’e-mail, Stripe pour le paiement, Google pour les cartes et avis, ou WhatsApp lorsque l’utilisateur choisit ce canal.</p>
 
-  <h2>Vos demandes</h2>
-  <p>Pour demander l’accès, la correction ou la suppression de vos informations, contactez Pizza Vitti depuis la page contact ou au 05 56 42 14 49.</p>
+  <h2 id="suppression">Vos demandes et suppression du compte</h2>
+  <p>Pour demander l’accès ou la correction de vos informations, contactez Pizza Vitti depuis la page contact ou au 05 56 42 14 49.</p>
+  <p>Un client peut supprimer directement son compte et ses données associées depuis son espace connecté. Les commandes nécessaires aux obligations comptables du restaurant sont conservées uniquement sous forme anonymisée.</p>
+  <p><a class="button danger" href="{% url 'shop:account_deletion' %}">Supprimer un compte Pizza Vitti</a></p>
 </article>
 {% endblock %}
