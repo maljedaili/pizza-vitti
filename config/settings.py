@@ -27,7 +27,12 @@ ANDROID_CERT_SHA256_FINGERPRINTS = [
     fingerprint.strip().upper()
     for fingerprint in os.getenv(
         'ANDROID_CERT_SHA256_FINGERPRINTS',
-        '2E:AF:ED:BC:64:E1:4A:51:0A:D1:93:43:EB:50:69:FF:14:30:E2:16:7E:24:C6:6F:AB:EE:86:9E:9B:E0:85:6D',
+        (
+            '2E:AF:ED:BC:64:E1:4A:51:0A:D1:93:43:EB:50:69:FF:14:30:E2:16:'
+            '7E:24:C6:6F:AB:EE:86:9E:9B:E0:85:6D,'
+            '8F:19:CB:13:E4:69:79:BA:4D:62:48:1E:4F:CA:36:EE:D8:67:E6:5A:'
+            'CE:9A:9C:5E:C7:BB:FC:BE:64:B7:7C:1E'
+        ),
     ).split(',')
     if fingerprint.strip()
 ]
