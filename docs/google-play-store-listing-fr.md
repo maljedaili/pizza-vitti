@@ -66,8 +66,10 @@ Première version Android de Pizza Vitti : menu, commandes, fidélité client, p
 ## Éléments graphiques
 
 - Icône 512 x 512 : `android/store_icon.png`
-- Source de la feature graphic 1024 x 500 :
-  `docs/play-store-assets/feature-graphic.html` (à exporter en PNG avant l'envoi).
+- Feature graphic 1024 x 500 prête à importer :
+  `docs/play-store-assets/feature-graphic.png`.
+- Source modifiable de la feature graphic :
+  `docs/play-store-assets/feature-graphic.html`.
 - Captures téléphone :
   `docs/play-store-assets/phone-01-app-home.png` et
   `docs/play-store-assets/phone-02-role-login.png`.
@@ -113,8 +115,8 @@ Réponses préparatoires à vérifier dans Play Console :
 - Public cible recommandé : adultes ; l'application n'est pas conçue pour les enfants.
 - Application d'actualité : `Non`.
 - Application gouvernementale : `Non`.
-- Fonction financière : paiement d'une commande de restaurant via Stripe, sans
-  stockage des numéros de carte par Pizza Vitti.
+- Fonctionnalités financières : `Aucune`. Le paiement Stripe concerne uniquement
+  l'achat de repas physiques au restaurant ; ce n'est pas un produit financier.
 - Permissions sensibles : le microphone peut être utilisé volontairement par le
   propriétaire pour parler via une caméra compatible ; Pizza Vitti ne stocke pas
   cet audio.
@@ -149,10 +151,9 @@ Render, Stripe, e-mail et WhatsApp avant de soumettre le formulaire Data safety.
 
 ## Ordre de publication
 
-1. Attendre la validation d'identité puis vérifier le téléphone du compte Kayen.fr.
-2. Créer l'application `Pizza Vitti` avec la langue française et le type Application.
-3. Activer Play App Signing et importer `android/app-release-bundle.aab`.
-4. Compléter la fiche, App content, Data safety et l'accès des validateurs.
-5. Publier d'abord sur le canal de test interne.
-6. Créer ensuite un test fermé avec au moins 12 testeurs pendant 14 jours continus.
-7. Demander l'accès à la production quand Google confirme que le test est éligible.
+1. Créer l'application `Pizza Vitti` avec la langue française et le type Application.
+2. Activer Play App Signing et importer `android/app-release-bundle.aab`.
+3. Compléter la fiche, App content, Data safety et l'accès des validateurs.
+4. Publier éventuellement sur le canal de test interne pour une vérification rapide.
+5. Créer le test fermé avec au moins 12 testeurs pendant 14 jours continus.
+6. Demander l'accès à la production quand Google confirme que le test est éligible.
