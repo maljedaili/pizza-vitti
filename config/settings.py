@@ -22,7 +22,7 @@ OWNER_DASHBOARD_PASSWORD_HASH = os.getenv(
     'OWNER_DASHBOARD_PASSWORD_HASH',
     'pbkdf2_sha256$870000$ZAM7PoIlG2qUZ1Da4cJfwA$OQEEyAiH1EBf5ilBOFpk8jJDizThAs/G3IrcgTFj1ug=',
 )
-ANDROID_APP_PACKAGE = os.getenv('ANDROID_APP_PACKAGE', 'fr.kayen.pizzavitti')
+ANDROID_APP_PACKAGE = os.getenv('ANDROID_APP_PACKAGE', 'kayen.fr')
 ANDROID_CERT_SHA256_FINGERPRINTS = [
     fingerprint.strip().upper()
     for fingerprint in os.getenv(

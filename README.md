@@ -76,7 +76,7 @@ Après la publication de l'application Android, ajouter son URL publique pour qu
 le badge du footer ouvre directement Google Play :
 
 ```env
-GOOGLE_PLAY_URL=https://play.google.com/store/apps/details?id=fr.kayen.pizzavitti
+GOOGLE_PLAY_URL=https://play.google.com/store/apps/details?id=kayen.fr
 ```
 
 Tant que cette variable est vide, le badge propose l'installation de la PWA depuis
@@ -94,7 +94,7 @@ DJANGO_SUPERUSER_PASSWORD=change-this-secure-password
 
 Le projet Android Trusted Web Activity se trouve dans `android/`. Il ouvre directement
 `https://pizza-vitti.kayen.fr/app/` et utilise le package définitif
-`fr.kayen.pizzavitti`.
+`kayen.fr`.
 
 Les étapes de signature, de test interne et de publication sont détaillées dans
 [`docs/google-play-release.md`](docs/google-play-release.md).

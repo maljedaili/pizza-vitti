@@ -9,7 +9,7 @@ Ce document est la checklist d'import de la version Android `1.0.0`.
 - Type : `Application`
 - Tarif : `Gratuite`
 - Catégorie : `Cuisine et boissons`
-- Package créé par le bundle : `fr.kayen.pizzavitti`
+- Package créé par le bundle : `kayen.fr`
 - E-mail d'assistance : utiliser une adresse consultée régulièrement par le propriétaire.
 
 ## 2. Importer les éléments de la fiche
@@ -64,5 +64,5 @@ Ce document est la checklist d'import de la version Android `1.0.0`.
 - [ ] Les identifiants de validation sont à jour et non publiés dans la fiche.
 - [ ] Les textes, l'icône, la feature graphic et les deux captures sont importés.
 - [ ] Data safety correspond aux données réellement collectées.
-- [ ] Le bundle importé affiche le package `fr.kayen.pizzavitti` et la version `1.0.0`.
+- [ ] Le bundle importé affiche le package `kayen.fr` et la version `1.0.0`.
 - [ ] Les 12 testeurs ont accepté le test fermé.

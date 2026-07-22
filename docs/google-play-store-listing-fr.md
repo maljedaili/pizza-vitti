@@ -10,7 +10,7 @@ validation du compte développeur Kayen.fr.
 - Type : `Application`
 - Prix : `Gratuite`
 - Catégorie recommandée : `Cuisine et boissons`
-- Package : `fr.kayen.pizzavitti`
+- Package : `kayen.fr`
 - Site web : `https://pizza-vitti.kayen.fr/`
 - Politique de confidentialité : `https://pizza-vitti.kayen.fr/politique-confidentialite/`
 - Suppression de compte : `https://pizza-vitti.kayen.fr/suppression-compte/`

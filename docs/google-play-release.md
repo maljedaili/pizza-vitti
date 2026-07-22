@@ -5,10 +5,11 @@ L'application Android est une Trusted Web Activity qui ouvre la PWA Pizza Vitti.
 ## Identité de l'application
 
 - Nom : `Pizza Vitti`
-- Package Android : `fr.kayen.pizzavitti`
+- Package Android : `kayen.fr`
 - URL de démarrage : `https://pizza-vitti.kayen.fr/app/`
 - Projet Android : `android/`
-- API Android ciblée : `36`
+- API Android ciblée par cette release : `35`
+- API de compilation : `36`
 
 Le package Android devient définitif dès la création de l'application dans Google
 Play Console. Ne pas le modifier après cette étape.
@@ -78,7 +79,7 @@ Play, il faut également ajouter l'empreinte distincte fournie par Play App Sign
 
 1. Attendre la validation complète du compte développeur Google Play.
 2. Créer une application nommée `Pizza Vitti`.
-3. Utiliser le package `fr.kayen.pizzavitti`.
+3. Utiliser le package `kayen.fr`.
 4. Activer Play App Signing.
 5. Envoyer le fichier `.aab` dans le canal de test interne.
 6. Compléter la fiche Play Store, la politique de confidentialité, la sécurité des
@@ -97,7 +98,7 @@ Copier l'empreinte SHA-256 du certificat de signature de l'application, puis ajo
 sur Render :
 
 ```env
-ANDROID_APP_PACKAGE=fr.kayen.pizzavitti
+ANDROID_APP_PACKAGE=kayen.fr
 ANDROID_CERT_SHA256_FINGERPRINTS=AA:BB:CC:...
 ```
 
@@ -108,7 +109,7 @@ site et vérifier :
 https://pizza-vitti.kayen.fr/.well-known/assetlinks.json
 ```
 
-Le fichier doit contenir le package `fr.kayen.pizzavitti` et l'empreinte Play.
+Le fichier doit contenir le package `kayen.fr` et l'empreinte Play.
 Sans cette association, l'application peut afficher une barre de navigateur.
 
 ## 5. Tester avant production
@@ -130,7 +131,7 @@ Quand la fiche Play Store est visible, ajouter l'URL de l'application dans les
 variables Render :
 
 ```env
-GOOGLE_PLAY_URL=https://play.google.com/store/apps/details?id=fr.kayen.pizzavitti
+GOOGLE_PLAY_URL=https://play.google.com/store/apps/details?id=kayen.fr
 ```
 
 Redéployer ensuite le service. Le badge officiel Google Play présent dans le footer
@@ -147,6 +148,6 @@ npx --yes @bubblewrap/cli update
 npx --yes @bubblewrap/cli build
 ```
 
-Bubblewrap peut régénérer `android/app/build.gradle`. Après une mise à jour, vérifier
-que `targetSdkVersion` reste à `36` ou à une version plus récente exigée par Google
-Play.
+Bubblewrap peut régénérer `android/app/build.gradle`. Cette première release cible
+l'API 35, acceptée jusqu'au 30 août 2026. Avant tout envoi à partir du 31 août 2026,
+passer `targetSdkVersion` à `36` ou à une version plus récente exigée par Google Play.

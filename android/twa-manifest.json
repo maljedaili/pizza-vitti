@@ -1,5 +1,5 @@
 {
-  "packageId": "fr.kayen.pizzavitti",
+  "packageId": "kayen.fr",
   "host": "pizza-vitti.kayen.fr",
   "name": "Pizza Vitti",
   "launcherName": "Vitti App",
@@ -21,7 +21,7 @@
     "alias": "android"
   },
   "appVersionName": "1.0.0",
-  "appVersionCode": 2,
+  "appVersionCode": 3,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://pizza-vitti.kayen.fr/manifest.webmanifest",

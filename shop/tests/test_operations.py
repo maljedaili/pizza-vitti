@@ -28,7 +28,7 @@ from shop.models import (
 
 class AndroidAppVerificationTests(TestCase):
     @override_settings(
-        ANDROID_APP_PACKAGE='fr.kayen.pizzavitti',
+        ANDROID_APP_PACKAGE='kayen.fr',
         ANDROID_CERT_SHA256_FINGERPRINTS=['AA:BB:CC', '11:22:33'],
     )
     def test_asset_links_exposes_package_and_signing_fingerprints(self):
@@ -39,7 +39,7 @@ class AndroidAppVerificationTests(TestCase):
             'relation': ['delegate_permission/common.handle_all_urls'],
             'target': {
                 'namespace': 'android_app',
-                'package_name': 'fr.kayen.pizzavitti',
+                'package_name': 'kayen.fr',
                 'sha256_cert_fingerprints': ['AA:BB:CC', '11:22:33'],
             },
         }])

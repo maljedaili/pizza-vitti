@@ -1,4 +1,4 @@
-package fr.kayen.pizzavitti;
+package kayen.fr;
 
 
 
