@@ -8,3 +8,12 @@
 - Retrieved: 2026-07-27
 
 Ownership and permission to reuse this photograph were confirmed by Pizza Vitti on 2026-07-27.
+
+## Product and plate photographs
+
+- Local directory: `shop/static/shop/img/products/`
+- Supplied by Pizza Vitti in `WhatsApp Unknown 2026-07-27 at 23.24.42.zip`
+- Added: 2026-07-27
+- Usage rights confirmed by Pizza Vitti.
+
+Twenty-six photographs were matched to products. Duplicate and uncertain images from the archive were intentionally left unassigned.
