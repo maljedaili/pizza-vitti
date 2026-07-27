@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import Category, Product, BlogPost, CustomerMessage, Order, OrderItem, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, LoyaltyRedemption, PromoCode, GiftCard, DiningTable, StaffMember, StaffShift, PurchaseOrder, PurchaseOrderItem, CameraLocation, SecurityCamera
+from .models import (
+    BlogPost, CameraLocation, Category, CustomerMessage, DiningTable,
+    ExceptionalClosure, GalleryImage, GiftCard, LoyaltyRedemption, LoyaltyReward,
+    NewsletterSubscriber, OpeningPeriod, Order, OrderItem, Product, PromoCode,
+    PurchaseOrder, PurchaseOrderItem, Reservation, Review, SecurityCamera,
+    SiteConfiguration, StaffMember, StaffShift,
+)
 
 admin.site.site_header = "Pizza Vitti — Administration"
 admin.site.site_title = "Pizza Vitti"
@@ -14,14 +20,15 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name','category','price','unit','stock','is_available','is_featured','is_best_seller','is_pizza_of_month')
-    list_filter = ('category','is_available','is_featured','is_best_seller','is_pizza_of_month')
-    list_editable = ('price','stock','is_available','is_featured','is_best_seller','is_pizza_of_month')
+    list_display = ('name','category','price','unit','stock','is_available','is_best_seller','is_vegetarian','is_spicy','is_signature')
+    list_filter = ('category','is_available','is_featured','is_best_seller','is_vegetarian','is_spicy','is_signature')
+    list_editable = ('price','stock','is_available','is_best_seller','is_vegetarian','is_spicy','is_signature')
     search_fields = ('name','description')
     prepopulated_fields = {'slug': ('name',)}
     fieldsets = (
-        ('Produit', {'fields': ('category','name','slug','description','price','unit','stock','badge')}),
+        ('Produit', {'fields': ('category','name','slug','description','allergens','price','unit','stock','badge')}),
         ('Images', {'fields': ('image','external_image')}),
+        ('Badges', {'fields': ('is_vegetarian','is_spicy','is_signature')}),
         ('Publication', {'fields': ('is_available','is_featured','is_best_seller','is_pizza_of_month')}),
         ('SEO', {'fields': ('meta_title','meta_description')}),
     )
@@ -53,7 +60,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_editable = ('status','payment_status')
     readonly_fields = ('order_number','stripe_session_id','confirmation_email_sent','ready_email_sent','created_at','updated_at')
     fieldsets = (
-        ('Commande', {'fields': ('order_number','customer_name','email','phone','table_number','address','order_type','selected_reward','promo_code','notes','total')}),
+        ('Commande', {'fields': ('order_number','customer_name','email','phone','table_number','address','order_type','collection_date','collection_time','accepted_terms','selected_reward','promo_code','notes','total')}),
         ('Suivi', {'fields': ('status','payment_status','delivery_issue_note','confirmation_email_sent','ready_email_sent','stripe_session_id')}),
         ('Dates', {'fields': ('created_at','updated_at')}),
     )
@@ -67,12 +74,41 @@ class ReservationAdmin(admin.ModelAdmin):
     search_fields = ('name','email','phone','message')
     list_editable = ('status',)
 
+
+@admin.register(SiteConfiguration)
+class SiteConfigurationAdmin(admin.ModelAdmin):
+    fieldsets = (
+        ('Identité', {'fields': ('restaurant_name','hero_title','hero_description','address','telephone','public_email')}),
+        ('Liens', {'fields': ('google_maps_url','google_review_url','instagram_url','facebook_url','uber_eats_url','deliveroo_url','just_eat_url','google_play_url')}),
+        ('Informations légales vérifiées', {'fields': ('legal_company_name','legal_form','legal_capital','legal_registration','legal_vat_number','legal_director','legal_host','legal_mediator')}),
+    )
+
+    def has_add_permission(self, request):
+        return not SiteConfiguration.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(OpeningPeriod)
+class OpeningPeriodAdmin(admin.ModelAdmin):
+    list_display = ('weekday','opens_at','closes_at','is_active')
+    list_filter = ('weekday','is_active')
+    list_editable = ('opens_at','closes_at','is_active')
+
+
+@admin.register(ExceptionalClosure)
+class ExceptionalClosureAdmin(admin.ModelAdmin):
+    list_display = ('date','is_closed','opens_at','closes_at','reason')
+    list_filter = ('is_closed','date')
+    list_editable = ('is_closed','opens_at','closes_at')
+
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('name','rating','source','review_date','is_published')
     list_filter = ('rating','source','is_published')
     list_editable = ('rating','is_published')
-    search_fields = ('name','comment','source')
+    search_fields = ('name','comment','source','source_url')
     actions = ('publish_reviews','hide_reviews')
 
     @admin.action(description='Afficher les avis sélectionnés')

@@ -1,0 +1,9 @@
+{% extends 'shop/base.html' %}
+{% block content %}
+<section class="page-title error-page">
+  <p class="eyebrow">Erreur 404</p>
+  <h1>Cette page n’existe pas.</h1>
+  <p>Retrouvez la carte Pizza Vitti ou revenez à l’accueil.</p>
+  <div class="hero-actions"><a class="button" href="{{ url_menu }}">Voir le menu</a><a class="button ghost" href="{{ url_home }}">Accueil</a></div>
+</section>
+{% endblock %}

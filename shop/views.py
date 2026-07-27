@@ -14,13 +14,16 @@ from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q, Case, When, IntegerField, Sum, Count, Prefetch
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import stripe
-from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, LoyaltyRedemption, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder, CameraLocation, SecurityCamera
+from .forms import CheckoutForm, ReservationForm
+from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, LoyaltyRedemption, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder, CameraLocation, SecurityCamera, PromoCode, SiteConfiguration
 from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_path
 
 
@@ -76,6 +79,7 @@ def _menu_category_order(qs):
             When(name__iexact='Nos Pizzas', then=0),
             When(name__iexact='Nos Pasta', then=1),
             When(name__iexact='Nos Pastas', then=1),
+            When(name__iexact='Nos pâtes', then=1),
             When(name__icontains='raviol', then=2),
             When(name__icontains='entrée', then=3),
             When(name__icontains='entree', then=3),
@@ -102,7 +106,7 @@ def _menu_category_order(qs):
 MENU_GROUPS = [
     {
         'slug': 'pizzas',
-        'title': 'Nos Pizza',
+        'title': 'Nos pizzas',
         'eyebrow': 'Pizza',
         'summary': 'Toutes les pizzas maison avec les suppléments pour personnaliser votre commande.',
         'kind': 'is-pizza',
@@ -111,12 +115,12 @@ MENU_GROUPS = [
     },
     {
         'slug': 'pastas',
-        'title': 'Nos Pastas',
+        'title': 'Nos pâtes',
         'eyebrow': 'Pasta',
         'summary': 'Pastas italiennes, ravioles et recettes généreuses servies bien chaudes.',
         'kind': 'is-pasta',
         'image': '/static/shop/img/hero/menu-pasta.jpg',
-        'matches': ('pasta', 'raviol'),
+        'matches': ('pasta', 'pâte', 'raviole'),
     },
     {
         'slug': 'antipasti',
@@ -166,14 +170,14 @@ def _categories_for_group(group):
     return [category for category in categories if any(match in _category_key(category) for match in group['matches'])]
 
 
-def _menu_groups():
+def _menu_groups(lang='fr'):
     groups = []
     for group in MENU_GROUPS:
         categories = _categories_for_group(group)
         if not categories:
             continue
         item = group.copy()
-        item['url'] = reverse('shop:menu_group', args=[group['slug']])
+        item['url'] = reverse('shop:localized_menu_group', args=[lang, group['slug']])
         item['count'] = sum(category.products.filter(is_available=True).count() for category in categories)
         groups.append(item)
     return groups
@@ -355,17 +359,21 @@ def _pizza_qty(items):
     return count
 
 def home(request):
-    reviews = Review.objects.filter(is_published=True)[:6]
-    gallery = GalleryImage.objects.filter(is_active=True)[:8]
-    posts = BlogPost.objects.filter(is_published=True)[:3]
-    menu_groups = _menu_groups()
+    reviews = Review.objects.filter(is_published=True).exclude(source_url='')[:6]
+    gallery = GalleryImage.objects.filter(is_active=True).exclude(image='').exclude(image__isnull=True)[:6]
+    lang = get_lang_from_path(request.path)
+    menu_groups = _menu_groups(lang)
     favorite_product_ids = set()
     if request.user.is_authenticated:
         favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
     return render(request, 'shop/home.html', {
-        'menu_groups': menu_groups, 'reviews': reviews, 'gallery': gallery, 'posts': posts, 'favorite_product_ids': favorite_product_ids,
-        'meta_title': "Pizza Vitti Bordeaux | Pizzeria italienne et commande en ligne",
-        'meta_description': "Pizza Vitti à Bordeaux : pizzas italiennes, menu en ligne, réservation, retrait et paiement en avance."
+        'menu_groups': menu_groups,
+        'reviews': reviews,
+        'gallery': gallery,
+        'favorite_product_ids': favorite_product_ids,
+        'hide_review_prompt': True,
+        'meta_title': 'Pizza italienne à Bordeaux | Pizza Vitti',
+        'meta_description': 'Pizza italienne artisanale à Bordeaux. Commandez en ligne et récupérez votre repas chez Pizza Vitti, 236 rue d’Ornano.'
     })
 
 def about(request):
@@ -386,7 +394,14 @@ def boutique(request):
     favorite_product_ids = set()
     if request.user.is_authenticated:
         favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
-    return render(request, 'shop/boutique.html', {'page_obj': page_obj, 'query': query, 'favorite_product_ids': favorite_product_ids, 'menu_groups': _menu_groups()})
+    return render(request, 'shop/boutique.html', {
+        'page_obj': page_obj,
+        'query': query,
+        'favorite_product_ids': favorite_product_ids,
+        'menu_groups': _menu_groups(lang),
+        'meta_title': 'Carte et menu Pizza Vitti Bordeaux',
+        'meta_description': 'Découvrez la carte Pizza Vitti et commandez vos pizzas et plats italiens à emporter à Bordeaux.',
+    })
 
 def category(request, slug):
     cat = get_object_or_404(Category, slug=slug, is_active=True)
@@ -398,13 +413,16 @@ def category(request, slug):
     favorite_product_ids = set()
     if request.user.is_authenticated:
         favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
-    return render(request, 'shop/boutique.html', {'page_obj': page_obj, 'category': cat, 'favorite_product_ids': favorite_product_ids, 'menu_groups': _menu_groups()})
+    return render(request, 'shop/boutique.html', {'page_obj': page_obj, 'category': cat, 'favorite_product_ids': favorite_product_ids, 'menu_groups': _menu_groups(lang)})
 
 def menu_group(request, group):
     menu_group_data = _menu_group_by_slug(group)
     if not menu_group_data:
         return redirect('shop:boutique')
-    categories = _categories_for_group(menu_group_data)
+    categories = [
+        category for category in _categories_for_group(menu_group_data)
+        if 'suppl' not in _category_key(category)
+    ]
     products = list(Product.objects.filter(is_available=True, category__in=categories).select_related('category'))
     lang = get_lang_from_path(request.path)
     _apply_menu_translations(products, categories, lang)
@@ -418,7 +436,7 @@ def menu_group(request, group):
         favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
     return render(request, 'shop/boutique.html', {
         'menu_group': menu_group_data,
-        'menu_groups': _menu_groups(),
+        'menu_groups': _menu_groups(lang),
         'group_sections': sections,
         'favorite_product_ids': favorite_product_ids,
         'meta_title': f"{menu_group_data['title']} | Pizza Vitti Bordeaux",
@@ -432,9 +450,21 @@ def product_detail(request, slug):
     favorite_product_ids = set()
     if request.user.is_authenticated:
         favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
-    return render(request, 'shop/product_detail.html', {'product': product, 'favorite_product_ids': favorite_product_ids,
+    supplements = Product.objects.filter(
+        is_available=True,
+        category__name__icontains='suppl',
+    ).select_related('category') if product.category and 'pizza' in _category_key(product.category) and 'suppl' not in _category_key(product.category) else Product.objects.none()
+    return render(request, 'shop/product_detail.html', {'product': product, 'supplements': supplements, 'favorite_product_ids': favorite_product_ids,
         'meta_title': product.meta_title or f'{product.name} | Pizza Vitti',
         'meta_description': product.meta_description or product.description[:155]})
+
+
+def legacy_boutique_redirect(request):
+    return HttpResponsePermanentRedirect(reverse('shop:localized_page', args=['fr', 'menu']))
+
+
+def legacy_menu_group_redirect(request, group):
+    return HttpResponsePermanentRedirect(reverse('shop:localized_menu_group', args=['fr', group]))
 
 def table_menu(request, table):
     table_number = ''.join(ch for ch in str(table) if ch.isalnum() or ch in '-_')[:20]
@@ -445,13 +475,26 @@ def table_menu(request, table):
 
 @require_POST
 def add_to_cart(request, product_id):
-    get_object_or_404(Product, id=product_id, is_available=True)
+    product = get_object_or_404(Product.objects.select_related('category'), id=product_id, is_available=True)
     cart = request.session.get('cart', {})
-    qty = max(1, int(request.POST.get('qty', 1)))
-    cart[str(product_id)] = int(cart.get(str(product_id), 0)) + qty
+    try:
+        qty = int(request.POST.get('qty', 1))
+    except (TypeError, ValueError):
+        qty = 1
+    qty = min(20, max(1, qty))
+    cart[str(product_id)] = min(20, int(cart.get(str(product_id), 0)) + qty)
+    supplement_ids = request.POST.getlist('supplements')
+    if supplement_ids and product.category and 'pizza' in _category_key(product.category):
+        supplements = Product.objects.filter(
+            id__in=supplement_ids,
+            is_available=True,
+            category__name__icontains='suppl',
+        )
+        for supplement in supplements:
+            cart[str(supplement.id)] = min(20, int(cart.get(str(supplement.id), 0)) + qty)
     request.session['cart'] = cart
-    messages.success(request, 'Plat ajouté au panier.')
-    return redirect(request.POST.get('next') or 'shop:cart')
+    messages.success(request, 'Article ajouté au panier.')
+    return redirect(_safe_next_url(request, reverse('shop:cart')))
 
 def cart(request):
     items, total = _cart_items(request)
@@ -485,21 +528,41 @@ def remove_from_cart(request, product_id):
     cart.pop(str(product_id), None)
     request.session['cart'] = cart
     messages.success(request, 'Plat retiré du panier.')
-    return redirect(request.POST.get('next') or 'shop:cart')
+    return redirect(_safe_next_url(request, reverse('shop:cart')))
 
 def checkout(request):
     items, total = _cart_items(request)
     if not items:
         messages.error(request, 'Votre panier est vide.')
-        return redirect('shop:boutique')
+        return redirect('shop:localized_page', lang='fr', page='menu')
     table_number = request.session.get('table_number', '').strip()
     pizza_qty = _pizza_qty(items)
     loyalty = _loyalty_status(request.user, pizza_qty)
     guest_reward_count = pizza_qty // loyalty['pizzas_required'] if loyalty['reward'] else 0
     reward_count = loyalty['available_rewards'] if request.user.is_authenticated else guest_reward_count
+    checkout_name = request.user.get_full_name().strip() if request.user.is_authenticated else ''
+    checkout_email = request.user.email if request.user.is_authenticated else ''
+    initial = {'name': checkout_name, 'email': checkout_email}
+    form = CheckoutForm(request.POST or None, initial=initial)
+    discount = Decimal('0.00')
+    promo = None
     if request.method == 'POST':
-        payment_method = request.POST.get('payment_method', 'stripe')
-        order_type = 'dine_in' if table_number else request.POST.get('order_type', 'pickup')
+        submitted_token = request.POST.get('checkout_token', '')
+        session_token = request.session.get('checkout_token', '')
+        if not submitted_token or submitted_token != session_token:
+            form.add_error(None, 'Cette commande a déjà été envoyée ou la page a expiré. Vérifiez votre panier.')
+        promo_code = request.POST.get('promo_code', '').strip().upper()
+        if promo_code:
+            promo = PromoCode.objects.filter(code__iexact=promo_code, is_active=True).first()
+            if promo:
+                discount = (total * Decimal(promo.discount_percent) / Decimal('100')).quantize(Decimal('0.01'))
+            else:
+                form.add_error('promo_code', 'Ce code promotionnel n’est pas valide.')
+    final_total = max(Decimal('0.00'), total - discount)
+    if request.method == 'POST' and form.is_valid():
+        payment_method = form.cleaned_data['payment_method']
+        order_type = 'dine_in' if table_number else 'pickup'
+        collection_date, collection_time = form.cleaned_data['collection_slot']
         loyalty_reward = loyalty['reward'] if reward_count else None
         selected_reward = ''
         if loyalty_reward:
@@ -507,51 +570,80 @@ def checkout(request):
             if reward_count > 1:
                 selected_reward = f'{reward_count} × {selected_reward}'
         loyalty_note = f'{reward_count} cadeau(x) fidélité à préparer.' if reward_count else ''
-        order = Order.objects.create(
-            order_number='PV-' + uuid4().hex[:8].upper(),
-            user=request.user if request.user.is_authenticated else None,
-            customer_type='particulier',
-            customer_name=request.POST.get('name','').strip(), email=request.POST.get('email','').strip(),
-            phone=request.POST.get('phone','').strip(), table_number=table_number, address=request.POST.get('address','').strip(), order_type=order_type, selected_reward=selected_reward, promo_code=request.POST.get('promo_code','').strip(),
-            notes=(request.POST.get('notes','').strip() + (f'\nOffre fidélité: {loyalty_note}' if loyalty_note else '')).strip(), total=total,
-            payment_status='pending' if payment_method == 'stripe' else 'cash')
-        for item in items:
-            OrderItem.objects.create(order=order, product=item['product'], name=item['product'].name,
-                quantity=item['qty'], unit_price=item['product'].price, line_total=item['line_total'])
-        if request.user.is_authenticated and loyalty_reward:
-            for milestone in loyalty['available_milestones']:
-                LoyaltyRedemption.objects.create(
-                    user=request.user,
-                    order=order,
-                    reward=loyalty_reward,
-                    milestone=milestone,
-                )
+        with transaction.atomic():
+            order = Order.objects.create(
+                order_number='PV-' + uuid4().hex[:8].upper(),
+                user=request.user if request.user.is_authenticated else None,
+                customer_type='particulier',
+                customer_name=form.cleaned_data['name'].strip(),
+                email=form.cleaned_data['email'].strip(),
+                phone=form.cleaned_data['phone'].strip(),
+                table_number=table_number,
+                address='',
+                order_type=order_type,
+                collection_date=collection_date,
+                collection_time=collection_time,
+                accepted_terms=form.cleaned_data['accepted_terms'],
+                selected_reward=selected_reward,
+                promo_code=promo.code if promo else '',
+                notes=(form.cleaned_data['notes'].strip() + (f'\nOffre fidélité: {loyalty_note}' if loyalty_note else '')).strip(),
+                total=final_total,
+                payment_status='pending' if payment_method == 'stripe' else 'cash',
+            )
+            for item in items:
+                OrderItem.objects.create(order=order, product=item['product'], name=item['product'].name,
+                    quantity=item['qty'], unit_price=item['product'].price, line_total=item['line_total'])
+            if request.user.is_authenticated and loyalty_reward:
+                for milestone in loyalty['available_milestones']:
+                    LoyaltyRedemption.objects.create(
+                        user=request.user,
+                        order=order,
+                        reward=loyalty_reward,
+                        milestone=milestone,
+                    )
         _send_order_received_email(order)
         request.session['cart'] = {}
+        request.session.pop('checkout_token', None)
+        pending_ids = request.session.get('pending_order_ids', [])
+        request.session['pending_order_ids'] = (pending_ids + [order.id])[-5:]
         if table_number:
             request.session.pop('table_number', None)
         if payment_method == 'stripe' and settings.STRIPE_SECRET_KEY:
             return redirect('shop:stripe_checkout', order_id=order.id)
         messages.success(request, 'Commande créée. Une facture est disponible.')
         return redirect(order.get_absolute_url())
-    checkout_name = request.user.get_full_name().strip() if request.user.is_authenticated else ''
-    checkout_email = request.user.email if request.user.is_authenticated else ''
+    if request.method == 'GET':
+        request.session['checkout_token'] = uuid4().hex
     return render(request, 'shop/checkout.html', {
-        'items': items, 'total': total, 'stripe_enabled': bool(settings.STRIPE_SECRET_KEY), 'loyalty_rewards': LoyaltyReward.objects.filter(is_active=True),
+        'form': form,
+        'checkout_token': request.session.get('checkout_token', ''),
+        'items': items, 'subtotal': total, 'discount': discount, 'total': final_total,
+        'stripe_enabled': bool(settings.STRIPE_SECRET_KEY), 'loyalty_rewards': LoyaltyReward.objects.filter(is_active=True),
         'pizza_qty': pizza_qty, 'loyalty': loyalty, 'loyalty_remaining': loyalty['remaining'],
         'loyalty_gift_eligible': bool(reward_count), 'loyalty_account_required': not request.user.is_authenticated,
         'checkout_name': checkout_name, 'checkout_email': checkout_email, 'table_number': table_number,
+        'meta_title': 'Commander une pizza à emporter à Bordeaux | Pizza Vitti',
+        'meta_description': 'Finalisez votre commande Pizza Vitti et choisissez votre créneau de retrait au restaurant.',
+        'meta_robots': 'noindex,nofollow',
     })
 
 def create_checkout_session(request, order_id):
     order = get_object_or_404(Order, id=order_id)
+    if order.id not in request.session.get('pending_order_ids', []):
+        return HttpResponse('Accès refusé.', status=403)
+    if not settings.STRIPE_SECRET_KEY:
+        return HttpResponse('Paiement par carte indisponible.', status=503)
     stripe.api_key = settings.STRIPE_SECRET_KEY
     session = stripe.checkout.Session.create(
         mode='payment',
         customer_email=order.email,
         payment_method_types=['card'],
         line_items=[{'price_data': {'currency': 'eur', 'product_data': {'name': f'Commande {order.order_number}'}, 'unit_amount': int(order.total * 100)}, 'quantity': 1}],
-        success_url=settings.SITE_URL + reverse('shop:payment_success', args=[order.order_number]),
+        success_url=(
+            settings.SITE_URL
+            + reverse('shop:payment_success', args=[order.order_number])
+            + '?session_id={CHECKOUT_SESSION_ID}'
+        ),
         cancel_url=settings.SITE_URL + reverse('shop:invoice', args=[order.order_number]),
     )
     order.stripe_session_id = session.id
@@ -560,10 +652,41 @@ def create_checkout_session(request, order_id):
 
 def payment_success(request, order_number):
     order = get_object_or_404(Order, order_number=order_number)
-    order.payment_status = 'paid'
-    order.save(update_fields=['payment_status'])
-    messages.success(request, 'Paiement par carte confirmé. Merci pour votre commande.')
+    session_id = request.GET.get('session_id', '')
+    if session_id and session_id == order.stripe_session_id and settings.STRIPE_SECRET_KEY:
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        session = stripe.checkout.Session.retrieve(session_id)
+        if session.payment_status == 'paid':
+            order.payment_status = 'paid'
+            order.save(update_fields=['payment_status'])
+            messages.success(request, 'Paiement par carte confirmé. Merci pour votre commande.')
+        else:
+            messages.warning(request, 'Le paiement est encore en cours de confirmation.')
+    elif order.payment_status != 'paid':
+        messages.warning(request, 'Le paiement n’a pas pu être confirmé.')
     return redirect(order.get_absolute_url())
+
+
+@csrf_exempt
+@require_POST
+def stripe_webhook(request):
+    if not settings.STRIPE_WEBHOOK_SECRET:
+        return HttpResponse(status=503)
+    try:
+        event = stripe.Webhook.construct_event(
+            request.body,
+            request.headers.get('Stripe-Signature', ''),
+            settings.STRIPE_WEBHOOK_SECRET,
+        )
+    except (ValueError, stripe.error.SignatureVerificationError):
+        return HttpResponse(status=400)
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        if session.get('payment_status') == 'paid':
+            Order.objects.filter(
+                stripe_session_id=session.get('id'),
+            ).exclude(payment_status='paid').update(payment_status='paid')
+    return HttpResponse(status=200)
 
 def invoice(request, order_number):
     order = get_object_or_404(Order.objects.prefetch_related('items'), order_number=order_number)
@@ -572,7 +695,11 @@ def invoice(request, order_number):
 
 def _safe_next_url(request, fallback):
     next_url = request.POST.get('next') or request.GET.get('next') or fallback
-    return next_url if next_url.startswith('/') else fallback
+    return next_url if url_has_allowed_host_and_scheme(
+        next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ) else fallback
 
 
 def _login_fallback(role):
@@ -1262,16 +1389,22 @@ def bot_reply(request):
 
 
 def booking(request):
-    if request.method == 'POST':
-        Reservation.objects.create(
-            name=request.POST.get('name','').strip(), email=request.POST.get('email','').strip(), phone=request.POST.get('phone','').strip(),
-            date=request.POST.get('date'), time=request.POST.get('time'), guests=request.POST.get('guests') or 2, message=request.POST.get('message','').strip())
-        messages.success(request, 'Votre demande de réservation a bien été envoyée. Pizza Vitti vous confirmera rapidement.')
+    form = ReservationForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(
+            request,
+            'Votre demande a bien été envoyée. La réservation sera confirmée par Pizza Vitti par e-mail ou téléphone.',
+        )
         return redirect('shop:booking')
-    return render(request, 'shop/booking.html', {'meta_title': 'Réservation | Pizza Vitti Bordeaux'})
+    return render(request, 'shop/booking.html', {
+        'form': form,
+        'meta_title': 'Réserver une table chez Pizza Vitti Bordeaux',
+        'meta_description': 'Envoyez votre demande de réservation à Pizza Vitti, 236 rue d’Ornano à Bordeaux.',
+    })
 
 def reviews(request):
-    reviews = Review.objects.filter(is_published=True)
+    reviews = Review.objects.filter(is_published=True).exclude(source_url='')
     return render(request, 'shop/reviews.html', {'reviews': reviews, 'meta_title': 'Avis clients | Pizza Vitti Bordeaux'})
 
 def gallery(request):
@@ -1284,10 +1417,28 @@ def newsletter(request):
     if email:
         NewsletterSubscriber.objects.get_or_create(email=email, defaults={'is_active': True})
         messages.success(request, 'Merci, votre inscription à la newsletter est enregistrée.')
-    return redirect(request.POST.get('next') or 'shop:home')
+    return redirect(_safe_next_url(request, reverse('shop:home')))
 
 def simple_page(request, title):
     return render(request, 'shop/simple.html', {'title': title})
+
+
+def legal_notice(request):
+    return render(request, 'shop/legal_notice.html', {
+        'meta_title': 'Mentions légales | Pizza Vitti',
+        'meta_description': 'Mentions légales du site Pizza Vitti Bordeaux.',
+    })
+
+
+def legacy_legal_redirect(request):
+    return HttpResponsePermanentRedirect(reverse('shop:mentions'))
+
+
+def terms(request):
+    return render(request, 'shop/terms.html', {
+        'meta_title': 'Conditions générales de commande | Pizza Vitti',
+        'meta_description': 'Conditions applicables aux commandes à emporter passées sur le site Pizza Vitti.',
+    })
 
 
 def privacy_policy(request):
@@ -1397,11 +1548,22 @@ def toggle_favorite(request, product_id):
     else:
         fav.delete()
         messages.success(request, f'{product.name} retiré de vos favoris.')
-    return redirect(request.POST.get('next') or product.get_absolute_url())
+    return redirect(_safe_next_url(request, product.get_absolute_url()))
 
 def robots_txt(request):
     sitemap_url = settings.SITE_URL.rstrip('/') + '/sitemap.xml'
-    content = f"User-agent: *\nAllow: /\nSitemap: {sitemap_url}\n"
+    content = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Disallow: /admin/\n"
+        "Disallow: /accounts/\n"
+        "Disallow: /owner/\n"
+        "Disallow: /kitchen/\n"
+        "Disallow: /staff/\n"
+        "Disallow: /panier/\n"
+        "Disallow: /commande/\n"
+        f"Sitemap: {sitemap_url}\n"
+    )
     return HttpResponse(content, content_type='text/plain')
 
 

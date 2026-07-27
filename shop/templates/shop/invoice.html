@@ -6,7 +6,11 @@
   <p><strong>{{ T.name }} :</strong> {{ order.customer_name }} — {{ order.email }}</p>
   <p><strong>{{ T.phone }} :</strong> {{ order.phone|default:'-' }}</p>
   {% if order.table_number %}<p><strong>Table :</strong> {{ order.table_number }}</p>{% endif %}
-  <p><strong>{{ T.address_label }} :</strong> {{ order.address|default:'-' }}</p>
+  {% if order.collection_date %}
+    <p><strong>Retrait :</strong> {{ order.collection_date|date:'d/m/Y' }} à {{ order.collection_time|time:'H:i' }}</p>
+  {% elif order.address %}
+    <p><strong>{{ T.address_label }} :</strong> {{ order.address }}</p>
+  {% endif %}
   <p><strong>Statut :</strong> {{ order.get_status_display }}</p>
   <p><strong>{{ T.payment }} :</strong> {{ order.get_payment_status_display }}</p>
 

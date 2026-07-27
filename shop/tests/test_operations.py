@@ -16,6 +16,7 @@ from shop.models import (
     LoyaltyRedemption,
     LoyaltyReward,
     NewsletterSubscriber,
+    OpeningPeriod,
     Order,
     OrderItem,
     Product,
@@ -99,11 +100,18 @@ class CustomerLoyaltyTests(TestCase):
         session = self.client.session
         session['cart'] = {str(self.product.id): 3}
         session.save()
+        checkout_page = self.client.get(reverse('shop:checkout'))
+        checkout_token = self.client.session['checkout_token']
+        slot = checkout_page.context['form'].fields['collection_slot'].choices[0][0]
 
         response = self.client.post(reverse('shop:checkout'), {
             'name': 'Camille Martin',
             'email': self.user.email,
+            'phone': '0556421449',
+            'collection_slot': slot,
             'payment_method': 'cash',
+            'accepted_terms': 'on',
+            'checkout_token': checkout_token,
         })
 
         order = Order.objects.exclude(order_number='PV-LOYALTY-1').get()
@@ -129,10 +137,10 @@ class CustomerLoyaltyTests(TestCase):
         self.assertEqual(user.first_name, 'Nina')
         self.assertEqual(user.last_name, 'Rossi')
 
-    def test_public_footer_promotes_android_application(self):
+    def test_public_footer_hides_unavailable_android_application(self):
         response = self.client.get(reverse('shop:home'))
-        self.assertContains(response, 'google-play-badge-fr.png')
-        self.assertContains(response, 'Le menu, vos commandes et votre fidélité dans l’application.')
+        self.assertNotContains(response, 'Google Play en préparation')
+        self.assertContains(response, 'Site créé par')
         self.assertContains(response, reverse('shop:account_deletion'))
 
     def test_customer_can_delete_account_and_associated_data(self):
@@ -184,16 +192,62 @@ class CustomerLoyaltyTests(TestCase):
         request_message = CustomerMessage.objects.get(email='ancien-client@example.com')
         self.assertEqual(request_message.subject, 'Suppression de compte Pizza Vitti')
 
-    def test_public_navigation_is_reduced_and_home_uses_category_slider(self):
+    def test_public_navigation_is_reduced_and_home_prioritizes_ordering(self):
         response = self.client.get(reverse('shop:home'))
-        self.assertContains(response, 'data-hero-slider')
-        self.assertContains(response, 'menu-bambino-pizza.jpg')
-        self.assertContains(response, 'menu-tiramisu.jpg')
-        self.assertContains(response, 'bot-toggle-photo')
-        self.assertContains(response, 'L’Italie à Bordeaux')
+        self.assertContains(response, 'Commander à emporter')
+        self.assertContains(response, 'Qu’est-ce qui vous ferait plaisir')
+        self.assertNotContains(response, 'Les favoris de nos clients')
+        self.assertNotContains(response, 'bot-toggle-photo')
+        self.assertContains(response, 'Pizza Vitti')
         self.assertNotContains(response, f'<a href="{reverse("shop:home")}">Accueil</a>', html=True)
         self.assertNotContains(response, '>Fidélité</a>')
         self.assertNotContains(response, '>Application</a>')
+
+
+class StorefrontProductionRulesTests(TestCase):
+    def test_legacy_menu_urls_redirect_permanently_to_canonical_menu(self):
+        response = self.client.get(reverse('shop:boutique'))
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response['Location'], '/fr/menu/')
+
+        response = self.client.get(reverse('shop:menu_group', args=['pizzas']))
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response['Location'], '/fr/menu/pizzas/')
+
+    def test_reservation_rejects_closed_day(self):
+        day = timezone.localdate() + timedelta(days=1)
+        while OpeningPeriod.objects.filter(weekday=day.weekday(), is_active=True).exists():
+            day += timedelta(days=1)
+        response = self.client.post(reverse('shop:booking'), {
+            'name': 'Nina Rossi',
+            'email': 'nina@example.com',
+            'phone': '0556421449',
+            'guests': 2,
+            'date': day.isoformat(),
+            'time': '12:00',
+            'message': '',
+            'website': '',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'en dehors des horaires')
+        self.assertFalse(Reservation.objects.filter(email='nina@example.com').exists())
+
+    def test_payment_success_url_does_not_mark_order_paid_without_verification(self):
+        order = Order.objects.create(
+            order_number='PV-PENDING',
+            customer_name='Client test',
+            email='client@example.com',
+            total=Decimal('12.00'),
+            payment_status='pending',
+        )
+        response = self.client.get(reverse('shop:payment_success', args=[order.order_number]))
+        self.assertRedirects(response, order.get_absolute_url())
+        order.refresh_from_db()
+        self.assertEqual(order.payment_status, 'pending')
+
+    def test_private_customer_pages_are_noindex(self):
+        response = self.client.get(reverse('shop:cart'))
+        self.assertContains(response, 'name="robots" content="noindex,nofollow"')
 
 
 class DefaultAppCredentialsTests(TestCase):

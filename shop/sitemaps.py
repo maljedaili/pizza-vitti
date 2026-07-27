@@ -7,9 +7,8 @@ class StaticSitemap(Sitemap):
     priority = 0.8
     changefreq = 'weekly'
     def items(self):
-        base = ['shop:home','shop:boutique','shop:blog','shop:contact','shop:booking','shop:reviews','shop:gallery']
         localized = [href for code, label, name, href in LANGUAGE_OPTIONS]
-        return base + localized
+        return ['shop:home','shop:contact','shop:booking','shop:reviews','shop:gallery'] + localized
     def location(self, item):
         if isinstance(item, str) and item.startswith('/'):
             return item

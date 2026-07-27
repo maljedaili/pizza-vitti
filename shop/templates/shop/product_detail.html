@@ -1,1 +1,44 @@
-{% extends 'shop/base.html' %}{% block content %}<section class="detail"><div class="detail-img" style="background-image:url('{{ product.display_image }}')"></div><div><p class="eyebrow">{{ product.translated_category_name|default:product.category.name }}</p><h1>{{ product.translated_name|default:product.name }}</h1><p>{{ product.translated_description|default:product.description }}</p><h2>{{ product.price }} € <small>/ {{ product.unit }}</small></h2><form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="inline">{% csrf_token %}<input type="number" name="qty" value="1" min="1"><button class="button">Ajouter au panier</button></form>{% if request.user.is_authenticated %}<form method="post" action="{% url 'shop:toggle_favorite' product.id %}" class="inline favorite-detail">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="button ghost">{% if product.id in favorite_product_ids %}❤️ Retirer des favoris{% else %}♡ Ajouter aux favoris{% endif %}</button></form>{% else %}<p><a href="/accounts/login/">Connectez-vous</a> pour enregistrer ce plat en favori.</p>{% endif %}</div></section>{% endblock %}
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="detail product-detail">
+  <div class="detail-media"><img src="{{ product.display_image }}" alt="{{ product.name }}"></div>
+  <div>
+    <p class="eyebrow">{{ product.translated_category_name|default:product.category.name }}</p>
+    <h1>{{ product.translated_name|default:product.name }}</h1>
+    <div class="detail-badges">
+      {% if product.is_best_seller %}<span>Populaire</span>{% endif %}
+      {% if product.is_vegetarian %}<span>Végétarien</span>{% endif %}
+      {% if product.is_spicy %}<span>Épicé</span>{% endif %}
+      {% if product.is_signature %}<span>Signature</span>{% endif %}
+    </div>
+    <p>{{ product.translated_description|default:product.description }}</p>
+    {% if product.allergens %}<p class="allergens"><strong>Allergènes :</strong> {{ product.allergens }}</p>{% endif %}
+    <h2><span data-product-total data-base-price="{{ product.price }}">{{ product.price }}</span> € <small>/ {{ product.unit }}</small></h2>
+    <form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="product-customizer" data-product-customizer>
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ url_cart }}">
+      {% if supplements %}
+        <fieldset>
+          <legend>Personnaliser ma pizza</legend>
+          <p>Les suppléments disponibles sont ajoutés et calculés par le serveur.</p>
+          {% for supplement in supplements %}
+            <label>
+              <input type="checkbox" name="supplements" value="{{ supplement.id }}" data-supplement-price="{{ supplement.price }}">
+              <span>{{ supplement.name }}</span>
+              <strong>+ {{ supplement.price }} €</strong>
+            </label>
+          {% endfor %}
+        </fieldset>
+      {% endif %}
+      <div class="inline">
+        <label><span class="visually-hidden">Quantité</span><input type="number" name="qty" value="1" min="1" max="20" data-product-qty></label>
+        <button class="button">{% if supplements %}Ajouter cette pizza{% else %}Ajouter au panier{% endif %}</button>
+      </div>
+    </form>
+    {% if request.user.is_authenticated %}
+      <form method="post" action="{% url 'shop:toggle_favorite' product.id %}" class="inline favorite-detail">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="button ghost">{% if product.id in favorite_product_ids %}Retirer des favoris{% else %}Ajouter aux favoris{% endif %}</button></form>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

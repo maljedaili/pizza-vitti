@@ -1,1 +1,33 @@
-{% extends 'shop/base.html' %}{% block content %}<section class="page-title reveal"><p class="eyebrow">{{ T.booking }}</p><h1>{{ T.booking_title }}</h1><p>{{ T.booking_text }}</p></section><section class="checkout reveal"><form class="card" method="post">{% csrf_token %}<h2>{{ T.book_table }}</h2><div class="form-grid"><p><label>{{ T.name }}<input name="name" required></label></p><p><label>{{ T.email }}<input type="email" name="email" required></label></p><p><label>{{ T.phone }}<input name="phone"></label></p><p><label>{{ T.guests }}<input type="number" name="guests" min="1" value="2" required></label></p><p><label>{{ T.date }}<input type="date" name="date" required></label></p><p><label>{{ T.time }}<input type="time" name="time" required></label></p><p class="wide"><label>{{ T.message }}<textarea name="message"></textarea></label></p></div><button>{{ T.booking_send }}</button></form><aside class="card booking-side"><h2>Pizza Vitti</h2><p>236 Rue d'Ornano<br>33000 Bordeaux France<br>+33 5 56 42 14 49</p><a class="button ghost" target="_blank" rel="noopener" href="https://maps.google.com/?q=Pizza+Vitti+236+Rue+d'Ornano+33000+Bordeaux">{{ T.open_maps }}</a></aside></section>{% endblock %}
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<section class="page-title reveal">
+  <p class="eyebrow">Réservation</p>
+  <h1>Réserver une table chez Pizza Vitti</h1>
+  <p>Envoyez votre demande. Elle sera confirmée séparément par e-mail ou téléphone.</p>
+</section>
+<section class="checkout booking-layout reveal">
+  <form class="card" method="post" novalidate>
+    {% csrf_token %}
+    <h2>Votre demande</h2>
+    {% if form.non_field_errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="form-grid">
+      {% for field in form %}
+        <div class="{% if field.name == 'message' %}wide{% endif %}{% if field.name == 'website' %} honeypot{% endif %} field-wrap">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+    <button class="button">Envoyer ma demande</button>
+    <small>Votre table n’est pas confirmée tant que Pizza Vitti ne vous a pas répondu.</small>
+  </form>
+  <aside class="card booking-side">
+    <h2>Pizza Vitti</h2>
+    <p>{{ site_config.address }}<br><a href="tel:+33556421449">{{ site_config.telephone }}</a></p>
+    {% for row in weekly_hours %}<p class="location-hour"><span>{{ row.label }}</span><strong>{{ row.display }}</strong></p>{% endfor %}
+    <a class="button ghost" target="_blank" rel="noopener" href="{{ site_config.google_maps_url }}">Ouvrir Google Maps</a>
+  </aside>
+</section>
+{% endblock %}

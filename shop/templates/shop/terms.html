@@ -1,0 +1,27 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<header class="page-title">
+  <p class="eyebrow">Commande en ligne</p>
+  <h1>Conditions générales de commande</h1>
+</header>
+<article class="card privacy-card">
+  <h2>Objet</h2>
+  <p>Ces conditions encadrent les commandes à emporter passées sur le site Pizza Vitti. Le site ne propose pas de service de livraison directe.</p>
+
+  <h2>Produits, allergènes et disponibilité</h2>
+  <p>Les produits sont proposés dans la limite des stocks disponibles. Les informations d’allergènes sont données à titre informatif. Malgré les précautions prises, Pizza Vitti ne peut garantir l’absence totale de traces ou de contamination croisée. Toute allergie doit être signalée avant validation.</p>
+
+  <h2>Prix et paiement</h2>
+  <p>Les prix applicables sont ceux vérifiés par le serveur lors de la validation. Le paiement est réalisé au retrait ou par le prestataire de paiement sécurisé lorsqu’il est disponible. Une commande payée en ligne n’est considérée comme réglée qu’après confirmation du prestataire.</p>
+
+  <h2>Retrait</h2>
+  <p>Le client choisit un créneau disponible correspondant aux horaires d’ouverture. Il lui appartient de vérifier le numéro de commande et de se présenter au restaurant à l’heure choisie.</p>
+
+  <h2>Modification et annulation</h2>
+  <p>Pour toute modification ou annulation, contactez rapidement Pizza Vitti au <a href="tel:+33556421449">{{ site_config.telephone }}</a>. Une commande déjà préparée peut ne plus être annulable.</p>
+
+  <h2>Réclamations et médiation</h2>
+  <p>Une réclamation peut être adressée via la page <a href="{{ url_contact }}">Contact</a>.{% if site_config.legal_mediator %} {{ site_config.legal_mediator|linebreaksbr }}{% endif %}</p>
+</article>
+{% endblock %}
