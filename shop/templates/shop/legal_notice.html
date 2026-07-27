@@ -1,0 +1,28 @@
+{% extends 'shop/base.html' %}
+
+{% block content %}
+<header class="page-title">
+  <p class="eyebrow">Informations légales</p>
+  <h1>Mentions légales</h1>
+</header>
+<article class="card privacy-card">
+  <h2>Éditeur du site</h2>
+  <p><strong>{{ site_config.legal_company_name|default:site_config.restaurant_name }}</strong><br>{{ site_config.address }}<br>Téléphone : <a href="tel:+33556421449">{{ site_config.telephone }}</a>{% if site_config.public_email %}<br>E-mail : <a href="mailto:{{ site_config.public_email }}">{{ site_config.public_email }}</a>{% endif %}</p>
+  {% if site_config.legal_form %}<p>Forme juridique : {{ site_config.legal_form }}</p>{% endif %}
+  {% if site_config.legal_capital %}<p>Capital social : {{ site_config.legal_capital }}</p>{% endif %}
+  {% if site_config.legal_registration %}<p>Immatriculation : {{ site_config.legal_registration }}</p>{% endif %}
+  {% if site_config.legal_vat_number %}<p>Numéro de TVA : {{ site_config.legal_vat_number }}</p>{% endif %}
+  {% if site_config.legal_director %}<p>Directeur de la publication : {{ site_config.legal_director }}</p>{% endif %}
+
+  {% if site_config.legal_host %}<h2>Hébergement</h2><p>{{ site_config.legal_host|linebreaksbr }}</p>{% endif %}
+
+  <h2>Propriété intellectuelle</h2>
+  <p>Les textes, photographies, éléments graphiques, marques et logos présents sur ce site sont protégés. Leur reproduction ou utilisation sans autorisation préalable est interdite, sauf exceptions prévues par la loi.</p>
+
+  <h2>Responsabilité</h2>
+  <p>Pizza Vitti s’efforce de maintenir des informations exactes et à jour. Les disponibilités, prix et horaires sont confirmés au moment de la commande ou de la prise de contact.</p>
+
+  <h2>Données personnelles</h2>
+  <p>Les modalités de traitement des données et l’exercice de vos droits sont détaillés dans la <a href="{% url 'shop:privacy_policy' %}">politique de confidentialité</a>.</p>
+</article>
+{% endblock %}

@@ -43,6 +43,14 @@ class Product(TimeStampedModel):
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     external_image = models.URLField(blank=True)
     badge = models.CharField(max_length=60, blank=True)
+    allergens = models.CharField(
+        max_length=240,
+        blank=True,
+        help_text='Ex. gluten, lait, œufs. Laissez vide si non renseigné.',
+    )
+    is_vegetarian = models.BooleanField(default=False, verbose_name='Végétarien')
+    is_spicy = models.BooleanField(default=False, verbose_name='Épicé')
+    is_signature = models.BooleanField(default=False, verbose_name='Signature')
     stock = models.PositiveIntegerField(default=20)
     is_available = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
@@ -60,7 +68,19 @@ class Product(TimeStampedModel):
         super().save(*args, **kwargs)
     def __str__(self): return self.name
     @property
-    def display_image(self): return self.image.url if self.image else self.external_image
+    def display_image(self):
+        if self.image:
+            return self.image.url
+        if self.external_image and 'images.unsplash.com' not in self.external_image:
+            return self.external_image
+        category = (self.category.name if self.category else '').lower()
+        if 'pasta' in category or 'pâte' in category or 'raviole' in category:
+            return '/static/shop/img/hero/menu-pasta.jpg'
+        if 'douceur' in category or 'dessert' in category or 'glace' in category:
+            return '/static/shop/img/hero/menu-tiramisu.jpg'
+        if 'bambino' in category:
+            return '/static/shop/img/hero/menu-bambino-pizza.jpg'
+        return '/static/shop/img/hero/menu-pizza-vitti.jpg'
     def get_absolute_url(self): return reverse('shop:product_detail', args=[self.slug])
 
 class ProfessionalClient(TimeStampedModel):
@@ -138,6 +158,9 @@ class Order(TimeStampedModel):
     table_number = models.CharField(max_length=20, blank=True, verbose_name='Numéro de table')
     address = models.TextField(blank=True)
     order_type = models.CharField(max_length=20, choices=ORDER_TYPE, default='pickup', verbose_name='Type de commande')
+    collection_date = models.DateField(null=True, blank=True, verbose_name='Date de retrait')
+    collection_time = models.TimeField(null=True, blank=True, verbose_name='Heure de retrait')
+    accepted_terms = models.BooleanField(default=False, verbose_name='CGV acceptées')
     selected_reward = models.CharField(max_length=80, blank=True, verbose_name='Cadeau fidélité choisi')
     promo_code = models.CharField(max_length=40, blank=True, verbose_name='Code promo')
     notes = models.TextField(blank=True)
@@ -164,7 +187,12 @@ class OrderItem(models.Model):
     def __str__(self): return f'{self.quantity} × {self.name}'
 
 class Reservation(TimeStampedModel):
-    STATUS = [('new','Nouvelle'),('confirmed','Confirmée'),('cancelled','Annulée')]
+    STATUS = [
+        ('new','En attente'),
+        ('confirmed','Confirmée'),
+        ('refused','Refusée'),
+        ('cancelled','Annulée'),
+    ]
     name = models.CharField(max_length=140)
     email = models.EmailField()
     phone = models.CharField(max_length=40, blank=True)
@@ -184,6 +212,7 @@ class Review(TimeStampedModel):
     rating = models.PositiveSmallIntegerField(default=5)
     comment = models.TextField(blank=True)
     source = models.CharField(max_length=80, blank=True)
+    source_url = models.URLField(blank=True, help_text='Lien vérifiable vers la source de l’avis.')
     review_date = models.DateField(blank=True, null=True)
     is_published = models.BooleanField(default=True)
     class Meta:
@@ -206,6 +235,115 @@ class GalleryImage(TimeStampedModel):
     @property
     def display_image(self): return self.image.url if self.image else self.external_image
     def __str__(self): return self.title
+
+
+class SiteConfiguration(TimeStampedModel):
+    restaurant_name = models.CharField(max_length=120, default='Pizza Vitti')
+    hero_title = models.CharField(
+        max_length=180,
+        default='Pizza italienne artisanale au cœur de Bordeaux',
+    )
+    hero_description = models.TextField(
+        default=(
+            'Des pizzas généreuses préparées avec des produits italiens soigneusement '
+            'sélectionnés. Commandez en ligne et récupérez votre repas au 236 rue d’Ornano.'
+        ),
+    )
+    address = models.CharField(max_length=240, default="236 rue d’Ornano, 33000 Bordeaux")
+    telephone = models.CharField(max_length=40, default='05 56 42 14 49')
+    public_email = models.EmailField(blank=True)
+    google_maps_url = models.URLField(
+        default="https://maps.google.com/?q=Pizza+Vitti+236+Rue+d'Ornano+33000+Bordeaux",
+    )
+    google_review_url = models.URLField(blank=True)
+    instagram_url = models.URLField(blank=True)
+    facebook_url = models.URLField(blank=True)
+    uber_eats_url = models.URLField(blank=True)
+    deliveroo_url = models.URLField(blank=True)
+    just_eat_url = models.URLField(blank=True)
+    google_play_url = models.URLField(blank=True)
+    legal_company_name = models.CharField(max_length=180, blank=True)
+    legal_form = models.CharField(max_length=120, blank=True)
+    legal_capital = models.CharField(max_length=80, blank=True)
+    legal_registration = models.CharField(max_length=180, blank=True)
+    legal_vat_number = models.CharField(max_length=80, blank=True)
+    legal_director = models.CharField(max_length=180, blank=True)
+    legal_host = models.TextField(
+        blank=True,
+        help_text='Nom et coordonnées vérifiés de l’hébergeur.',
+    )
+    legal_mediator = models.TextField(
+        blank=True,
+        help_text='Coordonnées vérifiées du médiateur de la consommation.',
+    )
+
+    class Meta:
+        verbose_name = 'Configuration du site'
+        verbose_name_plural = 'Configuration du site'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return self.restaurant_name
+
+
+class OpeningPeriod(TimeStampedModel):
+    WEEKDAYS = [
+        (0, 'Lundi'), (1, 'Mardi'), (2, 'Mercredi'), (3, 'Jeudi'),
+        (4, 'Vendredi'), (5, 'Samedi'), (6, 'Dimanche'),
+    ]
+    weekday = models.PositiveSmallIntegerField(choices=WEEKDAYS)
+    opens_at = models.TimeField(verbose_name='Ouverture')
+    closes_at = models.TimeField(verbose_name='Fermeture')
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['weekday', 'opens_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['weekday', 'opens_at', 'closes_at'],
+                name='unique_opening_period',
+            ),
+        ]
+        verbose_name = 'Période d’ouverture'
+        verbose_name_plural = 'Horaires d’ouverture'
+
+    def clean(self):
+        if self.opens_at >= self.closes_at:
+            raise ValidationError('L’heure de fermeture doit suivre l’heure d’ouverture.')
+
+    def __str__(self):
+        return f'{self.get_weekday_display()} {self.opens_at:%H:%M}–{self.closes_at:%H:%M}'
+
+
+class ExceptionalClosure(TimeStampedModel):
+    date = models.DateField(unique=True)
+    reason = models.CharField(max_length=180, blank=True)
+    is_closed = models.BooleanField(default=True, verbose_name='Fermé toute la journée')
+    opens_at = models.TimeField(null=True, blank=True, verbose_name='Ouverture exceptionnelle')
+    closes_at = models.TimeField(null=True, blank=True, verbose_name='Fermeture exceptionnelle')
+
+    class Meta:
+        ordering = ['date']
+        verbose_name = 'Fermeture exceptionnelle'
+        verbose_name_plural = 'Fermetures exceptionnelles'
+
+    def clean(self):
+        if not self.is_closed:
+            if not self.opens_at or not self.closes_at:
+                raise ValidationError('Renseignez les heures de l’ouverture exceptionnelle.')
+            if self.opens_at >= self.closes_at:
+                raise ValidationError('L’heure de fermeture doit suivre l’heure d’ouverture.')
+
+    def __str__(self):
+        return f'{self.date:%d/%m/%Y} — {"Fermé" if self.is_closed else "Horaires spéciaux"}'
 
 class ServiceItem(TimeStampedModel):
     title = models.CharField(max_length=160)

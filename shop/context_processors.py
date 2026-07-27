@@ -1,6 +1,8 @@
+import json
 
 from django.conf import settings
-from .models import Category, Product
+from .hours import restaurant_status, weekly_hours
+from .models import BlogPost, Category, Product, SiteConfiguration
 from django.db.models import Case, When, IntegerField
 from .translations import LANGUAGE_OPTIONS, get_lang_from_path, t_for, localized_url, lang_home
 
@@ -11,6 +13,7 @@ def _menu_category_order(qs):
             When(name__iexact='Nos Pizzas', then=0),
             When(name__iexact='Nos Pasta', then=1),
             When(name__iexact='Nos Pastas', then=1),
+            When(name__iexact='Nos pâtes', then=1),
             When(name__icontains='raviol', then=2),
             When(name__icontains='entrée', then=3),
             When(name__icontains='entree', then=3),
@@ -41,13 +44,72 @@ def site_settings(request):
     host = request.get_host().split(':')[0]
     if configured_site_url.startswith('http://localhost') and host not in ['localhost', '127.0.0.1']:
         configured_site_url = f"{request.scheme}://{request.get_host()}"
+    site = SiteConfiguration.load()
+    resolver_name = request.resolver_match.url_name if request.resolver_match else ''
+    private_page_names = {
+        'cart', 'checkout', 'invoice', 'track_order', 'customer_dashboard',
+        'customer_orders', 'customer_favorites', 'account_deletion', 'app_home',
+        'app_login', 'owner_dashboard', 'kitchen_app', 'staff_portal',
+    }
+    hours = weekly_hours()
+    same_as = [url for url in (site.instagram_url, site.facebook_url) if url]
+    schema_weekdays = {
+        0: 'https://schema.org/Monday',
+        1: 'https://schema.org/Tuesday',
+        2: 'https://schema.org/Wednesday',
+        3: 'https://schema.org/Thursday',
+        4: 'https://schema.org/Friday',
+        5: 'https://schema.org/Saturday',
+        6: 'https://schema.org/Sunday',
+    }
+    structured_data = {
+        '@context': 'https://schema.org',
+        '@type': 'Restaurant',
+        'name': site.restaurant_name,
+        'servesCuisine': ['Italian', 'Pizza'],
+        'address': {
+            '@type': 'PostalAddress',
+            'streetAddress': '236 rue d’Ornano',
+            'addressLocality': 'Bordeaux',
+            'postalCode': '33000',
+            'addressCountry': 'FR',
+        },
+        'telephone': site.telephone,
+        'url': configured_site_url,
+        'hasMenu': configured_site_url + localized_url('menu', lang),
+        'acceptsReservations': True,
+        'priceRange': '€€',
+        'openingHoursSpecification': [
+            {
+                '@type': 'OpeningHoursSpecification',
+                'dayOfWeek': schema_weekdays[row['weekday']],
+                'opens': f'{start:%H:%M}',
+                'closes': f'{end:%H:%M}',
+            }
+            for row in hours
+            for start, end in row['periods']
+        ],
+    }
+    if same_as:
+        structured_data['sameAs'] = same_as
     return {
+        'site_config': site,
+        'restaurant_status': restaurant_status(),
+        'weekly_hours': hours,
+        'structured_data': json.dumps(structured_data, ensure_ascii=False),
+        'show_blog': BlogPost.objects.filter(is_published=True, body__regex=r'.{300,}').exists(),
+        'show_app_promo': resolver_name in {'home', 'localized_home_short', 'customer_dashboard'},
+        'show_review_prompt': resolver_name in {'reviews', 'invoice'},
+        'meta_robots': 'noindex,nofollow' if (
+            resolver_name in private_page_names
+            or any(segment in request.path for segment in ('/panier/', '/commande/', '/checkout/', '/cart/'))
+        ) else '',
         'SITE_URL': configured_site_url,
         'WHATSAPP_NUMBER': settings.WHATSAPP_NUMBER,
-        'GOOGLE_REVIEW_URL': settings.GOOGLE_REVIEW_URL,
-        'INSTAGRAM_URL': settings.INSTAGRAM_URL,
-        'FACEBOOK_URL': settings.FACEBOOK_URL,
-        'GOOGLE_PLAY_URL': settings.GOOGLE_PLAY_URL,
+        'GOOGLE_REVIEW_URL': site.google_review_url or settings.GOOGLE_REVIEW_URL,
+        'INSTAGRAM_URL': site.instagram_url,
+        'FACEBOOK_URL': site.facebook_url,
+        'GOOGLE_PLAY_URL': site.google_play_url or settings.GOOGLE_PLAY_URL,
         'nav_categories': _menu_category_order(Category.objects.filter(is_active=True)),
         'current_lang': lang,
         'T': T,

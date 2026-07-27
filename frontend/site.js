@@ -1,6 +1,33 @@
 const publicSite = document.body.classList.contains("public-site");
 
 if (publicSite) {
+  document.querySelectorAll("[data-product-customizer]").forEach((form) => {
+    const total = document.querySelector("[data-product-total]");
+    const quantity = form.querySelector("[data-product-qty]");
+    const supplements = [...form.querySelectorAll("[data-supplement-price]")];
+    const updateTotal = () => {
+      if (!total) return;
+      const base = Number.parseFloat(total.dataset.basePrice || "0");
+      const extras = supplements
+        .filter((field) => field.checked)
+        .reduce((sum, field) => sum + Number.parseFloat(field.dataset.supplementPrice || "0"), 0);
+      const qty = Math.max(1, Number.parseInt(quantity?.value || "1", 10));
+      total.textContent = ((base + extras) * qty).toFixed(2).replace(".", ",");
+    };
+    supplements.forEach((field) => field.addEventListener("change", updateTotal));
+    quantity?.addEventListener("input", updateTotal);
+  });
+
+  document.querySelectorAll("[data-checkout-form]").forEach((form) => {
+    form.addEventListener("submit", () => {
+      const button = form.querySelector("[data-submit-once]");
+      if (button) {
+        button.disabled = true;
+        button.textContent = "Envoi en cours…";
+      }
+    });
+  });
+
   document.querySelectorAll("[data-hero-motion]").forEach((hero) => {
     hero.addEventListener("pointermove", (event) => {
       const bounds = hero.getBoundingClientRect();

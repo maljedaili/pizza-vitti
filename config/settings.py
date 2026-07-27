@@ -2,12 +2,15 @@ import os
 from pathlib import Path
 from urllib.parse import urlparse
 from dotenv import load_dotenv
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-change-me')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
+if not DEBUG and SECRET_KEY == 'dev-secret-change-me':
+    raise ImproperlyConfigured('SECRET_KEY doit être défini en production.')
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,pizza-vitti.onrender.com,pizza-vitti.kayen.fr,pizza-vitti.kayan.fr').split(',')]
 SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
 WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', '')
@@ -22,6 +25,10 @@ OWNER_DASHBOARD_PASSWORD_HASH = os.getenv(
     'OWNER_DASHBOARD_PASSWORD_HASH',
     'pbkdf2_sha256$870000$ZAM7PoIlG2qUZ1Da4cJfwA$OQEEyAiH1EBf5ilBOFpk8jJDizThAs/G3IrcgTFj1ug=',
 )
+if not DEBUG and KITCHEN_PASSWORD == '123':
+    raise ImproperlyConfigured('KITCHEN_PASSWORD doit être remplacé en production.')
+if not DEBUG and not os.getenv('OWNER_DASHBOARD_PASSWORD_HASH'):
+    raise ImproperlyConfigured('OWNER_DASHBOARD_PASSWORD_HASH doit être défini en production.')
 ANDROID_APP_PACKAGE = os.getenv('ANDROID_APP_PACKAGE', 'kayen.fr')
 ANDROID_CERT_SHA256_FINGERPRINTS = [
     fingerprint.strip().upper()
@@ -91,7 +98,12 @@ STATICFILES_DIRS = []
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-AUTH_PASSWORD_VALIDATORS = []
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator', 'OPTIONS': {'min_length': 10}},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+]
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -119,3 +131,11 @@ STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
+SECURE_SSL_REDIRECT = not DEBUG
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = int(os.getenv('SECURE_HSTS_SECONDS', '31536000' if not DEBUG else '0'))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
