@@ -14,7 +14,7 @@ from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q, Case, When, IntegerField, Sum, Count, Prefetch
-from django.http import JsonResponse, HttpResponse, HttpResponsePermanentRedirect
+from django.http import JsonResponse, HttpResponse, HttpResponseNotFound, HttpResponsePermanentRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -797,6 +797,10 @@ def owner_logout(request):
     return redirect('shop:app_login')
 
 
+def camera_removed(request, unused=''):
+    return HttpResponseNotFound()
+
+
 def _report_stats(start, end=None):
     qs = Order.objects.filter(created_at__gte=start)
     if end:
@@ -863,8 +867,6 @@ def owner_dashboard(request):
         'active_orders_count': active_orders.count(),
         'staff_present_count': present_shifts.count(),
         'open_purchase_count': PurchaseOrder.objects.exclude(status__in=['received','cancelled']).count(),
-        'camera_count': SecurityCamera.objects.filter(is_active=True, location__is_active=True).count(),
-        'camera_location_count': CameraLocation.objects.filter(is_active=True).count(),
         'recent_orders': Order.objects.prefetch_related('items').order_by('-created_at')[:8],
         'most_ordered': most_ordered,
         'present_shifts': present_shifts[:6],

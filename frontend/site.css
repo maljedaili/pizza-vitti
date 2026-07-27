@@ -31,7 +31,7 @@
   padding: clamp(36px, 7vw, 82px);
   background:
     linear-gradient(90deg, rgba(17, 15, 14, 0.95) 0%, rgba(25, 20, 18, 0.78) 52%, rgba(25, 20, 18, 0.2) 100%),
-    url("/static/shop/img/hero/menu-pizza-vitti.jpg") center 48% / cover;
+    url("/static/shop/img/hero/pizza-vitti-deliveroo.jpg") center 48% / cover;
   color: var(--pv-white);
   box-shadow: 0 30px 80px rgba(49, 27, 20, 0.22);
 }
