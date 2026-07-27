@@ -205,6 +205,13 @@ class CustomerLoyaltyTests(TestCase):
 
 
 class StorefrontProductionRulesTests(TestCase):
+    def test_localized_menu_group_accepts_language_parameter(self):
+        response = self.client.get(
+            reverse('shop:localized_menu_group', args=['fr', 'pizzas'])
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Nos pizzas')
+
     def test_legacy_menu_urls_redirect_permanently_to_canonical_menu(self):
         response = self.client.get(reverse('shop:boutique'))
         self.assertEqual(response.status_code, 301)

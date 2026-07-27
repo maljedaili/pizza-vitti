@@ -415,7 +415,7 @@ def category(request, slug):
         favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
     return render(request, 'shop/boutique.html', {'page_obj': page_obj, 'category': cat, 'favorite_product_ids': favorite_product_ids, 'menu_groups': _menu_groups(lang)})
 
-def menu_group(request, group):
+def menu_group(request, group, lang=None):
     menu_group_data = _menu_group_by_slug(group)
     if not menu_group_data:
         return redirect('shop:boutique')
@@ -424,7 +424,7 @@ def menu_group(request, group):
         if 'suppl' not in _category_key(category)
     ]
     products = list(Product.objects.filter(is_available=True, category__in=categories).select_related('category'))
-    lang = get_lang_from_path(request.path)
+    lang = lang or get_lang_from_path(request.path)
     _apply_menu_translations(products, categories, lang)
     sections = []
     for category in categories:
