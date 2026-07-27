@@ -1591,22 +1591,22 @@ def android_asset_links(request):
 def manifest_webmanifest(request):
     site_url = request.build_absolute_uri('/').rstrip('/')
     manifest = {
-        'name': 'Pizza Vitti Application',
+        'name': 'Pizza Vitti',
         'short_name': 'Vitti App',
-        'description': 'Application Pizza Vitti pour le propriétaire, la cuisine et le pointage staff.',
-        'id': '/app/',
-        'start_url': '/app/',
+        'description': 'Menu, commandes et informations de Pizza Vitti.',
+        'id': '/fr/',
+        'start_url': '/fr/',
         'scope': '/',
         'display': 'standalone',
         'display_override': ['window-controls-overlay', 'standalone'],
         'orientation': 'any',
         'background_color': '#171923',
         'theme_color': '#171923',
-        'categories': ['food', 'business', 'productivity'],
+        'categories': ['food', 'shopping'],
         'shortcuts': [
-            {'name': 'Commandes cuisine', 'short_name': 'Cuisine', 'url': '/app/cuisine/'},
-            {'name': 'Pointage staff', 'short_name': 'Pointage', 'url': '/app/staff/'},
             {'name': 'Carte Pizza Vitti', 'short_name': 'Menu', 'url': '/fr/'},
+            {'name': 'Commander', 'short_name': 'Commander', 'url': '/fr/menu/pizzas/'},
+            {'name': 'Réserver', 'short_name': 'Réserver', 'url': '/fr/reserver/'},
         ],
         'icons': [
             {'src': f'{site_url}/static/shop/img/pwa/icon-192.png', 'sizes': '192x192', 'type': 'image/png', 'purpose': 'any maskable'},
@@ -1617,7 +1617,7 @@ def manifest_webmanifest(request):
 
 def service_worker(request):
     content = """
-const CACHE_NAME = 'pizza-vitti-app-v7';
+const CACHE_NAME = 'pizza-vitti-app-v8';
 const STATIC_ASSETS = [
   '/static/shop/style.css',
   '/static/shop/app.js',
@@ -1667,4 +1667,8 @@ self.addEventListener('fetch', event => {
   event.respondWith(fetch(request));
 });
 """
-    return HttpResponse(content.strip(), content_type='application/javascript')
+    return HttpResponse(
+        content.strip(),
+        content_type='application/javascript',
+        headers={'Cache-Control': 'no-cache, no-store, must-revalidate'},
+    )

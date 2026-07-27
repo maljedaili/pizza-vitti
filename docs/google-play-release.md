@@ -6,7 +6,7 @@ L'application Android est une Trusted Web Activity qui ouvre la PWA Pizza Vitti.
 
 - Nom : `Pizza Vitti`
 - Package Android : `kayen.fr`
-- URL de démarrage : `https://pizza-vitti.kayen.fr/app/`
+- URL de démarrage : `https://pizza-vitti.kayen.fr/fr/`
 - Projet Android : `android/`
 - API Android ciblée par cette release : `35`
 - API de compilation : `36`

@@ -23,7 +23,7 @@ plugins {
 def twaManifest = [
     applicationId: 'kayen.fr',
     hostName: 'pizza-vitti.kayen.fr', // The domain being opened in the TWA.
-    launchUrl: '/app/', // The start path for the TWA. Must be relative to the domain.
+    launchUrl: '/fr/', // Open the public French storefront from the Android launcher.
     name: 'Pizza Vitti', // The application name.
     launcherName: 'Vitti App', // The name shown on the Android Launcher.
     themeColor: '#171923', // The color used for the status bar.
@@ -57,8 +57,8 @@ android {
         applicationId "kayen.fr"
         minSdkVersion 21
         targetSdkVersion 35
-        versionCode 3
-        versionName "1.0.0"
+        versionCode 4
+        versionName "1.0.1"
 
         // The name for the application
         resValue "string", "appName", twaManifest.name

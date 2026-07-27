@@ -25,6 +25,21 @@ from shop.models import (
 
 
 class AndroidAppVerificationTests(TestCase):
+    def test_manifest_opens_the_public_storefront(self):
+        response = self.client.get(reverse('manifest_webmanifest'))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['id'], '/fr/')
+        self.assertEqual(response.json()['start_url'], '/fr/')
+
+    def test_service_worker_refreshes_the_storefront_cache(self):
+        response = self.client.get(reverse('service_worker'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "pizza-vitti-app-v8")
+        self.assertEqual(
+            response['Cache-Control'],
+            'no-cache, no-store, must-revalidate',
+        )
+
     @override_settings(
         ANDROID_APP_PACKAGE='kayen.fr',
         ANDROID_CERT_SHA256_FINGERPRINTS=['AA:BB:CC', '11:22:33'],

@@ -93,7 +93,7 @@ DJANGO_SUPERUSER_PASSWORD=change-this-secure-password
 ## Application Android
 
 Le projet Android Trusted Web Activity se trouve dans `android/`. Il ouvre directement
-`https://pizza-vitti.kayen.fr/app/` et utilise le package définitif
+le site public `https://pizza-vitti.kayen.fr/fr/` et utilise le package définitif
 `kayen.fr`.
 
 Les étapes de signature, de test interne et de publication sont détaillées dans
