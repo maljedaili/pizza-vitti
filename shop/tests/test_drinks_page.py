@@ -1,7 +1,7 @@
 from django.core.management import call_command
 from django.test import TestCase
 
-from shop.models import Category, Product
+from shop.models import Category, Product, SiteConfiguration
 
 
 class DrinksPageTests(TestCase):
@@ -59,6 +59,17 @@ class DrinksPageTests(TestCase):
         self.assertContains(response, 'تم إنشاء الموقع بواسطة')
         self.assertNotContains(response, 'Restaurant italien à Bordeaux')
         self.assertNotContains(response, 'Mon compte')
+
+    def test_admin_drinks_photo_is_used_on_home_and_menu_banner(self):
+        site = SiteConfiguration.load()
+        site.drinks_banner_image = 'banners/admin-drinks.jpg'
+        site.save(update_fields=['drinks_banner_image'])
+
+        home = self.client.get('/fr/')
+        drinks = self.client.get('/fr/menu/boissons/')
+
+        self.assertContains(home, '/media/banners/admin-drinks.jpg')
+        self.assertContains(drinks, "url('/media/banners/admin-drinks.jpg')")
 
     def test_command_is_idempotent_and_keeps_requested_order(self):
         call_command('sync_drinks_page')

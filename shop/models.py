@@ -272,6 +272,21 @@ class SiteConfiguration(TimeStampedModel):
         null=True,
         verbose_name='Bannière de la page boissons',
     )
+    pizzas_banner_image = models.ImageField(
+        upload_to='banners/', blank=True, null=True, verbose_name='Photo des pizzas',
+    )
+    pastas_banner_image = models.ImageField(
+        upload_to='banners/', blank=True, null=True, verbose_name='Photo des pâtes',
+    )
+    antipasti_banner_image = models.ImageField(
+        upload_to='banners/', blank=True, null=True, verbose_name='Photo des entrées et antipasti',
+    )
+    bambino_banner_image = models.ImageField(
+        upload_to='banners/', blank=True, null=True, verbose_name='Photo du menu bambino',
+    )
+    desserts_banner_image = models.ImageField(
+        upload_to='banners/', blank=True, null=True, verbose_name='Photo des douceurs',
+    )
     google_maps_url = models.URLField(
         default="https://maps.google.com/?q=Pizza+Vitti+236+Rue+d'Ornano+33000+Bordeaux",
     )

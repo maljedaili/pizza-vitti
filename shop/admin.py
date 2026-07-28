@@ -90,7 +90,13 @@ class ReservationAdmin(admin.ModelAdmin):
 class SiteConfigurationAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Identité', {'fields': ('restaurant_name','hero_title','hero_description','address','telephone','public_email')}),
-        ('Images de pages', {'fields': ('drinks_banner_image',)}),
+        ('Photos des catégories principales', {
+            'description': 'Ces photos sont utilisées sur l’accueil et en bannière de chaque page du menu.',
+            'fields': (
+                'pizzas_banner_image', 'pastas_banner_image', 'antipasti_banner_image',
+                'bambino_banner_image', 'desserts_banner_image', 'drinks_banner_image',
+            ),
+        }),
         ('Liens', {'fields': ('google_maps_url','google_review_url','instagram_url','facebook_url','uber_eats_url','deliveroo_url','just_eat_url','google_play_url')}),
         ('Informations légales vérifiées', {'fields': ('legal_company_name','legal_form','legal_capital','legal_registration','legal_vat_number','legal_director','legal_host','legal_mediator')}),
     )
