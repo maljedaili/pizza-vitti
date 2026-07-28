@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import (
     BlogPost, CameraLocation, Category, CustomerMessage, DiningTable,
     ExceptionalClosure, GalleryImage, GiftCard, LoyaltyRedemption, LoyaltyReward,
@@ -13,10 +14,19 @@ admin.site.index_title = "Gestion boutique, commandes, réservations et contenus
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name','order','is_active')
+    list_display = ('image_preview','name','order','is_active')
     prepopulated_fields = {'slug': ('name',)}
     list_editable = ('order','is_active')
     search_fields = ('name',)
+    readonly_fields = ('image_preview',)
+    fieldsets = (
+        ('Catégorie', {'fields': ('name','slug','description','order','is_active')}),
+        ('Image', {'fields': ('image','static_image_path','image_preview')}),
+    )
+
+    @admin.display(description='Aperçu')
+    def image_preview(self, obj):
+        return format_html('<img src="{}" alt="" style="width:72px;height:48px;object-fit:cover;border-radius:6px">', obj.display_image) if obj and obj.display_image else '—'
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
@@ -27,6 +37,7 @@ class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('name',)}
     fieldsets = (
         ('Produit', {'fields': ('category','name','slug','description','allergens','price','unit','stock','badge')}),
+        ('Vin (facultatif)', {'fields': ('glass_price','bottle_price','wine_colour','region','grape_variety','vintage')}),
         ('Images', {'fields': ('image','external_image')}),
         ('Badges', {'fields': ('is_vegetarian','is_spicy','is_signature')}),
         ('Publication', {'fields': ('is_available','is_featured','is_best_seller','is_pizza_of_month')}),
@@ -79,6 +90,7 @@ class ReservationAdmin(admin.ModelAdmin):
 class SiteConfigurationAdmin(admin.ModelAdmin):
     fieldsets = (
         ('Identité', {'fields': ('restaurant_name','hero_title','hero_description','address','telephone','public_email')}),
+        ('Images de pages', {'fields': ('drinks_banner_image',)}),
         ('Liens', {'fields': ('google_maps_url','google_review_url','instagram_url','facebook_url','uber_eats_url','deliveroo_url','just_eat_url','google_play_url')}),
         ('Informations légales vérifiées', {'fields': ('legal_company_name','legal_form','legal_capital','legal_registration','legal_vat_number','legal_director','legal_host','legal_mediator')}),
     )

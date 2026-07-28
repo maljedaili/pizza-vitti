@@ -15,11 +15,14 @@
   {% for code,label,name,href in LANGUAGES_MENU %}<link rel="alternate" hreflang="{{ code }}" href="{{ SITE_URL }}{{ href }}">{% endfor %}
   <meta property="og:title" content="{{ meta_title|default:"Pizza Vitti Bordeaux" }}"><meta property="og:type" content="restaurant"><meta property="og:url" content="{{ SITE_URL }}{{ request.path }}">
   <meta property="og:description" content="{{ meta_description|default:"Pizza italienne artisanale à Bordeaux, à commander en ligne et à retirer au restaurant." }}">
-  <meta property="og:image" content="{{ SITE_URL }}{% static 'shop/img/hero/menu-pizza-vitti.jpg' %}">
+  <meta property="og:image" content="{{ SITE_URL }}{% if meta_image %}{{ meta_image }}{% else %}{% static 'shop/img/hero/menu-pizza-vitti.jpg' %}{% endif %}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ meta_title|default:"Pizza Vitti Bordeaux" }}">
   <meta name="twitter:description" content="{{ meta_description|default:"Pizza italienne artisanale à Bordeaux." }}">
+  <meta name="twitter:image" content="{{ SITE_URL }}{% if meta_image %}{{ meta_image }}{% else %}{% static 'shop/img/hero/menu-pizza-vitti.jpg' %}{% endif %}">
+  {% if is_drinks_page %}<link rel="preload" as="image" href="{% static 'shop/img/drinks/hero-bar-italien-1920.webp' %}" imagesrcset="{% static 'shop/img/drinks/hero-bar-italien-960.webp' %} 960w, {% static 'shop/img/drinks/hero-bar-italien-1920.webp' %} 1920w" imagesizes="(max-width: 700px) 94vw, 1180px">{% endif %}
   <script type="application/ld+json">{{ structured_data|safe }}</script>
+  {% if drinks_structured_data %}<script type="application/ld+json">{{ drinks_structured_data|safe }}</script>{% endif %}
   <link rel="stylesheet" href="{% static 'shop/style.css' %}">
   <link rel="stylesheet" href="{% static 'shop/dist/site.css' %}">
   <link rel="stylesheet" href="{% static 'shop/tilt.css' %}">

@@ -1,6 +1,7 @@
 {% extends 'shop/base.html' %}
+{% load static %}
 {% block content %}
-<section class="shop-hero menu-hero reveal" data-hero-motion>
+<section class="shop-hero menu-hero reveal{% if is_drinks_page %} drinks-menu-hero{% endif %}" data-hero-motion{% if is_drinks_page and site_config.drinks_banner_image %} style="background-image:linear-gradient(90deg,#0d0e15f0,#1719235c),url('{{ site_config.drinks_banner_image.url }}')"{% endif %}>
   <p class="eyebrow">La carte Pizza Vitti</p>
   <h1>{% if menu_group %}{{ menu_group.title }}{% elif category %}{{ category.translated_name|default:category.name }}{% else %}Menu complet{% endif %}</h1>
   <p>{% if menu_group %}{{ menu_group.summary }}{% else %}Choisissez vos plats, ajoutez-les au panier et finalisez votre commande en quelques instants.{% endif %}</p>

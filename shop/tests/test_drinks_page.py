@@ -1,0 +1,51 @@
+from django.core.management import call_command
+from django.test import TestCase
+
+from shop.models import Category, Product
+
+
+class DrinksPageTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        Category.objects.create(name='Caffè - Thé', slug='caffe-the', order=24)
+        for name in ('Café', 'Café allongé', 'Café double', 'Cappuccino', 'Chocolat chaud', 'Thés et Infusions'):
+            Product.objects.create(
+                category=Category.objects.get(slug='caffe-the'),
+                name=name,
+                description='Boisson chaude.',
+                price='3.50',
+            )
+        call_command('sync_deliveroo_menu')
+        call_command('sync_drinks_page')
+
+    def test_french_page_reuses_the_standard_menu_design_and_local_images(self):
+        response = self.client.get('/fr/menu/boissons/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="shop-hero menu-hero reveal drinks-menu-hero"')
+        self.assertContains(response, 'class="toolbar menu-toolbar"')
+        self.assertContains(response, 'class="menu-category grouped-menu-section"')
+        self.assertNotContains(response, 'data-drinks-nav')
+        self.assertContains(response, 'id="cat-cafe-allonge"')
+        self.assertContains(response, '/static/shop/img/drinks/cafe-allonge.webp')
+        self.assertContains(response, 'name="qty"')
+        self.assertContains(response, '"@type": "Menu"')
+        self.assertNotContains(response, 'id="cat-birre"')
+        self.assertContains(response, 'Moretti 33cl')
+
+    def test_english_and_arabic_copy(self):
+        english = self.client.get('/en/menu/boissons/')
+        arabic = self.client.get('/ar/menu/boissons/')
+
+        self.assertContains(english, 'Drinks')
+        self.assertContains(arabic, 'مشروبات')
+        self.assertContains(arabic, 'dir="rtl"')
+
+    def test_command_is_idempotent_and_keeps_requested_order(self):
+        call_command('sync_drinks_page')
+        call_command('sync_drinks_page')
+
+        categories = list(Category.objects.filter(
+            slug__in=('caffe-the', 'cafe-allonge', 'digestifs'),
+        ).order_by('order').values_list('slug', flat=True))
+        self.assertEqual(categories, ['caffe-the', 'cafe-allonge', 'digestifs'])

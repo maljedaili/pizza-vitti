@@ -1,6 +1,6 @@
 <article class="product-card reveal">
   <a href="{{ product.get_absolute_url }}" class="product-img is-3d-product" data-product-tilt>
-    <img src="{{ product.display_image }}" alt="{{ product.name }}" loading="lazy">
+    <img src="{{ product.display_image }}" alt="{{ product.translated_name|default:product.name }}" width="900" height="900" loading="lazy">
     <span class="product-badges">
       {% if product.is_best_seller %}<b>Populaire</b>{% endif %}
       {% if product.is_vegetarian %}<b>Végétarien</b>{% endif %}
@@ -13,9 +13,21 @@
     <p class="cat">{{ product.translated_category_name|default:product.category.name|default:'Menu' }}</p>
     <h3>{{ product.translated_name|default:product.name }}</h3>
     <p class="ingredients">{{ product.translated_description|default:product.description }}</p>
+    {% if product.region or product.grape_variety or product.vintage or product.wine_colour %}
+      <p class="wine-details">
+        {% if product.wine_colour %}<span>{{ product.wine_colour }}</span>{% endif %}
+        {% if product.region %}<span>{{ product.region }}</span>{% endif %}
+        {% if product.grape_variety %}<span>{{ product.grape_variety }}</span>{% endif %}
+        {% if product.vintage %}<span>{{ product.vintage }}</span>{% endif %}
+      </p>
+    {% endif %}
     {% if product.allergens %}<p class="allergens"><strong>Allergènes :</strong> {{ product.allergens }}</p>{% endif %}
     <div class="buy">
-      <strong>{{ product.price }} €</strong><small>/ {{ product.unit }}</small>
+      {% if product.glass_price or product.bottle_price %}
+        <strong>{% if product.glass_price %}{{ product.glass_price }} € / verre{% endif %}{% if product.glass_price and product.bottle_price %} · {% endif %}{% if product.bottle_price %}{{ product.bottle_price }} € / bouteille{% endif %}</strong>
+      {% else %}
+        <strong>{{ product.price }} €</strong><small>/ {{ product.unit }}</small>
+      {% endif %}
       <form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="quick-add">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">

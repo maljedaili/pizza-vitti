@@ -115,4 +115,5 @@ if (publicSite) {
     slider.addEventListener("focusout", () => showSlide(current));
     showSlide(0);
   });
+
 }
