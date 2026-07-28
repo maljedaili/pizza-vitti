@@ -41,10 +41,11 @@ document.querySelectorAll('[data-product-tilt]').forEach(stage => {
     const rect = stage.getBoundingClientRect();
     const x = Math.max(-1, Math.min(1, (clientX - rect.left) / rect.width * 2 - 1));
     const y = Math.max(-1, Math.min(1, (clientY - rect.top) / rect.height * 2 - 1));
-    stage.style.setProperty('--product-tilt-x', `${(-y * 12).toFixed(2)}deg`);
-    stage.style.setProperty('--product-tilt-y', `${(x * 15).toFixed(2)}deg`);
-    stage.style.setProperty('--product-shift-x', `${(x * 10).toFixed(2)}px`);
-    stage.style.setProperty('--product-shift-y', `${(y * 7).toFixed(2)}px`);
+    const contained = stage.classList.contains('is-3d-product');
+    stage.style.setProperty('--product-tilt-x', `${(-y * (contained ? 9 : 12)).toFixed(2)}deg`);
+    stage.style.setProperty('--product-tilt-y', `${(x * (contained ? 11 : 15)).toFixed(2)}deg`);
+    stage.style.setProperty('--product-shift-x', `${(x * (contained ? 4 : 10)).toFixed(2)}px`);
+    stage.style.setProperty('--product-shift-y', `${(y * (contained ? 3 : 7)).toFixed(2)}px`);
     stage.style.setProperty('--product-light-x', `${((x + 1) * 50).toFixed(1)}%`);
     stage.style.setProperty('--product-light-y', `${((y + 1) * 50).toFixed(1)}%`);
     stage.classList.add('is-tilting');
