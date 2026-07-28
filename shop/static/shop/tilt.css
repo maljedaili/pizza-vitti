@@ -1,0 +1,36 @@
+.public-site [data-product-tilt] {
+  --product-tilt-x: 0deg;
+  --product-tilt-y: 0deg;
+  --product-shift-x: 0px;
+  --product-shift-y: 0px;
+  perspective: 900px;
+  touch-action: pan-y;
+}
+
+.public-site [data-product-tilt] > img {
+  transform:
+    translate3d(var(--product-shift-x), var(--product-shift-y), 0)
+    rotateX(var(--product-tilt-x))
+    rotateY(var(--product-tilt-y))
+    scale(1.045);
+  transform-origin: center;
+  transition: transform .32s cubic-bezier(.2, .75, .25, 1), filter .25s ease;
+  will-change: transform;
+}
+
+.public-site [data-product-tilt].is-tilting > img {
+  filter: saturate(1.06) contrast(1.03);
+  transition-duration: .08s;
+}
+
+.public-site .detail-media[data-product-tilt] {
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-site [data-product-tilt] > img {
+    transform: none;
+    transition: none;
+  }
+}

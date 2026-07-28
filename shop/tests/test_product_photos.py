@@ -28,7 +28,7 @@ class SyncProductPhotosCommandTests(TestCase):
         fromaggi.refresh_from_db()
         self.assertEqual(
             margherita.external_image,
-            '/static/shop/img/products/la-margherita.jpg',
+            '/static/shop/img/products/la-margherita-3d.webp',
         )
         self.assertEqual(
             fromaggi.external_image,

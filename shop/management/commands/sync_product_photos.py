@@ -19,7 +19,7 @@ PRODUCT_PHOTOS = {
     'la-quattro-formaggi': 'la-quattro-formaggi.jpg',
     'la-quattro-fromaggi': 'la-quattro-formaggi.jpg',
     'la-calabrese': 'la-calabrese.jpg',
-    'la-margherita': 'la-margherita.jpg',
+    'la-margherita': 'la-margherita-3d.webp',
     'bruschetta-burrata-pesto': 'bruschetta-burrata-pesto.jpg',
     'bruschetta-saumon-fume': 'bruschetta-saumon-fume.jpg',
     'mozzarella-caprese': 'mozzarella-caprese.jpg',

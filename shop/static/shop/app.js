@@ -29,6 +29,53 @@ document.querySelectorAll('.menu-photo-card').forEach(card => {
     card.style.setProperty('--tilt-y', '0deg');
   });
 });
+document.querySelectorAll('[data-product-tilt]').forEach(stage => {
+  const image = stage.querySelector('img');
+  if (!image || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let dragging = false;
+  let moved = false;
+  let startX = 0;
+  let startY = 0;
+  const rotate = (clientX, clientY) => {
+    const rect = stage.getBoundingClientRect();
+    const x = Math.max(-1, Math.min(1, (clientX - rect.left) / rect.width * 2 - 1));
+    const y = Math.max(-1, Math.min(1, (clientY - rect.top) / rect.height * 2 - 1));
+    stage.style.setProperty('--product-tilt-x', `${(-y * 9).toFixed(2)}deg`);
+    stage.style.setProperty('--product-tilt-y', `${(x * 11).toFixed(2)}deg`);
+    stage.style.setProperty('--product-shift-x', `${(x * 7).toFixed(2)}px`);
+    stage.style.setProperty('--product-shift-y', `${(y * 5).toFixed(2)}px`);
+    stage.classList.add('is-tilting');
+  };
+  const reset = () => {
+    dragging = false;
+    stage.style.setProperty('--product-tilt-x', '0deg');
+    stage.style.setProperty('--product-tilt-y', '0deg');
+    stage.style.setProperty('--product-shift-x', '0px');
+    stage.style.setProperty('--product-shift-y', '0px');
+    stage.classList.remove('is-tilting');
+  };
+  stage.addEventListener('pointerdown', event => {
+    if (event.pointerType === 'mouse') return;
+    dragging = true;
+    moved = false;
+    startX = event.clientX;
+    startY = event.clientY;
+  });
+  stage.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse' && !dragging) return;
+    if (dragging && Math.hypot(event.clientX - startX, event.clientY - startY) > 7) moved = true;
+    rotate(event.clientX, event.clientY);
+  });
+  stage.addEventListener('pointerleave', reset);
+  stage.addEventListener('pointercancel', reset);
+  stage.addEventListener('pointerup', () => window.setTimeout(reset, 140));
+  stage.addEventListener('click', event => {
+    if (moved) {
+      event.preventDefault();
+      moved = false;
+    }
+  });
+});
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').then(registration => registration.update()).catch(() => {}));
 }
