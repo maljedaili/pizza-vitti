@@ -2,7 +2,7 @@
   "packageId": "kayen.fr",
   "host": "pizza-vitti.kayen.fr",
   "name": "Pizza Vitti",
-  "launcherName": "Vitti App",
+  "launcherName": "Pizza Vitti",
   "display": "standalone",
   "themeColor": "#171923",
   "themeColorDark": "#000000",
@@ -20,8 +20,8 @@
     "path": "android.keystore",
     "alias": "android"
   },
-  "appVersionName": "1.0.1",
-  "appVersionCode": 5,
+  "appVersionName": "1.0.2",
+  "appVersionCode": 7,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://pizza-vitti.kayen.fr/manifest.webmanifest",
@@ -46,5 +46,5 @@
     "window-controls-overlay",
     "standalone"
   ],
-  "appVersion": "1.0.1"
+  "appVersion": "1.0.2"
 }
