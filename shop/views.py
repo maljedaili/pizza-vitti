@@ -223,6 +223,8 @@ def _customer_pizza_count(user):
 
 
 def _active_loyalty_reward():
+    if not settings.LOYALTY_ENABLED:
+        return None
     return LoyaltyReward.objects.filter(is_active=True).order_by('pizzas_required', 'name').first()
 
 
@@ -829,6 +831,9 @@ def _safe_date(value, fallback):
 @owner_required
 def owner_dashboard(request):
     if request.method == 'POST' and request.POST.get('action') == 'update_loyalty_reward':
+        if not settings.LOYALTY_ENABLED:
+            messages.error(request, 'Le programme fidélité est temporairement désactivé.')
+            return redirect('shop:owner_dashboard')
         reward_type = request.POST.get('reward_type', '')
         valid_reward_types = dict(LoyaltyReward.REWARD_TYPES)
         try:
@@ -1365,7 +1370,7 @@ def bot_reply(request):
         answer = f"Vous êtes sur la table {table_number}. Ajoutez vos plats au panier puis validez la commande." if table_number else "Scannez le QR code posé sur votre table : le site mémorise la table, puis vous pouvez commander depuis le menu."
     elif any(w in msg for w in ['menu', 'pizza', 'pasta', 'pâtes', 'raviol', 'boisson', 'dessert']):
         answer = "Le menu est organisé par familles : pizzas, pastas et ravioles, antipasti, menu bambino, douceurs et boissons. Cliquez sur une photo de catégorie pour ouvrir la page correspondante."
-    elif any(w in msg for w in ['fidélité', 'fidelite', 'cadeau', '5 pizza', '5 pizzas']):
+    elif settings.LOYALTY_ENABLED and any(w in msg for w in ['fidélité', 'fidelite', 'cadeau', '5 pizza', '5 pizzas']):
         reward = _active_loyalty_reward()
         pizzas_required = reward.pizzas_required if reward else 5
         gift = reward.get_reward_type_display() if reward else 'un cadeau Pizza Vitti'
@@ -1383,9 +1388,9 @@ def bot_reply(request):
     elif any(w in msg for w in ['avis', 'review', 'google', 'commentaire']):
         answer = "Après votre commande, vous pouvez laisser un avis depuis la page Avis. Vos commentaires Google aident beaucoup Pizza Vitti."
     elif any(w in msg for w in ['bonjour', 'salut', 'hello', 'hi']):
-        answer = "Bonjour ! Je peux vous aider à choisir le menu, commander à table, comprendre la fidélité, réserver ou suivre une commande."
+        answer = "Bonjour ! Je peux vous aider à choisir le menu, commander à table, réserver ou suivre une commande."
     else:
-        answer = "Je peux vous aider pour le menu, les pizzas, les pastas, les boissons, la commande QR à table, la fidélité, la réservation, le paiement, les allergènes et les avis Google."
+        answer = "Je peux vous aider pour le menu, les pizzas, les pastas, les boissons, la commande QR à table, la réservation, le paiement, les allergènes et les avis Google."
     return JsonResponse({'answer': answer})
 
 

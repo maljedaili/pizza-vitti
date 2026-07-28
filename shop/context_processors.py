@@ -110,6 +110,7 @@ def site_settings(request):
         'INSTAGRAM_URL': site.instagram_url,
         'FACEBOOK_URL': site.facebook_url,
         'GOOGLE_PLAY_URL': site.google_play_url or settings.GOOGLE_PLAY_URL,
+        'LOYALTY_ENABLED': settings.LOYALTY_ENABLED,
         'nav_categories': _menu_category_order(Category.objects.filter(is_active=True)),
         'current_lang': lang,
         'T': T,

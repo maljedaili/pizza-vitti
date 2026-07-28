@@ -5,7 +5,7 @@
   <div>
     <p class="eyebrow">Espace client</p>
     <h1>Bonjour {{ request.user.first_name|default:request.user.get_username }}</h1>
-    <p>Retrouvez vos commandes, votre carte fidélité et vos plats favoris Pizza Vitti.</p>
+    <p>Retrouvez vos commandes et vos plats favoris Pizza Vitti.</p>
   </div>
   <div class="account-actions">
     <a class="button" href="{% url 'shop:customer_orders' %}">Mes commandes</a>
@@ -16,6 +16,7 @@
 </section>
 
 <section class="dashboard-grid">
+  {% if LOYALTY_ENABLED %}
   <article class="card loyalty-card">
     <p class="eyebrow">Carte fidélité digitale</p>
     <h2>{{ loyalty.pizzas_required }} pizzas = cadeau</h2>
@@ -33,11 +34,12 @@
     {% endif %}
     <small>{{ loyalty.redeemed_rewards }} cadeau(x) déjà attribué(s).</small>
   </article>
+  {% endif %}
 
   <article class="card account-mobile-card">
     <p class="eyebrow">Application mobile</p>
-    <h2>Votre fidélité vous suit partout</h2>
-    <p>Installez l’application Pizza Vitti pour retrouver rapidement votre carte, vos commandes et le menu.</p>
+    <h2>Pizza Vitti vous suit partout</h2>
+    <p>Installez l’application Pizza Vitti pour retrouver rapidement vos commandes et le menu.</p>
     <button class="button" type="button" data-install-app>Installer l’application</button>
   </article>
 </section>

@@ -83,6 +83,7 @@
   <article><span>03</span><strong>Au cœur de Bordeaux</strong><p>Retrouvez-nous rue d’Ornano pour un repas ou un retrait rapide.</p></article>
 </section>
 
+{% if LOYALTY_ENABLED %}
 <section class="loyalty-signup-band reveal">
   <div class="loyalty-signup-copy">
     <p class="eyebrow">Carte fidélité digitale</p>
@@ -99,6 +100,7 @@
   </div>
   <div class="loyalty-signup-photo" role="img" aria-label="Pizza italienne Pizza Vitti"></div>
 </section>
+{% endif %}
 
 {% if reviews %}
 <section class="home-section home-reviews">

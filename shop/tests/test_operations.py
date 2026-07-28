@@ -64,6 +64,7 @@ class AndroidAppVerificationTests(TestCase):
         self.assertEqual(response.json(), [])
 
 
+@override_settings(LOYALTY_ENABLED=True)
 class CustomerLoyaltyTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user(
@@ -272,6 +273,13 @@ class StorefrontProductionRulesTests(TestCase):
         response = self.client.get(reverse('shop:cart'))
         self.assertContains(response, 'name="robots" content="noindex,nofollow"')
 
+    def test_loyalty_program_is_hidden_while_personal_play_account_is_used(self):
+        home = self.client.get('/fr/')
+        self.assertNotContains(home, 'Carte fidélité digitale')
+
+        cart = self.client.get(reverse('shop:cart'))
+        self.assertNotContains(cart, 'Offre fidélité')
+
 
 @override_settings(
     OWNER_DASHBOARD_USERNAME='admin',
@@ -394,6 +402,7 @@ class OperationsAccessTests(TestCase):
         self.assertRedirects(response, reverse('shop:kitchen_app'))
         self.assertNotIn('owner_access', self.client.session)
 
+    @override_settings(LOYALTY_ENABLED=True)
     def test_owner_can_choose_the_loyalty_gift_from_dashboard(self):
         self.client.post(reverse('shop:app_login'), {
             'role': 'owner',

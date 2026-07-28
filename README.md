@@ -99,11 +99,11 @@ le site public `https://pizza-vitti.kayen.fr/fr/` et utilise le package définit
 Les étapes de signature, de test interne et de publication sont détaillées dans
 [`docs/google-play-release.md`](docs/google-play-release.md).
 
-## Fidélité client
+## Programme fidélité
 
-Les clients peuvent créer une carte fidélité depuis `/accounts/signup/`. Les pizzas
-des commandes connectées sont cumulées automatiquement. Le propriétaire choisit
-depuis son dashboard le cadeau actif et le nombre de pizzas nécessaires.
+Le programme fidélité est temporairement désactivé pour la distribution Google Play
+avec un compte développeur personnel. Les données existantes sont conservées. Après
+le passage à un compte Organisation, définir `LOYALTY_ENABLED=True` pour le réactiver.
 
 
 ## V5 updates

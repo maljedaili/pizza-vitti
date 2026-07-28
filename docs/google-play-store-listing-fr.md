@@ -21,19 +21,19 @@ validation du compte développeur Kayen.fr.
 ### Description courte
 
 ```text
-Menu, commandes, fidélité et gestion du restaurant Pizza Vitti.
+Menu, commandes et gestion du restaurant Pizza Vitti.
 ```
 
 ### Description complète
 
 ```text
-Pizza Vitti réunit le menu du restaurant, les commandes et la fidélité dans une application simple et rapide.
+Pizza Vitti réunit le menu du restaurant et les commandes dans une application simple et rapide.
 
 Pour les clients :
 - consulter les pizzas, pastas, boissons, menus bambino et desserts ;
 - préparer une commande et suivre son statut ;
 - commander à table avec le QR code du restaurant ;
-- retrouver ses commandes, ses favoris et sa progression fidélité ;
+- retrouver ses commandes et ses favoris ;
 - réserver et contacter Pizza Vitti.
 
 Pour l'équipe du restaurant :
@@ -60,7 +60,7 @@ Nom de la version :
 Notes de version :
 
 ```text
-Première version Android de Pizza Vitti : menu, commandes, fidélité client, préparation cuisine, gestion des tables et pointage staff.
+Première version Android de Pizza Vitti : menu, commandes, préparation cuisine, gestion des tables et pointage staff.
 ```
 
 ## Éléments graphiques
@@ -78,7 +78,7 @@ Première version Android de Pizza Vitti : menu, commandes, fidélité client, p
 Texte alternatif de la feature graphic :
 
 ```text
-Pizza italienne Pizza Vitti avec le slogan L'Italie à Bordeaux et les fonctions menu, commandes et fidélité.
+Pizza italienne Pizza Vitti avec le slogan L'Italie à Bordeaux et les fonctions menu et commandes.
 ```
 
 Textes alternatifs des captures :
@@ -126,7 +126,7 @@ Réponses préparatoires à vérifier dans Play Console :
 Données susceptibles d'être collectées selon les fonctions utilisées :
 
 - Informations personnelles : nom, e-mail, téléphone et adresse de commande.
-- Activité dans l'application : commandes, favoris et progression fidélité.
+- Activité dans l'application : commandes et favoris.
 - Informations de transaction : contenu, montant et statut de paiement ; aucune
   donnée complète de carte bancaire n'est stockée par Pizza Vitti.
 - Messages : notes de commande, réservation et formulaire de contact.

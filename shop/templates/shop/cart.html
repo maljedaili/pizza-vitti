@@ -11,6 +11,7 @@
     </div>
   {% endif %}
 
+  {% if LOYALTY_ENABLED %}
   <div class="loyalty-tracker">
     <strong>{% if request.user.is_authenticated %}Votre carte fidélité{% else %}Fidélité Pizza Vitti{% endif %}</strong>
     <div class="loyalty-meter" data-loyalty-progress="{{ loyalty.progress_percent }}"></div>
@@ -21,8 +22,10 @@
       <a class="button ghost" href="{% url 'account_signup' %}?next={{ url_cart|urlencode }}">Créer ma carte fidélité</a>
     {% endif %}
   </div>
+  {% endif %}
 
   {% if items %}
+    {% if LOYALTY_ENABLED %}
     <div class="loyalty-note {% if loyalty_gift_eligible %}success{% endif %}">
       {% if loyalty_gift_eligible %}
         <strong>Cadeau fidélité débloqué !</strong>
@@ -32,6 +35,7 @@
         <span>Encore {{ loyalty_remaining }} pizza(s) pour atteindre le prochain cadeau.</span>
       {% endif %}
     </div>
+    {% endif %}
 
     <form method="post" action="{% url 'shop:update_cart' %}" class="cart-update-form">
       {% csrf_token %}

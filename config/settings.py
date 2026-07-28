@@ -18,6 +18,7 @@ GOOGLE_REVIEW_URL = os.getenv('GOOGLE_REVIEW_URL', 'https://www.google.com/searc
 INSTAGRAM_URL = os.getenv('INSTAGRAM_URL', 'https://www.instagram.com/')
 FACEBOOK_URL = os.getenv('FACEBOOK_URL', 'https://www.facebook.com/')
 GOOGLE_PLAY_URL = os.getenv('GOOGLE_PLAY_URL', '')
+LOYALTY_ENABLED = os.getenv('LOYALTY_ENABLED', 'False') == 'True'
 KITCHEN_PASSWORD = os.getenv('KITCHEN_PASSWORD', '123')
 OWNER_DASHBOARD_USERNAME = os.getenv('OWNER_DASHBOARD_USERNAME', 'admin')
 OWNER_DASHBOARD_PASSWORD = os.getenv('OWNER_DASHBOARD_PASSWORD', '')

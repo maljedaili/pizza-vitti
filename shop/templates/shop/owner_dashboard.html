@@ -94,6 +94,7 @@
       <a class="ops-action-card" href="{% url 'shop:purchase_orders' %}"><strong>Purchase orders</strong><span>Suivre fournisseurs, commandes et réceptions.</span></a>
     </section>
 
+    {% if LOYALTY_ENABLED %}
     <section class="ops-panel loyalty-owner-panel">
       <div class="ops-panel-head">
         <div>
@@ -120,6 +121,7 @@
         <button class="button" type="submit">Enregistrer l’offre</button>
       </form>
     </section>
+    {% endif %}
   </div>
 </section>
 {% endblock %}
