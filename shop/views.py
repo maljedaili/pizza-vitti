@@ -172,6 +172,14 @@ DRINKS_GROUP_TRANSLATIONS = {
     'ar': {'title': 'المشروبات', 'eyebrow': 'بار إيطالي', 'summary': 'مشروبات غازية وبيرة ونبيذ ومقبلات ومشروبات هاضمة وقهوة وشاي.'},
 }
 
+ARABIC_MENU_GROUP_TRANSLATIONS = {
+    'pizzas': {'title': 'البيتزا', 'eyebrow': 'بيتزا', 'summary': 'بيتزا منزلية مع إضافات لتخصيص طلبكم.'},
+    'pastas': {'title': 'المعكرونة', 'eyebrow': 'باستا', 'summary': 'معكرونة إيطالية ورافيولي ووصفات سخية تُقدّم ساخنة.'},
+    'antipasti': {'title': 'المقبلات', 'eyebrow': 'للمشاركة', 'summary': 'مقبلات وبروشيتا وسلطات للبداية أو المشاركة.'},
+    'bambino': {'title': 'قائمة الأطفال', 'eyebrow': 'أطفال', 'summary': 'قائمة بسيطة ولذيذة مخصّصة للصغار.'},
+    'douceurs': {'title': 'الحلويات', 'eyebrow': 'حلويات', 'summary': 'تيراميسو وبانا كوتا وآيس كريم وحلويات إيطالية.'},
+}
+
 DRINK_CATEGORY_ORDER = [
     'caffe-the', 'cafe-allonge', 'cafe-double', 'cappuccino', 'chocolat-chaud',
     'thes-et-infusions', 'carte-des-vins-rouges', 'carte-des-vins-blancs',
@@ -198,6 +206,8 @@ def _menu_groups(lang='fr'):
         item = group.copy()
         if group['slug'] == 'boissons':
             item.update(DRINKS_GROUP_TRANSLATIONS.get(lang, DRINKS_GROUP_TRANSLATIONS['fr']))
+        elif lang == 'ar' and group['slug'] in ARABIC_MENU_GROUP_TRANSLATIONS:
+            item.update(ARABIC_MENU_GROUP_TRANSLATIONS[group['slug']])
         item['url'] = reverse('shop:localized_menu_group', args=[lang, group['slug']])
         item['count'] = sum(category.products.filter(is_available=True).count() for category in categories)
         groups.append(item)
@@ -210,6 +220,8 @@ def _menu_group_by_slug(slug, lang='fr'):
             item = group.copy()
             if slug == 'boissons':
                 item.update(DRINKS_GROUP_TRANSLATIONS.get(lang, DRINKS_GROUP_TRANSLATIONS['fr']))
+            elif lang == 'ar' and slug in ARABIC_MENU_GROUP_TRANSLATIONS:
+                item.update(ARABIC_MENU_GROUP_TRANSLATIONS[slug])
             return item
     return None
 

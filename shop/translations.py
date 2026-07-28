@@ -33,6 +33,54 @@ TRANSLATIONS = {
 'ja': {'dir':'ltr','home':'ホーム','menu':'メニュー','booking':'予約','reviews':'口コミ','gallery':'ギャラリー','blog':'ブログ','contact':'お問い合わせ','cart':'カート','admin':'管理','hero_eyebrow':'ボルドーのイタリアンレストラン','hero_title':'Pizza Vitti、Rue d’Ornano のイタリアンブレイク。','hero_text':'本格イタリアンピザ、オンライン注文、予約、受け取り、配達、事前決済。','order_now':'今すぐ注文','book_table':'席を予約','open_hours':'火曜〜土曜営業','select_menu':'メニューを選ぶ','select_menu_text':'ピザ、料理、デザートを選びます。','pay_online':'オンラインで支払う','pay_online_text':'Visa、Mastercard、CB の安全なカード決済。','pickup':'注文を受け取る','pickup_text':'店頭で素早く受け取り。','delivery':'配達を利用する','delivery_text':'配達はエリアと状況によります。','online_menu':'オンラインメニュー','featured':'おすすめ注文','gallery_title':'レストランの写真','what_clients_say':'お客様の声','trust':'口コミと信頼','find_us':'ボルドーでの場所','address':'Pizza Vitti — 236 Rue d’Ornano, 33000 Bordeaux, France.','open_maps':'Google Maps を開く','blog_news':'Pizza Vitti ニュース','read':'読む','social_title':'Instagram と Facebook で Pizza Vitti をフォロー','social_text':'新メニュー、イベント、プロモーションをチェック。','help':'お困りですか？','assistant_hello':'こんにちは！メニュー、注文、支払い、受け取り、予約、営業時間をお手伝いします。','send':'送信','newsletter_title':'Pizza Vitti の最新情報','newsletter_text':'ニュースレターでイベントやプロモーションを受け取れます。','email_placeholder':'メールアドレス','created':'Site created with','links':'リンク','search_placeholder':'ピザ、ドリンク、デザートを検索...','all':'すべて','empty_menu':'料理が見つかりません。','add':'追加','finalize':'注文を完了','name':'名前','email':'メール','phone':'電話','address_label':'住所 / 配達','notes':'メモ','payment':'支払い','card_payment':'Visa / Mastercard / CB カード','pay_pickup':'受け取り時に支払い','secure_payment':'安全なオンライン決済。注文後に請求書が自動作成されます。','summary':'概要','total':'合計','invoice':'請求書','print_invoice':'請求書を印刷','my_cart':'カート','empty_cart':'カートは空です。','see_menu':'メニューを見る','update':'更新','order':'注文','contact_title':'お問い合わせ','subject':'件名','message':'メッセージ','booking_title':'予約','booking_text':'日付、時間、人数を選択してください。リクエストは管理画面に届きます。','guests':'人数','date':'日付','time':'時間','booking_send':'予約を送信','reviews_title':'お客様の口コミ','reviews_text':'口コミは Google からインポート、または管理画面で非表示・削除できます。','see_google':'Google 口コミを見る','gallery_text':'レストラン、客席、ピザの写真。画像は管理画面から管理できます。','blog_text':'メニュー情報、イベント、プロモーション、ボルドーのイタリアンピザ記事。','find_also':'こちらでも見つけられます…','login_google':'Google ログイン','language':'言語を選択'},
 'ar': {'dir':'rtl','home':'الرئيسية','menu':'القائمة','booking':'احجز','reviews':'آراء العملاء','gallery':'المعرض','blog':'المدونة','contact':'اتصل بنا','cart':'السلة','admin':'الإدارة','hero_eyebrow':'مطعم إيطالي في بوردو','hero_title':'Pizza Vitti، استراحة إيطالية في Rue d’Ornano.','hero_text':'بيتزا إيطالية شهية، طلب إلكتروني، حجز، استلام، توصيل ودفع مسبق لتوفير الوقت.','order_now':'اطلب الآن','book_table':'احجز طاولة','open_hours':'مفتوح من الثلاثاء إلى السبت','select_menu':'أختار قائمتي','select_menu_text':'اختر البيتزا والأطباق والحلويات.','pay_online':'أدفع عبر الإنترنت','pay_online_text':'دفع آمن ببطاقات Visa و Mastercard و CB.','pickup':'أستلم طلبي','pickup_text':'استلام سريع من المطعم.','delivery':'أطلب التوصيل','delivery_text':'التوصيل حسب المناطق والتوفر.','online_menu':'القائمة الإلكترونية','featured':'الأطباق المفضلة للطلب','gallery_title':'المطعم بالصور','what_clients_say':'ماذا يقول العملاء','trust':'آراء وثقة','find_us':'موقعنا في بوردو','address':'Pizza Vitti — 236 Rue d’Ornano, 33000 Bordeaux, France.','open_maps':'فتح خرائط Google','blog_news':'أخبار Pizza Vitti','read':'اقرأ','social_title':'تابع Pizza Vitti على Instagram و Facebook','social_text':'تابع الأخبار والفعاليات والعروض.','help':'هل تحتاج مساعدة؟','assistant_hello':'مرحباً! أستطيع مساعدتك في القائمة والطلب والدفع والاستلام والحجز وساعات العمل.','send':'إرسال','newsletter_title':'تابع أخبار Pizza Vitti','newsletter_text':'اشترك في النشرة لمعرفة الفعاليات والعروض القادمة.','email_placeholder':'بريدك الإلكتروني','created':'Site created with','links':'روابط','search_placeholder':'ابحث عن بيتزا، مشروب، حلوى...','all':'الكل','empty_menu':'لم يتم العثور على طبق.','add':'إضافة','finalize':'إتمام الطلب','name':'الاسم','email':'البريد الإلكتروني','phone':'الهاتف','address_label':'العنوان / التوصيل','notes':'ملاحظات','payment':'الدفع','card_payment':'بطاقة Visa / Mastercard / CB','pay_pickup':'الدفع عند الاستلام','secure_payment':'دفع إلكتروني آمن. يتم إنشاء الفاتورة تلقائياً بعد الطلب.','summary':'الملخص','total':'الإجمالي','invoice':'فاتورة','print_invoice':'طباعة الفاتورة','my_cart':'سلتي','empty_cart':'سلتك فارغة.','see_menu':'عرض القائمة','update':'تحديث','order':'طلب','contact_title':'اتصل بنا','subject':'الموضوع','message':'الرسالة','booking_title':'احجز','booking_text':'اختر التاريخ والوقت وعدد الأشخاص. يصل الطلب مباشرة إلى لوحة الإدارة.','guests':'عدد الأشخاص','date':'التاريخ','time':'الوقت','booking_send':'إرسال الحجز','reviews_title':'آراء العملاء','reviews_text':'يمكن استيراد الآراء من Google أو إخفاؤها/حذفها من الإدارة.','see_google':'عرض آراء Google','gallery_text':'صور المطعم والقاعة والبيتزا. الصور تُدار من لوحة الإدارة.','blog_text':'أخبار القائمة، الفعاليات، العروض ومقالات عن البيتزا الإيطالية في بوردو.','find_also':'يمكنك أيضاً أن تجدنا على…','login_google':'تسجيل الدخول عبر Google','language':'اختر اللغة'},
 }
+
+ACCOUNT_TRANSLATIONS = {
+    'fr': {'my_account': 'Mon compte', 'sign_in': 'Connexion'},
+    'en': {'my_account': 'My account', 'sign_in': 'Sign in'},
+    'es': {'my_account': 'Mi cuenta', 'sign_in': 'Iniciar sesión'},
+    'it': {'my_account': 'Il mio account', 'sign_in': 'Accedi'},
+    'pt': {'my_account': 'A minha conta', 'sign_in': 'Entrar'},
+    'nl': {'my_account': 'Mijn account', 'sign_in': 'Inloggen'},
+    'zh': {'my_account': '我的账户', 'sign_in': '登录'},
+    'ja': {'my_account': 'マイアカウント', 'sign_in': 'ログイン'},
+    'ar': {'my_account': 'حسابي', 'sign_in': 'تسجيل الدخول'},
+}
+
+for _language, _copy in ACCOUNT_TRANSLATIONS.items():
+    TRANSLATIONS[_language].update(_copy)
+
+PUBLIC_PAGE_DEFAULTS = {
+    'menu_prompt': 'Qu’est-ce qui vous ferait plaisir\u00a0?',
+    'loyalty_eyebrow': 'Carte fidélité digitale',
+    'loyalty_title': '5 pizzas achetées, un cadeau débloqué.',
+    'loyalty_text': 'Créez votre compte avant de commander. Chaque pizza achetée fait avancer automatiquement votre carte fidélité.',
+    'loyalty_view': 'Voir ma fidélité',
+    'loyalty_create': 'Créer ma carte',
+    'legal_notice': 'Mentions légales',
+    'order_terms': 'Conditions de commande',
+    'privacy': 'Confidentialité',
+    'delete_account': 'Supprimer un compte',
+}
+for _language in TRANSLATIONS:
+    for _key, _value in PUBLIC_PAGE_DEFAULTS.items():
+        TRANSLATIONS[_language].setdefault(_key, _value)
+
+TRANSLATIONS['ar'].update({
+    'menu_prompt': 'ماذا ترغبون في تناول اليوم؟',
+    'loyalty_eyebrow': 'بطاقة ولاء رقمية',
+    'loyalty_title': 'اشترِ 5 بيتزا واحصل على هدية.',
+    'loyalty_text': 'أنشئ حسابك قبل الطلب. كل بيتزا تشتريها تزيد رصيد بطاقة الولاء تلقائياً.',
+    'loyalty_view': 'عرض بطاقة الولاء',
+    'loyalty_create': 'إنشاء بطاقتي',
+    'legal_notice': 'الإشعارات القانونية',
+    'order_terms': 'شروط الطلب',
+    'privacy': 'الخصوصية',
+    'delete_account': 'حذف الحساب',
+})
+TRANSLATIONS['fr']['order_now'] = 'Commander à emporter'
+TRANSLATIONS['fr']['created'] = 'Site créé par'
+TRANSLATIONS['ar']['created'] = 'تم إنشاء الموقع بواسطة'
+
 def get_lang_from_path(path):
     parts = [p for p in path.split('/') if p]
     if parts and parts[0] in TRANSLATIONS:
