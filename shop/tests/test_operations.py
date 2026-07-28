@@ -211,6 +211,7 @@ class CustomerLoyaltyTests(TestCase):
         response = self.client.get(reverse('shop:home'))
         self.assertContains(response, 'Commander à emporter')
         self.assertContains(response, 'Qu’est-ce qui vous ferait plaisir')
+        self.assertNotContains(response, 'restaurant-status-band')
         self.assertNotContains(response, 'Les favoris de nos clients')
         self.assertNotContains(response, 'bot-toggle-photo')
         self.assertContains(response, 'Pizza Vitti')

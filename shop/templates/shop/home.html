@@ -34,13 +34,6 @@
   </aside>
 </section>
 
-<section class="restaurant-status-band {% if restaurant_status.is_open %}is-open{% endif %}" aria-live="polite">
-  <span aria-hidden="true">●</span>
-  <strong>{{ restaurant_status.label }}</strong>
-  <p>{{ restaurant_status.detail }}</p>
-  <a href="#opening-hours">{{ T.open_hours }}</a>
-</section>
-
 <section id="menu-home" class="home-section menu-first reveal">
   <div class="home-section-heading">
     <div>
