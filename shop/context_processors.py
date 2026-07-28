@@ -41,6 +41,16 @@ def _menu_category_order(qs):
 def site_settings(request):
     lang = get_lang_from_path(request.path)
     T = t_for(lang)
+    status = restaurant_status()
+    hours = weekly_hours()
+    if lang == 'ar':
+        status['label'] = 'مفتوح الآن' if status['is_open'] else 'مغلق'
+        status['detail'] = 'تحقق من ساعات العمل أدناه'
+        arabic_days = ('الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد')
+        for row, day_name in zip(hours, arabic_days):
+            row['label'] = day_name
+            if row['display'] == 'Fermé':
+                row['display'] = 'مغلق'
     configured_site_url = settings.SITE_URL.rstrip('/')
     host = request.get_host().split(':')[0]
     if configured_site_url.startswith('http://localhost') and host not in ['localhost', '127.0.0.1']:
@@ -60,7 +70,6 @@ def site_settings(request):
         'customer_orders', 'customer_favorites', 'account_deletion', 'app_home',
         'app_login', 'owner_dashboard', 'kitchen_app', 'staff_portal',
     }
-    hours = weekly_hours()
     same_as = [url for url in (site.instagram_url, site.facebook_url) if url]
     schema_weekdays = {
         0: 'https://schema.org/Monday',
@@ -103,7 +112,7 @@ def site_settings(request):
         structured_data['sameAs'] = same_as
     return {
         'site_config': site,
-        'restaurant_status': restaurant_status(),
+        'restaurant_status': status,
         'weekly_hours': hours,
         'structured_data': json.dumps(structured_data, ensure_ascii=False),
         'show_blog': BlogPost.objects.filter(is_published=True, body__regex=r'.{300,}').exists(),

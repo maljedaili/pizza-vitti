@@ -50,6 +50,16 @@ class DrinksPageTests(TestCase):
         self.assertContains(response, 'href="/es/menu/boissons/"')
         self.assertContains(response, 'href="/ar/menu/boissons/"')
 
+    def test_arabic_home_translates_shared_public_content(self):
+        response = self.client.get('/ar/')
+
+        self.assertContains(response, 'مطعم إيطالي في بوردو')
+        self.assertContains(response, 'حسابي')
+        self.assertContains(response, 'الاثنين')
+        self.assertContains(response, 'تم إنشاء الموقع بواسطة')
+        self.assertNotContains(response, 'Restaurant italien à Bordeaux')
+        self.assertNotContains(response, 'Mon compte')
+
     def test_command_is_idempotent_and_keeps_requested_order(self):
         call_command('sync_drinks_page')
         call_command('sync_drinks_page')

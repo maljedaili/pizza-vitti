@@ -56,7 +56,7 @@
   </nav>
   {% else %}
   <nav>
-    <a href="{{ url_menu }}">{{ T.menu }}</a><a href="{{ url_booking }}">{{ T.booking }}</a><a href="{{ url_reviews }}">{{ T.reviews }}</a>{% if show_blog %}<a href="{{ url_blog }}">{{ T.blog }}</a>{% endif %}<a href="{{ url_contact }}">{{ T.contact }}</a>{% if request.user.is_authenticated %}<a href="{% url 'shop:customer_dashboard' %}">Mon compte</a>{% else %}<a href="{% url 'account_login' %}">Connexion</a>{% endif %}<a class="cart-link" href="{{ url_cart }}">{{ T.cart }} ({{ cart_count }})</a> {% if request.user.is_staff %}<a href="{% url 'shop:preparation_dashboard' %}">Préparation</a><a href="{% url 'shop:qr_tables' %}">QR tables</a><a class="admin-link" href="/admin/">{{ T.admin }}</a>{% endif %}
+    <a href="{{ url_menu }}">{{ T.menu }}</a><a href="{{ url_booking }}">{{ T.booking }}</a><a href="{{ url_reviews }}">{{ T.reviews }}</a>{% if show_blog %}<a href="{{ url_blog }}">{{ T.blog }}</a>{% endif %}<a href="{{ url_contact }}">{{ T.contact }}</a>{% if request.user.is_authenticated %}<a href="{% url 'shop:customer_dashboard' %}">{{ T.my_account }}</a>{% else %}<a href="{% url 'account_login' %}">{{ T.sign_in }}</a>{% endif %}<a class="cart-link" href="{{ url_cart }}">{{ T.cart }} ({{ cart_count }})</a> {% if request.user.is_staff %}<a href="{% url 'shop:preparation_dashboard' %}">Préparation</a><a href="{% url 'shop:qr_tables' %}">QR tables</a><a class="admin-link" href="/admin/">{{ T.admin }}</a>{% endif %}
   </nav>
   {% endif %}
 </header>
@@ -98,11 +98,11 @@
 {% if not kitchen_app %}
 {% if WHATSAPP_NUMBER %}<a class="chat" href="https://wa.me/{{ WHATSAPP_NUMBER }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
 {% if show_review_prompt %}{% include 'shop/partials/review_links.html' %}{% endif %}
-<nav class="mobile-bottom-nav" aria-label="Navigation mobile">
-  <a href="{{ url_home }}"><span aria-hidden="true">⌂</span>Accueil</a>
-  <a href="{{ url_menu }}"><span aria-hidden="true">☰</span>Menu</a>
-  <a href="{{ url_cart }}"><span aria-hidden="true">🛒</span>Panier{% if cart_count %}<b>{{ cart_count }}</b>{% endif %}</a>
-  <a href="{% if request.user.is_authenticated %}{% url 'shop:customer_dashboard' %}{% else %}{% url 'account_login' %}{% endif %}"><span aria-hidden="true">●</span>Mon compte</a>
+<nav class="mobile-bottom-nav" aria-label="{{ T.menu }}">
+  <a href="{{ url_home }}"><span aria-hidden="true">⌂</span>{{ T.home }}</a>
+  <a href="{{ url_menu }}"><span aria-hidden="true">☰</span>{{ T.menu }}</a>
+  <a href="{{ url_cart }}"><span aria-hidden="true">🛒</span>{{ T.cart }}{% if cart_count %}<b>{{ cart_count }}</b>{% endif %}</a>
+  <a href="{% if request.user.is_authenticated %}{% url 'shop:customer_dashboard' %}{% else %}{% url 'account_login' %}{% endif %}"><span aria-hidden="true">●</span>{{ T.my_account }}</a>
 </nav>
 <footer>
   {% if show_app_promo and GOOGLE_PLAY_URL %}
@@ -118,12 +118,12 @@
   </section>
   {% endif %}
   <div class="footer-grid">
-    <div><strong>Pizza Vitti</strong><p>{{ site_config.address }}<br><a href="tel:+33556421449">{{ site_config.telephone }}</a><br><a href="{{ site_config.google_maps_url }}" target="_blank" rel="noopener">Ouvrir Google Maps</a></p></div>
-    <div><strong>Horaires</strong>{% for row in weekly_hours %}<p class="footer-hours"><span>{{ row.label }}</span><b>{{ row.display }}</b></p>{% endfor %}</div>
-    <div><strong>{{ T.links }}</strong><p><a href="{{ url_menu }}">{{ T.menu }}</a> · <a href="{{ url_booking }}">{{ T.booking }}</a> · <a href="{{ url_gallery }}">{{ T.gallery }}</a> · <a href="{{ url_reviews }}">{{ T.reviews }}</a> · <a href="{% url 'shop:mentions' %}">Mentions légales</a> · <a href="{% url 'shop:cgv' %}">Conditions de commande</a> · <a href="{% url 'shop:privacy_policy' %}">Confidentialité</a> · <a href="{% url 'shop:account_deletion' %}">Supprimer un compte</a></p>{% if INSTAGRAM_URL or FACEBOOK_URL %}<p class="social-icons">{% if INSTAGRAM_URL %}<a aria-label="Pizza Vitti sur Instagram" href="{{ INSTAGRAM_URL }}" target="_blank" rel="noopener">Instagram</a>{% endif %}{% if FACEBOOK_URL %}<a aria-label="Pizza Vitti sur Facebook" href="{{ FACEBOOK_URL }}" target="_blank" rel="noopener">Facebook</a>{% endif %}</p>{% endif %}</div>
+    <div><strong>Pizza Vitti</strong><p>{{ site_config.address }}<br><a href="tel:+33556421449">{{ site_config.telephone }}</a><br><a href="{{ site_config.google_maps_url }}" target="_blank" rel="noopener">{{ T.open_maps }}</a></p></div>
+    <div><strong>{{ T.open_hours }}</strong>{% for row in weekly_hours %}<p class="footer-hours"><span>{{ row.label }}</span><b>{{ row.display }}</b></p>{% endfor %}</div>
+    <div><strong>{{ T.links }}</strong><p><a href="{{ url_menu }}">{{ T.menu }}</a> · <a href="{{ url_booking }}">{{ T.booking }}</a> · <a href="{{ url_gallery }}">{{ T.gallery }}</a> · <a href="{{ url_reviews }}">{{ T.reviews }}</a> · <a href="{% url 'shop:mentions' %}">{{ T.legal_notice }}</a> · <a href="{% url 'shop:cgv' %}">{{ T.order_terms }}</a> · <a href="{% url 'shop:privacy_policy' %}">{{ T.privacy }}</a> · <a href="{% url 'shop:account_deletion' %}">{{ T.delete_account }}</a></p>{% if INSTAGRAM_URL or FACEBOOK_URL %}<p class="social-icons">{% if INSTAGRAM_URL %}<a aria-label="Pizza Vitti sur Instagram" href="{{ INSTAGRAM_URL }}" target="_blank" rel="noopener">Instagram</a>{% endif %}{% if FACEBOOK_URL %}<a aria-label="Pizza Vitti sur Facebook" href="{{ FACEBOOK_URL }}" target="_blank" rel="noopener">Facebook</a>{% endif %}</p>{% endif %}</div>
     <div><strong>{{ T.newsletter_title }}</strong><p>{{ T.newsletter_text }}</p><form class="newsletter" method="post" action="{% url 'shop:newsletter' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}"><input type="email" name="email" placeholder="{{ T.email_placeholder }}" required><button>OK</button></form></div>
   </div>
-  <p class="credit">Site créé par <a href="https://kayen.fr" target="_blank" rel="noopener">Kayen.fr</a></p>
+  <p class="credit">{{ T.created }} <a href="https://kayen.fr" target="_blank" rel="noopener">Kayen.fr</a></p>
 </footer>
 {% endif %}
 </body></html>
