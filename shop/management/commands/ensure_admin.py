@@ -26,7 +26,8 @@ class Command(BaseCommand):
         user.email = email or user.email
         user.is_staff = True
         user.is_superuser = True
-        user.set_password(password)
+        if created or os.getenv('DJANGO_SUPERUSER_RESET_PASSWORD', '').lower() == 'true':
+            user.set_password(password)
         user.save()
 
         action = 'Created' if created else 'Updated'

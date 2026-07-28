@@ -311,6 +311,20 @@ class DefaultAppCredentialsTests(TestCase):
         self.assertTrue(self.client.session['kitchen_access'])
         self.assertNotIn('owner_access', self.client.session)
 
+    def test_django_superuser_can_use_the_owner_app_login(self):
+        get_user_model().objects.create_superuser(
+            username='site-admin',
+            email='admin@example.com',
+            password='AnotherSecurePassword123!',
+        )
+        response = self.client.post(reverse('shop:app_login'), {
+            'role': 'owner',
+            'username': 'site-admin',
+            'password': 'AnotherSecurePassword123!',
+        })
+        self.assertRedirects(response, reverse('shop:owner_dashboard'))
+        self.assertTrue(self.client.session['owner_access'])
+
 
 @override_settings(
     OWNER_DASHBOARD_USERNAME='admin',

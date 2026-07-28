@@ -6,7 +6,7 @@ from urllib.parse import quote
 from uuid import uuid4
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import logout
+from django.contrib.auth import authenticate, logout
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
@@ -873,7 +873,15 @@ def app_login(request, default_role='owner'):
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
-        if selected_role == 'owner' and _owner_username_matches(username) and _owner_password_matches(password):
+        django_owner = None
+        if selected_role == 'owner':
+            candidate = authenticate(request, username=username, password=password)
+            if candidate and candidate.is_active and (candidate.is_staff or candidate.is_superuser):
+                django_owner = candidate
+        if selected_role == 'owner' and (
+            (_owner_username_matches(username) and _owner_password_matches(password))
+            or django_owner
+        ):
             request.session.pop('staff_id', None)
             request.session['owner_access'] = True
             request.session['kitchen_access'] = True
