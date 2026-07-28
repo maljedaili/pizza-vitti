@@ -104,6 +104,26 @@
   backdrop-filter: blur(10px);
 }
 
+.public-site .home-google-play {
+  display: inline-flex;
+  align-items: center;
+  min-height: 54px;
+  border-radius: 8px;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.public-site .home-google-play:hover,
+.public-site .home-google-play:focus-visible {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+.public-site .home-google-play img {
+  display: block;
+  width: 176px;
+  height: auto;
+}
+
 .public-site .home-service-points {
   display: flex;
   gap: 10px 22px;

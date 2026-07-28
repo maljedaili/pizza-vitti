@@ -11,6 +11,11 @@
       <a class="button home-primary-action" href="{{ url_menu }}">{{ T.order_now }} <span aria-hidden="true">→</span></a>
       <a class="button ghost" href="{{ url_booking }}">{{ T.book_table }}</a>
       <a class="button ghost" href="tel:+33556421449">{{ T.phone }}</a>
+      {% if GOOGLE_PLAY_URL %}
+        <a class="home-google-play" href="{{ GOOGLE_PLAY_URL }}" target="_blank" rel="noopener" aria-label="Google Play">
+          <img src="{% static 'shop/img/store/google-play-badge-fr.png' %}" alt="Google Play">
+        </a>
+      {% endif %}
     </div>
     <div class="home-service-points" aria-label="Informations de commande">
       <span><b aria-hidden="true">●</b> {{ T.pickup }}</span>
