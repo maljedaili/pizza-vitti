@@ -22,7 +22,8 @@ class DrinksPageTests(TestCase):
         response = self.client.get('/fr/menu/boissons/')
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'class="shop-hero menu-hero reveal drinks-menu-hero"')
+        self.assertContains(response, 'class="shop-hero menu-hero reveal"')
+        self.assertNotContains(response, 'drinks-menu-hero')
         self.assertContains(response, 'class="toolbar menu-toolbar"')
         self.assertContains(response, 'class="menu-category grouped-menu-section"')
         self.assertNotContains(response, 'data-drinks-nav')

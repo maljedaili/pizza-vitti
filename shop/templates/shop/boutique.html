@@ -1,7 +1,7 @@
 {% extends 'shop/base.html' %}
 {% load static %}
 {% block content %}
-<section class="shop-hero menu-hero reveal{% if is_drinks_page %} drinks-menu-hero{% endif %}" data-hero-motion{% if menu_group.uploaded_image_url %} style="background-image:linear-gradient(90deg,#0d0e15f0,#1719235c),url('{{ menu_group.uploaded_image_url }}')"{% endif %}>
+<section class="shop-hero menu-hero reveal" data-hero-motion{% if menu_group.uploaded_image_url %} style="background-image:linear-gradient(90deg,#0d0e15f0,#1719235c),url('{{ menu_group.uploaded_image_url }}')"{% endif %}>
   <p class="eyebrow">{% if menu_group %}{{ menu_group.eyebrow }}{% else %}{{ T.menu }} Pizza Vitti{% endif %}</p>
   <h1>{% if menu_group %}{{ menu_group.title }}{% elif category %}{{ category.translated_name|default:category.name }}{% else %}Menu complet{% endif %}</h1>
   <p>{% if menu_group %}{{ menu_group.summary }}{% else %}Choisissez vos plats, ajoutez-les au panier et finalisez votre commande en quelques instants.{% endif %}</p>
