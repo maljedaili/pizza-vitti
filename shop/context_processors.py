@@ -4,6 +4,7 @@ from django.conf import settings
 from .hours import restaurant_status, weekly_hours
 from .models import BlogPost, Category, Product, SiteConfiguration
 from django.db.models import Case, When, IntegerField
+from django.urls import reverse
 from .translations import LANGUAGE_OPTIONS, get_lang_from_path, t_for, localized_url, lang_home
 
 def _menu_category_order(qs):
@@ -46,6 +47,14 @@ def site_settings(request):
         configured_site_url = f"{request.scheme}://{request.get_host()}"
     site = SiteConfiguration.load()
     resolver_name = request.resolver_match.url_name if request.resolver_match else ''
+    language_menu = []
+    for code, label, name, default_href in LANGUAGE_OPTIONS:
+        href = default_href
+        if resolver_name == 'localized_menu_group':
+            group = request.resolver_match.kwargs.get('group')
+            if group:
+                href = reverse('shop:localized_menu_group', args=[code, group])
+        language_menu.append((code, label, name, href))
     private_page_names = {
         'cart', 'checkout', 'invoice', 'track_order', 'customer_dashboard',
         'customer_orders', 'customer_favorites', 'account_deletion', 'app_home',
@@ -114,7 +123,7 @@ def site_settings(request):
         'nav_categories': _menu_category_order(Category.objects.filter(is_active=True)),
         'current_lang': lang,
         'T': T,
-        'LANGUAGES_MENU': LANGUAGE_OPTIONS,
+        'LANGUAGES_MENU': language_menu,
         'lang_home': lang_home(lang),
         'url_home': localized_url('home', lang),
         'url_menu': localized_url('menu', lang),

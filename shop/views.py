@@ -160,6 +160,18 @@ MENU_GROUPS = [
     },
 ]
 
+DRINKS_GROUP_TRANSLATIONS = {
+    'fr': {'title': 'Boissons', 'eyebrow': 'Bar italien', 'summary': 'Softs, bières, vins, apéritifs, digestifs, cafés et thés.'},
+    'en': {'title': 'Drinks', 'eyebrow': 'Italian bar', 'summary': 'Soft drinks, beers, wines, aperitifs, digestifs, coffees and teas.'},
+    'es': {'title': 'Bebidas', 'eyebrow': 'Bar italiano', 'summary': 'Refrescos, cervezas, vinos, aperitivos, digestivos, cafés y tés.'},
+    'it': {'title': 'Bevande', 'eyebrow': 'Bar italiano', 'summary': 'Bibite, birre, vini, aperitivi, digestivi, caffè e tè.'},
+    'pt': {'title': 'Bebidas', 'eyebrow': 'Bar italiano', 'summary': 'Refrigerantes, cervejas, vinhos, aperitivos, digestivos, cafés e chás.'},
+    'nl': {'title': 'Dranken', 'eyebrow': 'Italiaanse bar', 'summary': 'Frisdranken, bier, wijn, aperitieven, digestieven, koffie en thee.'},
+    'zh': {'title': '饮品', 'eyebrow': '意式酒吧', 'summary': '软饮、啤酒、葡萄酒、开胃酒、餐后酒、咖啡和茶。'},
+    'ja': {'title': 'ドリンク', 'eyebrow': 'イタリアンバー', 'summary': 'ソフトドリンク、ビール、ワイン、食前酒、食後酒、コーヒー、紅茶。'},
+    'ar': {'title': 'المشروبات', 'eyebrow': 'بار إيطالي', 'summary': 'مشروبات غازية وبيرة ونبيذ ومقبلات ومشروبات هاضمة وقهوة وشاي.'},
+}
+
 DRINK_CATEGORY_ORDER = [
     'caffe-the', 'cafe-allonge', 'cafe-double', 'cappuccino', 'chocolat-chaud',
     'thes-et-infusions', 'carte-des-vins-rouges', 'carte-des-vins-blancs',
@@ -184,16 +196,21 @@ def _menu_groups(lang='fr'):
         if not categories:
             continue
         item = group.copy()
+        if group['slug'] == 'boissons':
+            item.update(DRINKS_GROUP_TRANSLATIONS.get(lang, DRINKS_GROUP_TRANSLATIONS['fr']))
         item['url'] = reverse('shop:localized_menu_group', args=[lang, group['slug']])
         item['count'] = sum(category.products.filter(is_available=True).count() for category in categories)
         groups.append(item)
     return groups
 
 
-def _menu_group_by_slug(slug):
+def _menu_group_by_slug(slug, lang='fr'):
     for group in MENU_GROUPS:
         if group['slug'] == slug:
-            return group
+            item = group.copy()
+            if slug == 'boissons':
+                item.update(DRINKS_GROUP_TRANSLATIONS.get(lang, DRINKS_GROUP_TRANSLATIONS['fr']))
+            return item
     return None
 
 
@@ -425,7 +442,8 @@ def category(request, slug):
     return render(request, 'shop/boutique.html', {'page_obj': page_obj, 'category': cat, 'favorite_product_ids': favorite_product_ids, 'menu_groups': _menu_groups(lang)})
 
 def menu_group(request, group, lang=None):
-    menu_group_data = _menu_group_by_slug(group)
+    lang = lang or get_lang_from_path(request.path)
+    menu_group_data = _menu_group_by_slug(group, lang)
     if not menu_group_data:
         return redirect('shop:boutique')
     categories = [
@@ -436,7 +454,6 @@ def menu_group(request, group, lang=None):
         drink_order = {slug: index for index, slug in enumerate(DRINK_CATEGORY_ORDER)}
         categories.sort(key=lambda category: drink_order.get(category.slug, 999))
     products = list(Product.objects.filter(is_available=True, category__in=categories).select_related('category'))
-    lang = lang or get_lang_from_path(request.path)
     _apply_menu_translations(products, categories, lang)
     sections = []
     for category in categories:
