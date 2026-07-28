@@ -1,5 +1,5 @@
 <article class="product-card reveal">
-  <a href="{{ product.get_absolute_url }}" class="product-img{% if product.slug == 'la-margherita' %} is-3d-product{% endif %}" data-product-tilt>
+  <a href="{{ product.get_absolute_url }}" class="product-img is-3d-product" data-product-tilt>
     <img src="{{ product.display_image }}" alt="{{ product.name }}" loading="lazy">
     <span class="product-badges">
       {% if product.is_best_seller %}<b>Populaire</b>{% endif %}

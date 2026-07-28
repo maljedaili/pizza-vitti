@@ -2,7 +2,7 @@
 
 {% block content %}
 <section class="detail product-detail">
-  <div class="detail-media{% if product.slug == 'la-margherita' %} is-3d-product{% endif %}" data-product-tilt>
+  <div class="detail-media is-3d-product" data-product-tilt>
     <img src="{{ product.display_image }}" alt="{{ product.name }}">
     <span class="product-tilt-hint" aria-hidden="true">↔ Glissez pour tourner</span>
   </div>
