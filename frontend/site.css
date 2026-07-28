@@ -782,12 +782,6 @@
   }
 }
 
-.public-site .shop-hero.menu-hero.drinks-menu-hero {
-  background:
-    linear-gradient(90deg, #0d0e15f0, #1719235c),
-    url("/static/shop/img/drinks/hero-bar-italien-1920.webp") center 52% / cover;
-}
-
 body.public-site {
   background: var(--pv-paper);
   color: var(--pv-text);
