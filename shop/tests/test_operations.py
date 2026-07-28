@@ -273,6 +273,12 @@ class StorefrontProductionRulesTests(TestCase):
         self.assertContains(response, 'name="robots" content="noindex,nofollow"')
 
 
+@override_settings(
+    OWNER_DASHBOARD_USERNAME='admin',
+    OWNER_DASHBOARD_PASSWORD='Rootvitti',
+    OWNER_DASHBOARD_PASSWORD_HASH='',
+    KITCHEN_PASSWORD='123',
+)
 class DefaultAppCredentialsTests(TestCase):
     def test_owner_uses_admin_username_and_rootvitti_password(self):
         response = self.client.post(reverse('shop:app_login'), {
