@@ -156,8 +156,15 @@ MENU_GROUPS = [
         'summary': 'Softs, bières, vins, apéritifs, digestifs, cafés et thés.',
         'kind': 'is-drink',
         'image': '/media/gallery/45e8414417d58a2774dc544f972c5d7a773a39e2.jpeg',
-        'matches': ('aperitivo', 'digestif', 'birre', 'analcolici', 'caff', 'vin'),
+        'matches': ('aperitivo', 'digestif', 'birre', 'analcolici', 'caff', 'cafe', 'cappuccino', 'chocolat', 'the', 'vin'),
     },
+]
+
+DRINK_CATEGORY_ORDER = [
+    'caffe-the', 'cafe-allonge', 'cafe-double', 'cappuccino', 'chocolat-chaud',
+    'thes-et-infusions', 'carte-des-vins-rouges', 'carte-des-vins-blancs',
+    'carte-des-vins-roses', 'carte-des-vins-petillants', 'aperitivo',
+    'vins-deliveroo', 'analcolici', 'digestifs',
 ]
 
 
@@ -425,6 +432,9 @@ def menu_group(request, group, lang=None):
         category for category in _categories_for_group(menu_group_data)
         if 'suppl' not in _category_key(category)
     ]
+    if group == 'boissons':
+        drink_order = {slug: index for index, slug in enumerate(DRINK_CATEGORY_ORDER)}
+        categories.sort(key=lambda category: drink_order.get(category.slug, 999))
     products = list(Product.objects.filter(is_available=True, category__in=categories).select_related('category'))
     lang = lang or get_lang_from_path(request.path)
     _apply_menu_translations(products, categories, lang)
@@ -436,6 +446,62 @@ def menu_group(request, group, lang=None):
     favorite_product_ids = set()
     if request.user.is_authenticated:
         favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
+    drinks_copy = {
+        'fr': ('BAR ITALIEN · CAFÉS · VINS', 'Boissons & Carte des vins', 'Cafés italiens, boissons fraîches, apéritifs et vins soigneusement sélectionnés pour accompagner votre repas.', 'Découvrir la carte', 'Voir les vins', 'Navigation des boissons'),
+        'en': ('ITALIAN BAR · COFFEE · WINE', 'Drinks & Wine List', 'Italian coffees, refreshing drinks, aperitifs and carefully selected wines to accompany your meal.', 'Explore the menu', 'View wines', 'Drinks navigation'),
+        'es': ('BAR ITALIANO · CAFÉS · VINOS', 'Bebidas y Carta de vinos', 'Cafés italianos, bebidas frescas, aperitivos y vinos cuidadosamente seleccionados para acompañar su comida.', 'Descubrir la carta', 'Ver los vinos', 'Navegación de bebidas'),
+        'it': ('BAR ITALIANO · CAFFÈ · VINI', 'Bevande e Carta dei vini', 'Caffè italiani, bevande fresche, aperitivi e vini selezionati con cura per accompagnare il pasto.', 'Scopri il menu', 'Vedi i vini', 'Navigazione bevande'),
+        'pt': ('BAR ITALIANO · CAFÉS · VINHOS', 'Bebidas e Carta de vinhos', 'Cafés italianos, bebidas frescas, aperitivos e vinhos cuidadosamente selecionados para acompanhar a refeição.', 'Descobrir o menu', 'Ver vinhos', 'Navegação de bebidas'),
+        'nl': ('ITALIAANSE BAR · KOFFIE · WIJN', 'Dranken & Wijnkaart', 'Italiaanse koffie, frisse dranken, aperitieven en zorgvuldig geselecteerde wijnen voor bij uw maaltijd.', 'Ontdek de kaart', 'Bekijk wijnen', 'Dranknavigatie'),
+        'zh': ('意式酒吧 · 咖啡 · 葡萄酒', '饮品与葡萄酒单', '意式咖啡、清爽饮品、开胃酒和精心挑选的葡萄酒，为您的餐点增添风味。', '浏览饮品单', '查看葡萄酒', '饮品导航'),
+        'ja': ('イタリアンバー · コーヒー · ワイン', 'ドリンク＆ワインリスト', 'イタリアンコーヒー、爽やかなドリンク、食前酒、厳選ワインをお食事とともに。', 'メニューを見る', 'ワインを見る', 'ドリンクナビゲーション'),
+        'ar': ('بار إيطالي · قهوة · نبيذ', 'المشروبات وقائمة النبيذ', 'قهوة إيطالية ومشروبات منعشة ومقبلات ونبيذ مختار بعناية لمرافقة وجبتكم.', 'اكتشف القائمة', 'عرض النبيذ', 'التنقل بين المشروبات'),
+    }
+    copy = drinks_copy.get(lang, drinks_copy['fr'])
+    drinks_structured_data = ''
+    if group == 'boissons':
+        page_url = request.build_absolute_uri()
+        menu_url = request.build_absolute_uri(reverse('shop:localized_page', args=[lang, 'menu']))
+        drinks_structured_data = json.dumps({
+            '@context': 'https://schema.org',
+            '@graph': [
+                {
+                    '@type': 'BreadcrumbList',
+                    'itemListElement': [
+                        {'@type': 'ListItem', 'position': 1, 'name': 'Pizza Vitti', 'item': request.build_absolute_uri(f'/{lang}/')},
+                        {'@type': 'ListItem', 'position': 2, 'name': 'Menu', 'item': menu_url},
+                        {'@type': 'ListItem', 'position': 3, 'name': copy[1], 'item': page_url},
+                    ],
+                },
+                {
+                    '@type': 'Menu',
+                    'name': copy[1],
+                    'description': copy[2],
+                    'url': page_url,
+                    'hasMenuSection': [
+                        {
+                            '@type': 'MenuSection',
+                            'name': getattr(section['category'], 'translated_name', section['category'].name),
+                            'hasMenuItem': [
+                                {
+                                    '@type': 'MenuItem',
+                                    'name': getattr(product, 'translated_name', product.name),
+                                    'description': getattr(product, 'translated_description', product.description),
+                                    'offers': {
+                                        '@type': 'Offer',
+                                        'price': str(product.price),
+                                        'priceCurrency': 'EUR',
+                                        'availability': 'https://schema.org/InStock',
+                                    },
+                                }
+                                for product in section['products']
+                            ],
+                        }
+                        for section in sections
+                    ],
+                },
+            ],
+        }, ensure_ascii=False)
     return render(request, 'shop/boutique.html', {
         'menu_group': menu_group_data,
         'menu_groups': _menu_groups(lang),
@@ -443,6 +509,15 @@ def menu_group(request, group, lang=None):
         'favorite_product_ids': favorite_product_ids,
         'meta_title': f"{menu_group_data['title']} | Pizza Vitti Bordeaux",
         'meta_description': menu_group_data['summary'],
+        'is_drinks_page': group == 'boissons',
+        'drinks_copy': {
+            'eyebrow': copy[0], 'title': copy[1], 'subtitle': copy[2],
+            'primary': copy[3], 'secondary': copy[4], 'nav_label': copy[5],
+        },
+        'meta_title': 'Boissons, cafés et vins italiens | Pizza Vitti Bordeaux' if group == 'boissons' else f"{menu_group_data['title']} | Pizza Vitti Bordeaux",
+        'meta_description': 'Découvrez les cafés italiens, boissons fraîches, apéritifs, digestifs et la carte des vins de Pizza Vitti à Bordeaux.' if group == 'boissons' else menu_group_data['summary'],
+        'meta_image': '/static/shop/img/drinks/hero-bar-italien-1920.webp' if group == 'boissons' else '',
+        'drinks_structured_data': drinks_structured_data,
     })
 
 def product_detail(request, slug):

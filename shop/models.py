@@ -20,6 +20,11 @@ class Category(TimeStampedModel):
     slug = models.SlugField(max_length=140, unique=True, blank=True)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to='categories/', blank=True, null=True)
+    static_image_path = models.CharField(
+        max_length=240,
+        blank=True,
+        help_text='Image locale par défaut, par exemple /static/shop/img/drinks/cafe.webp.',
+    )
     order = models.PositiveIntegerField(default=0)
     is_active = models.BooleanField(default=True)
     class Meta:
@@ -32,6 +37,9 @@ class Category(TimeStampedModel):
         super().save(*args, **kwargs)
     def __str__(self): return self.name
     def get_absolute_url(self): return reverse('shop:category', args=[self.slug])
+    @property
+    def display_image(self):
+        return self.image.url if self.image else self.static_image_path
 
 class Product(TimeStampedModel):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
@@ -59,6 +67,12 @@ class Product(TimeStampedModel):
     professional_only = models.BooleanField(default=False, verbose_name='Réservé aux professionnels')
     meta_title = models.CharField(max_length=70, blank=True)
     meta_description = models.CharField(max_length=160, blank=True)
+    glass_price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Prix au verre')
+    bottle_price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Prix bouteille')
+    wine_colour = models.CharField(max_length=40, blank=True, verbose_name='Couleur du vin')
+    region = models.CharField(max_length=100, blank=True, verbose_name='Région / origine')
+    grape_variety = models.CharField(max_length=120, blank=True, verbose_name='Cépage')
+    vintage = models.PositiveSmallIntegerField(blank=True, null=True, verbose_name='Millésime')
     class Meta:
         ordering = ['-is_featured', 'name']
         verbose_name = 'Produit'
@@ -252,6 +266,12 @@ class SiteConfiguration(TimeStampedModel):
     address = models.CharField(max_length=240, default="236 rue d’Ornano, 33000 Bordeaux")
     telephone = models.CharField(max_length=40, default='05 56 42 14 49')
     public_email = models.EmailField(blank=True)
+    drinks_banner_image = models.ImageField(
+        upload_to='banners/',
+        blank=True,
+        null=True,
+        verbose_name='Bannière de la page boissons',
+    )
     google_maps_url = models.URLField(
         default="https://maps.google.com/?q=Pizza+Vitti+236+Rue+d'Ornano+33000+Bordeaux",
     )
