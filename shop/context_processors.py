@@ -127,7 +127,11 @@ def site_settings(request):
         'GOOGLE_REVIEW_URL': site.google_review_url or settings.GOOGLE_REVIEW_URL,
         'INSTAGRAM_URL': site.instagram_url,
         'FACEBOOK_URL': site.facebook_url,
-        'GOOGLE_PLAY_URL': site.google_play_url or settings.GOOGLE_PLAY_URL,
+        'GOOGLE_PLAY_URL': (
+            site.google_play_url
+            or settings.GOOGLE_PLAY_URL
+            or 'https://play.google.com/apps/testing/kayen.fr'
+        ),
         'LOYALTY_ENABLED': settings.LOYALTY_ENABLED,
         'nav_categories': _menu_category_order(Category.objects.filter(is_active=True)),
         'current_lang': lang,

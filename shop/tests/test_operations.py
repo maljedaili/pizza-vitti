@@ -150,9 +150,11 @@ class CustomerLoyaltyTests(TestCase):
         self.assertEqual(user.first_name, 'Nina')
         self.assertEqual(user.last_name, 'Rossi')
 
-    def test_public_footer_hides_unavailable_android_application(self):
+    def test_public_home_links_to_the_android_testing_application(self):
         response = self.client.get(reverse('shop:home'))
         self.assertNotContains(response, 'Google Play en préparation')
+        self.assertContains(response, 'class="home-google-play"')
+        self.assertContains(response, 'https://play.google.com/apps/testing/kayen.fr')
         self.assertContains(response, 'Site créé par')
         self.assertContains(response, reverse('shop:account_deletion'))
 
