@@ -187,6 +187,22 @@ DRINK_CATEGORY_ORDER = [
     'vins-deliveroo', 'analcolici', 'digestifs',
 ]
 
+MENU_GROUP_IMAGE_FIELDS = {
+    'pizzas': 'pizzas_banner_image',
+    'pastas': 'pastas_banner_image',
+    'antipasti': 'antipasti_banner_image',
+    'bambino': 'bambino_banner_image',
+    'douceurs': 'desserts_banner_image',
+    'boissons': 'drinks_banner_image',
+}
+
+
+def _apply_menu_group_image(item, site_config):
+    image_field = getattr(site_config, MENU_GROUP_IMAGE_FIELDS[item['slug']], None)
+    if image_field:
+        item['image'] = image_field.url
+        item['uploaded_image_url'] = image_field.url
+
 
 def _category_key(category):
     return f'{category.name} {category.slug}'.lower()
@@ -199,6 +215,7 @@ def _categories_for_group(group):
 
 def _menu_groups(lang='fr'):
     groups = []
+    site_config = SiteConfiguration.load()
     for group in MENU_GROUPS:
         categories = _categories_for_group(group)
         if not categories:
@@ -208,6 +225,7 @@ def _menu_groups(lang='fr'):
             item.update(DRINKS_GROUP_TRANSLATIONS.get(lang, DRINKS_GROUP_TRANSLATIONS['fr']))
         elif lang == 'ar' and group['slug'] in ARABIC_MENU_GROUP_TRANSLATIONS:
             item.update(ARABIC_MENU_GROUP_TRANSLATIONS[group['slug']])
+        _apply_menu_group_image(item, site_config)
         item['url'] = reverse('shop:localized_menu_group', args=[lang, group['slug']])
         item['count'] = sum(category.products.filter(is_available=True).count() for category in categories)
         groups.append(item)
@@ -215,6 +233,7 @@ def _menu_groups(lang='fr'):
 
 
 def _menu_group_by_slug(slug, lang='fr'):
+    site_config = SiteConfiguration.load()
     for group in MENU_GROUPS:
         if group['slug'] == slug:
             item = group.copy()
@@ -222,6 +241,7 @@ def _menu_group_by_slug(slug, lang='fr'):
                 item.update(DRINKS_GROUP_TRANSLATIONS.get(lang, DRINKS_GROUP_TRANSLATIONS['fr']))
             elif lang == 'ar' and slug in ARABIC_MENU_GROUP_TRANSLATIONS:
                 item.update(ARABIC_MENU_GROUP_TRANSLATIONS[slug])
+            _apply_menu_group_image(item, site_config)
             return item
     return None
 
