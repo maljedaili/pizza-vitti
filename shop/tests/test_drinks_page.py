@@ -37,9 +37,18 @@ class DrinksPageTests(TestCase):
         english = self.client.get('/en/menu/boissons/')
         arabic = self.client.get('/ar/menu/boissons/')
 
-        self.assertContains(english, 'Drinks')
-        self.assertContains(arabic, 'مشروبات')
+        self.assertContains(english, '<h1>Drinks</h1>', html=True)
+        self.assertContains(english, 'Soft drinks, beers, wines, aperitifs, digestifs, coffees and teas.')
+        self.assertNotContains(english, '<h1>Boissons</h1>', html=True)
+        self.assertContains(arabic, '<h1>المشروبات</h1>', html=True)
         self.assertContains(arabic, 'dir="rtl"')
+
+    def test_language_switch_keeps_the_visitor_on_the_drinks_page(self):
+        response = self.client.get('/fr/menu/boissons/')
+
+        self.assertContains(response, 'href="/en/menu/boissons/"')
+        self.assertContains(response, 'href="/es/menu/boissons/"')
+        self.assertContains(response, 'href="/ar/menu/boissons/"')
 
     def test_command_is_idempotent_and_keeps_requested_order(self):
         call_command('sync_drinks_page')
