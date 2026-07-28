@@ -3,8 +3,12 @@
   --product-tilt-y: 0deg;
   --product-shift-x: 0px;
   --product-shift-y: 0px;
-  perspective: 900px;
+  --product-light-x: 50%;
+  --product-light-y: 35%;
+  position: relative;
+  perspective: 760px;
   touch-action: pan-y;
+  isolation: isolate;
 }
 
 .public-site [data-product-tilt] > img {
@@ -12,15 +16,42 @@
     translate3d(var(--product-shift-x), var(--product-shift-y), 0)
     rotateX(var(--product-tilt-x))
     rotateY(var(--product-tilt-y))
-    scale(1.045);
+    scale(1.075);
   transform-origin: center;
-  transition: transform .32s cubic-bezier(.2, .75, .25, 1), filter .25s ease;
+  transition: transform .48s cubic-bezier(.16, .8, .24, 1), filter .3s ease;
   will-change: transform;
 }
 
+.public-site [data-product-tilt]::after {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      circle at var(--product-light-x) var(--product-light-y),
+      rgba(255, 244, 213, .28),
+      rgba(255, 255, 255, .05) 24%,
+      transparent 48%
+    );
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  transition: opacity .3s ease;
+}
+
 .public-site [data-product-tilt].is-tilting > img {
-  filter: saturate(1.06) contrast(1.03);
-  transition-duration: .08s;
+  filter: saturate(1.08) contrast(1.04) drop-shadow(0 22px 22px rgba(32, 20, 13, .22));
+  transition-duration: .09s;
+}
+
+.public-site [data-product-tilt].is-tilting::after {
+  opacity: 1;
+}
+
+.public-site [data-product-tilt].is-dragging {
+  cursor: grabbing;
 }
 
 .public-site .detail-media[data-product-tilt] {
@@ -28,9 +59,37 @@
   border-radius: 18px;
 }
 
+.public-site .product-tilt-hint {
+  position: absolute;
+  z-index: 4;
+  right: 14px;
+  bottom: 14px;
+  border: 1px solid rgba(255, 255, 255, .32);
+  border-radius: 999px;
+  padding: 8px 11px;
+  background: rgba(18, 14, 12, .68);
+  color: #fff;
+  font-size: .76rem;
+  font-weight: 900;
+  letter-spacing: .02em;
+  pointer-events: none;
+  backdrop-filter: blur(8px);
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.public-site [data-product-tilt].is-tilting .product-tilt-hint {
+  opacity: .25;
+  transform: translateY(4px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .public-site [data-product-tilt] > img {
     transform: none;
     transition: none;
+  }
+
+  .public-site [data-product-tilt]::after,
+  .public-site .product-tilt-hint {
+    display: none;
   }
 }

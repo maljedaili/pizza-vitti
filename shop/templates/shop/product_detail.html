@@ -2,7 +2,10 @@
 
 {% block content %}
 <section class="detail product-detail">
-  <div class="detail-media" data-product-tilt><img src="{{ product.display_image }}" alt="{{ product.name }}"></div>
+  <div class="detail-media" data-product-tilt>
+    <img src="{{ product.display_image }}" alt="{{ product.name }}">
+    <span class="product-tilt-hint" aria-hidden="true">↔ Glissez pour tourner</span>
+  </div>
   <div>
     <p class="eyebrow">{{ product.translated_category_name|default:product.category.name }}</p>
     <h1>{{ product.translated_name|default:product.name }}</h1>

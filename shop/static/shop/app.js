@@ -36,30 +36,39 @@ document.querySelectorAll('[data-product-tilt]').forEach(stage => {
   let moved = false;
   let startX = 0;
   let startY = 0;
+  let resetTimer = null;
   const rotate = (clientX, clientY) => {
     const rect = stage.getBoundingClientRect();
     const x = Math.max(-1, Math.min(1, (clientX - rect.left) / rect.width * 2 - 1));
     const y = Math.max(-1, Math.min(1, (clientY - rect.top) / rect.height * 2 - 1));
-    stage.style.setProperty('--product-tilt-x', `${(-y * 9).toFixed(2)}deg`);
-    stage.style.setProperty('--product-tilt-y', `${(x * 11).toFixed(2)}deg`);
-    stage.style.setProperty('--product-shift-x', `${(x * 7).toFixed(2)}px`);
-    stage.style.setProperty('--product-shift-y', `${(y * 5).toFixed(2)}px`);
+    stage.style.setProperty('--product-tilt-x', `${(-y * 12).toFixed(2)}deg`);
+    stage.style.setProperty('--product-tilt-y', `${(x * 15).toFixed(2)}deg`);
+    stage.style.setProperty('--product-shift-x', `${(x * 10).toFixed(2)}px`);
+    stage.style.setProperty('--product-shift-y', `${(y * 7).toFixed(2)}px`);
+    stage.style.setProperty('--product-light-x', `${((x + 1) * 50).toFixed(1)}%`);
+    stage.style.setProperty('--product-light-y', `${((y + 1) * 50).toFixed(1)}%`);
     stage.classList.add('is-tilting');
   };
   const reset = () => {
+    window.clearTimeout(resetTimer);
     dragging = false;
     stage.style.setProperty('--product-tilt-x', '0deg');
     stage.style.setProperty('--product-tilt-y', '0deg');
     stage.style.setProperty('--product-shift-x', '0px');
     stage.style.setProperty('--product-shift-y', '0px');
+    stage.style.setProperty('--product-light-x', '50%');
+    stage.style.setProperty('--product-light-y', '35%');
     stage.classList.remove('is-tilting');
+    stage.classList.remove('is-dragging');
   };
   stage.addEventListener('pointerdown', event => {
     if (event.pointerType === 'mouse') return;
+    window.clearTimeout(resetTimer);
     dragging = true;
     moved = false;
     startX = event.clientX;
     startY = event.clientY;
+    stage.classList.add('is-dragging');
   });
   stage.addEventListener('pointermove', event => {
     if (event.pointerType !== 'mouse' && !dragging) return;
@@ -68,7 +77,11 @@ document.querySelectorAll('[data-product-tilt]').forEach(stage => {
   });
   stage.addEventListener('pointerleave', reset);
   stage.addEventListener('pointercancel', reset);
-  stage.addEventListener('pointerup', () => window.setTimeout(reset, 140));
+  stage.addEventListener('pointerup', () => {
+    dragging = false;
+    stage.classList.remove('is-dragging');
+    resetTimer = window.setTimeout(reset, 1100);
+  });
   stage.addEventListener('click', event => {
     if (moved) {
       event.preventDefault();
