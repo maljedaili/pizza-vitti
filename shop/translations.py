@@ -109,6 +109,20 @@ ORDER_FLOW_TRANSLATIONS = {
 for _language, _copy in ORDER_FLOW_TRANSLATIONS.items():
     TRANSLATIONS[_language].update(_copy)
 
+AVAILABILITY_TRACKING_TRANSLATIONS = {
+    'fr': {'sold_out':'Épuisé aujourd’hui','available_later':'Disponible plus tard','available_again':'Disponible à nouveau le','track_order':'Suivre ma commande','track_help':'Saisissez le numéro reçu après la commande et la même adresse email.','order_number':'Numéro de commande','track_button':'Afficher le suivi','received_step':'Reçue','preparing_step':'Préparation','ready_step':'Prête','collected_step':'Récupérée'},
+    'en': {'sold_out':'Sold out today','available_later':'Available later','available_again':'Available again','track_order':'Track my order','track_help':'Enter your order number and the same email address used at checkout.','order_number':'Order number','track_button':'Show tracking','received_step':'Received','preparing_step':'Preparing','ready_step':'Ready','collected_step':'Collected'},
+    'es': {'sold_out':'Agotado hoy','available_later':'Disponible más tarde','available_again':'Disponible de nuevo','track_order':'Seguir mi pedido','track_help':'Introduce el número del pedido y el mismo email utilizado al pagar.','order_number':'Número de pedido','track_button':'Ver seguimiento','received_step':'Recibido','preparing_step':'Preparando','ready_step':'Listo','collected_step':'Recogido'},
+    'it': {'sold_out':'Esaurito oggi','available_later':'Disponibile più tardi','available_again':'Di nuovo disponibile','track_order':'Segui il mio ordine','track_help':'Inserisci il numero d’ordine e la stessa email usata al pagamento.','order_number':'Numero ordine','track_button':'Mostra stato','received_step':'Ricevuto','preparing_step':'Preparazione','ready_step':'Pronto','collected_step':'Ritirato'},
+    'pt': {'sold_out':'Esgotado hoje','available_later':'Disponível mais tarde','available_again':'Disponível novamente','track_order':'Acompanhar pedido','track_help':'Introduza o número do pedido e o mesmo email usado no pagamento.','order_number':'Número do pedido','track_button':'Ver acompanhamento','received_step':'Recebido','preparing_step':'Em preparação','ready_step':'Pronto','collected_step':'Levantado'},
+    'nl': {'sold_out':'Vandaag uitverkocht','available_later':'Later beschikbaar','available_again':'Opnieuw beschikbaar','track_order':'Bestelling volgen','track_help':'Vul het bestelnummer en hetzelfde e-mailadres van de bestelling in.','order_number':'Bestelnummer','track_button':'Tracking tonen','received_step':'Ontvangen','preparing_step':'In voorbereiding','ready_step':'Klaar','collected_step':'Afgehaald'},
+    'zh': {'sold_out':'今日售罄','available_later':'稍后供应','available_again':'恢复供应','track_order':'追踪订单','track_help':'请输入订单号和下单时使用的邮箱。','order_number':'订单号','track_button':'查看进度','received_step':'已接单','preparing_step':'制作中','ready_step':'已完成','collected_step':'已取餐'},
+    'ja': {'sold_out':'本日売り切れ','available_later':'後ほど注文可能','available_again':'再開予定','track_order':'注文を追跡','track_help':'注文番号と注文時に使用したメールアドレスを入力してください。','order_number':'注文番号','track_button':'状況を表示','received_step':'受付済み','preparing_step':'調理中','ready_step':'受取可能','collected_step':'受取済み'},
+    'ar': {'sold_out':'نفد اليوم','available_later':'متاح لاحقاً','available_again':'متاح مجدداً','track_order':'تتبع طلبي','track_help':'أدخل رقم الطلب ونفس البريد الإلكتروني المستخدم عند الطلب.','order_number':'رقم الطلب','track_button':'عرض التتبع','received_step':'تم الاستلام','preparing_step':'قيد التحضير','ready_step':'جاهز','collected_step':'تم الاستلام'},
+}
+for _language, _copy in AVAILABILITY_TRACKING_TRANSLATIONS.items():
+    TRANSLATIONS[_language].update(_copy)
+
 def get_lang_from_path(path):
     parts = [p for p in path.split('/') if p]
     if parts and parts[0] in TRANSLATIONS:

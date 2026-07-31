@@ -48,6 +48,7 @@ class Command(BaseCommand):
                     'badge': 'Boisson',
                     'stock': 100,
                     'is_available': True,
+                    'availability_status': 'available',
                     'is_featured': False,
                     'professional_only': False,
                     'meta_title': f'{name} | Pizza Vitti Bordeaux',
@@ -57,7 +58,7 @@ class Command(BaseCommand):
 
         hidden = Product.objects.filter(category=category).exclude(
             name__in=listed_names,
-        ).update(is_available=False)
+        ).update(is_available=False, availability_status='sold_out')
         self.stdout.write(self.style.SUCCESS(
             f'Synchronized {len(listed_names)} Deliveroo drinks; hid {hidden} older item(s).'
         ))

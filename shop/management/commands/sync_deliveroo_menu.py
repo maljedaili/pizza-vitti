@@ -59,6 +59,7 @@ def sync_named_products(category, products, badge, image_path):
         product.badge = badge
         product.stock = 100
         product.is_available = True
+        product.availability_status = 'available'
         product.professional_only = False
         product.meta_title = f'{name} | Pizza Vitti Bordeaux'
         product.meta_description = description[:160]
@@ -66,7 +67,7 @@ def sync_named_products(category, products, badge, image_path):
 
     return Product.objects.filter(category=category).exclude(
         name__in=listed_names,
-    ).update(is_available=False)
+    ).update(is_available=False, availability_status='sold_out')
 
 
 class Command(BaseCommand):
@@ -95,6 +96,7 @@ class Command(BaseCommand):
             product.badge = 'Pizza'
             product.stock = 100
             product.is_available = True
+            product.availability_status = 'available'
             product.professional_only = False
             product.meta_title = f'{name} | Pizza Vitti Bordeaux'
             product.meta_description = description[:160]
@@ -103,7 +105,7 @@ class Command(BaseCommand):
 
         hidden_pizzas = Product.objects.filter(category=pizza_category).exclude(
             pk__in=pizza_ids,
-        ).update(is_available=False)
+        ).update(is_available=False, availability_status='sold_out')
 
         call_command('sync_deliveroo_drinks')
         drinks = Product.objects.filter(category__slug='analcolici', is_available=True)

@@ -42,6 +42,11 @@ class Category(TimeStampedModel):
         return self.image.url if self.image else self.static_image_path
 
 class Product(TimeStampedModel):
+    AVAILABILITY = [
+        ('available', 'Disponible'),
+        ('sold_out', 'Épuisé aujourd’hui'),
+        ('scheduled', 'Disponible plus tard'),
+    ]
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='products')
     name = models.CharField(max_length=180)
     slug = models.SlugField(max_length=210, unique=True, blank=True)
@@ -61,6 +66,8 @@ class Product(TimeStampedModel):
     is_signature = models.BooleanField(default=False, verbose_name='Signature')
     stock = models.PositiveIntegerField(default=20)
     is_available = models.BooleanField(default=True)
+    availability_status = models.CharField(max_length=20, choices=AVAILABILITY, default='available', verbose_name='Disponibilité')
+    available_again_at = models.DateTimeField(blank=True, null=True, verbose_name='Disponible à nouveau le')
     is_featured = models.BooleanField(default=False)
     is_best_seller = models.BooleanField(default=False, verbose_name='Meilleure vente')
     is_pizza_of_month = models.BooleanField(default=False, verbose_name='Pizza du mois')
@@ -79,6 +86,11 @@ class Product(TimeStampedModel):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(self.name)
+        if self.availability_status == 'available':
+            self.is_available = True
+            self.available_again_at = None
+        else:
+            self.is_available = False
         super().save(*args, **kwargs)
     def __str__(self): return self.name
     @property
@@ -96,6 +108,13 @@ class Product(TimeStampedModel):
             return '/static/shop/img/hero/menu-bambino-pizza.jpg'
         return '/static/shop/img/hero/menu-pizza-vitti.jpg'
     def get_absolute_url(self): return reverse('shop:product_detail', args=[self.slug])
+    @property
+    def is_orderable(self):
+        return self.availability_status == 'available' or (
+            self.availability_status == 'scheduled'
+            and self.available_again_at
+            and self.available_again_at <= timezone.now()
+        )
 
 class ProfessionalClient(TimeStampedModel):
     company_name = models.CharField(max_length=160, verbose_name='Entreprise')

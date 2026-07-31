@@ -1,1 +1,23 @@
-{% extends 'shop/base.html' %}{% block content %}<section class="card"><h1>Suivi commande</h1><form method="post">{% csrf_token %}<input name="order_number" placeholder="PV-XXXXXXXX"><button class="button">Rechercher</button></form>{% if order %}<h2>{{ order.order_number }}</h2><p>{{ order.get_status_display }} · {{ order.get_payment_status_display }}</p>{% endif %}</section>{% endblock %}
+{% extends 'shop/base.html' %}{% block content %}
+<section class="track-order-shell">
+  <div class="card track-order-card">
+    <p class="eyebrow">{{ T.track_order }}</p><h1>{{ T.track_order }}</h1>
+    <p>{{ T.track_help }}</p>
+    <form method="post" class="track-order-form">{% csrf_token %}
+      <label>{{ T.order_number }}<input name="order_number" placeholder="PV-XXXXXXXX" autocomplete="off" required></label>
+      <label>{{ T.email }}<input type="email" name="email" autocomplete="email" required></label>
+      <button class="button">{{ T.track_button }}</button>
+    </form>
+  </div>
+  {% if order %}<article class="card order-tracking-result">
+    <div class="tracking-head"><div><p class="eyebrow">{{ T.order_number }}</p><h2>{{ order.order_number }}</h2></div><strong>{{ order.get_status_display }}</strong></div>
+    <ol class="order-progress" style="--progress-step:{{ order.progress_step }}">
+      <li class="{% if order.progress_step >= 1 %}done{% endif %}"><span>1</span>{{ T.received_step }}</li>
+      <li class="{% if order.progress_step >= 2 %}done{% endif %}"><span>2</span>{{ T.preparing_step }}</li>
+      <li class="{% if order.progress_step >= 3 %}done{% endif %}"><span>3</span>{{ T.ready_step }}</li>
+      <li class="{% if order.progress_step >= 4 %}done{% endif %}"><span>4</span>{{ T.collected_step }}</li>
+    </ol>
+    <div class="tracking-details"><p><strong>{{ T.pickup }}</strong><span>{{ order.collection_date|date:'d/m/Y' }} · {{ order.collection_time|time:'H:i' }}</span></p><p><strong>{{ T.payment }}</strong><span>{{ order.get_payment_status_display }}</span></p><p><strong>{{ T.total }}</strong><span>{{ order.total }} €</span></p></div>
+    <a class="button ghost" href="{{ site_config.google_maps_url }}" target="_blank" rel="noopener">{{ T.open_maps }} ↗</a>
+  </article>{% endif %}
+</section>{% endblock %}

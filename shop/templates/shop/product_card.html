@@ -1,4 +1,4 @@
-<article class="product-card reveal">
+<article class="product-card reveal{% if not product.is_orderable %} is-unavailable{% endif %}">
   <a href="{{ product.get_absolute_url }}" class="product-img is-3d-product" data-product-tilt>
     <img src="{{ product.display_image }}" alt="{{ product.translated_name|default:product.name }}" width="900" height="900" loading="lazy">
     <span class="product-badges">
@@ -7,6 +7,7 @@
       {% if product.is_spicy %}<b>{{ T.spicy }}</b>{% endif %}
       {% if product.is_signature %}<b>{{ T.signature }}</b>{% endif %}
       {% if product.badge and not product.is_vegetarian and not product.is_spicy and not product.is_signature %}<b>{{ product.badge }}</b>{% endif %}
+      {% if not product.is_orderable %}<b class="sold-out-badge">{% if product.availability_status == 'scheduled' %}{{ T.available_later }}{% else %}{{ T.sold_out }}{% endif %}</b>{% endif %}
     </span>
   </a>
   <div>
@@ -28,7 +29,7 @@
       {% else %}
         <strong>{{ product.price }} €</strong><small>/ {{ product.unit }}</small>
       {% endif %}
-      <form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="quick-add">
+      {% if product.is_orderable %}<form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="quick-add">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <label>
@@ -36,7 +37,7 @@
           <input type="number" name="qty" value="1" min="1" max="20" inputmode="numeric" aria-label="{{ T.quantity }} · {{ product.name }}">
         </label>
         <button>{{ T.add }}</button>
-      </form>
+      </form>{% else %}<div class="availability-message"><strong>{% if product.availability_status == 'scheduled' and product.available_again_at %}{{ T.available_again }} {{ product.available_again_at|date:'d/m H:i' }}{% else %}{{ T.sold_out }}{% endif %}</strong></div>{% endif %}
       {% if request.user.is_authenticated %}<form method="post" action="{% url 'shop:toggle_favorite' product.id %}" class="favorite-form">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button type="submit" class="favorite-btn" title="Favori">{% if product.id in favorite_product_ids %}❤️{% else %}♡{% endif %}</button></form>{% endif %}
     </div>
   </div>

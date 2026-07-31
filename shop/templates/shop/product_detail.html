@@ -14,11 +14,12 @@
       {% if product.is_vegetarian %}<span>{{ T.vegetarian }}</span>{% endif %}
       {% if product.is_spicy %}<span>{{ T.spicy }}</span>{% endif %}
       {% if product.is_signature %}<span>{{ T.signature }}</span>{% endif %}
+      {% if not product.is_orderable %}<span class="sold-out-badge">{% if product.availability_status == 'scheduled' %}{{ T.available_later }}{% else %}{{ T.sold_out }}{% endif %}</span>{% endif %}
     </div>
     <p>{{ product.translated_description|default:product.description }}</p>
     {% if product.allergens %}<p class="allergens"><strong>{{ T.allergens }} :</strong> {{ product.allergens }}</p>{% endif %}
     <h2><span data-product-total data-base-price="{{ product.price }}">{{ product.price }}</span> € <small>/ {{ product.unit }}</small></h2>
-    <form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="product-customizer" data-product-customizer>
+    {% if product.is_orderable %}<form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="product-customizer" data-product-customizer>
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ url_cart }}">
       {% if supplements %}
@@ -38,7 +39,7 @@
         <label><span class="visually-hidden">Quantité</span><input type="number" name="qty" value="1" min="1" max="20" data-product-qty></label>
         <button class="button">{% if supplements %}Ajouter cette pizza{% else %}Ajouter au panier{% endif %}</button>
       </div>
-    </form>
+    </form>{% else %}<div class="availability-message"><strong>{% if product.availability_status == 'scheduled' and product.available_again_at %}{{ T.available_again }} {{ product.available_again_at|date:'d/m H:i' }}{% else %}{{ T.sold_out }}{% endif %}</strong></div>{% endif %}
     {% if request.user.is_authenticated %}
       <form method="post" action="{% url 'shop:toggle_favorite' product.id %}" class="inline favorite-detail">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="button ghost">{% if product.id in favorite_product_ids %}Retirer des favoris{% else %}Ajouter aux favoris{% endif %}</button></form>
     {% endif %}

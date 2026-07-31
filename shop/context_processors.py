@@ -147,15 +147,19 @@ def site_settings(request):
 
 def cart_info(request):
     cart = request.session.get('cart', {})
-    products = Product.objects.filter(id__in=cart.keys(), is_available=True)
+    products = Product.objects.filter(id__in=cart.keys())
     items, total = [], 0
+    available_count = 0
     for product in products:
+        if not product.is_orderable:
+            continue
         qty = max(1, int(cart.get(str(product.id), 1)))
+        available_count += qty
         line_total = product.price * qty
         total += line_total
         items.append({'product': product, 'qty': qty, 'line_total': line_total})
     return {
-        'cart_count': sum(int(q) for q in cart.values()),
+        'cart_count': available_count,
         'cart_preview_items': items[:5],
         'cart_preview_total': total,
         'cart_preview_more': max(0, len(items) - 5),

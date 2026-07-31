@@ -1,5 +1,5 @@
 from decimal import Decimal
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from functools import wraps
 import json
 from urllib.parse import quote
@@ -321,9 +321,11 @@ def _loyalty_status(user, additional_pizzas=0):
 
 def _cart_items(request):
     cart = request.session.get('cart', {})
-    products = Product.objects.filter(id__in=cart.keys(), is_available=True).select_related('category')
+    products = Product.objects.filter(id__in=cart.keys()).select_related('category')
     items, total = [], Decimal('0.00')
     for p in products:
+        if not p.is_orderable:
+            continue
         qty = max(1, int(cart.get(str(p.id), 1)))
         line = p.price * qty
         total += line
@@ -441,7 +443,7 @@ def faq(request):
     return render(request, 'shop/faq.html', {'meta_title': "FAQ | Commandes Pizza Vitti"})
 
 def boutique(request):
-    qs = Product.objects.filter(is_available=True).select_related('category')
+    qs = Product.objects.select_related('category')
     query = request.GET.get('q','').strip()
     if query:
         qs = qs.filter(Q(name__icontains=query)|Q(description__icontains=query)|Q(category__name__icontains=query))
@@ -463,7 +465,7 @@ def boutique(request):
 
 def category(request, slug):
     cat = get_object_or_404(Category, slug=slug, is_active=True)
-    qs = cat.products.filter(is_available=True)
+    qs = cat.products.all()
     paginator = Paginator(qs, 120)
     page_obj = paginator.get_page(request.GET.get('page'))
     lang = get_lang_from_path(request.path)
@@ -485,7 +487,7 @@ def menu_group(request, group, lang=None):
     if group == 'boissons':
         drink_order = {slug: index for index, slug in enumerate(DRINK_CATEGORY_ORDER)}
         categories.sort(key=lambda category: drink_order.get(category.slug, 999))
-    products = list(Product.objects.filter(is_available=True, category__in=categories).select_related('category'))
+    products = list(Product.objects.filter(category__in=categories).select_related('category'))
     _apply_menu_translations(products, categories, lang)
     sections = []
     for category in categories:
@@ -571,7 +573,7 @@ def menu_group(request, group, lang=None):
     })
 
 def product_detail(request, slug):
-    product = get_object_or_404(Product, slug=slug, is_available=True)
+    product = get_object_or_404(Product, slug=slug)
     lang = get_lang_from_path(request.path)
     _apply_menu_translations([product], [product.category] if product.category else [], lang)
     favorite_product_ids = set()
@@ -602,7 +604,10 @@ def table_menu(request, table):
 
 @require_POST
 def add_to_cart(request, product_id):
-    product = get_object_or_404(Product.objects.select_related('category'), id=product_id, is_available=True)
+    product = get_object_or_404(Product.objects.select_related('category'), id=product_id)
+    if not product.is_orderable:
+        messages.error(request, 'Ce produit est temporairement indisponible.')
+        return redirect(_safe_next_url(request, reverse('shop:boutique')))
     cart = request.session.get('cart', {})
     try:
         qty = int(request.POST.get('qty', 1))
@@ -834,6 +839,8 @@ def stripe_webhook(request):
 
 def invoice(request, order_number):
     order = get_object_or_404(Order.objects.prefetch_related('items'), order_number=order_number)
+    status_order = ['received', 'preparing', 'ready', 'delivered']
+    order.progress_step = status_order.index(order.status) + 1 if order.status in status_order else 0
     return render(request, 'shop/invoice.html', {'order': order})
 
 
@@ -980,6 +987,25 @@ def _safe_date(value, fallback):
 
 @owner_required
 def owner_dashboard(request):
+    if request.method == 'POST' and request.POST.get('action') == 'update_product_availability':
+        product = get_object_or_404(Product, id=request.POST.get('product_id'))
+        availability_status = request.POST.get('availability_status', '')
+        if availability_status not in dict(Product.AVAILABILITY):
+            messages.error(request, 'Disponibilité invalide.')
+            return redirect('shop:owner_dashboard')
+        product.availability_status = availability_status
+        product.available_again_at = None
+        if availability_status == 'scheduled':
+            try:
+                product.available_again_at = timezone.make_aware(
+                    datetime.fromisoformat(request.POST.get('available_again_at', ''))
+                )
+            except (TypeError, ValueError):
+                messages.error(request, 'Choisissez une date et une heure valides.')
+                return redirect('shop:owner_dashboard')
+        product.save(update_fields=['availability_status', 'available_again_at', 'is_available', 'updated_at'])
+        messages.success(request, f'Disponibilité de {product.name} mise à jour.')
+        return redirect('shop:owner_dashboard')
     if request.method == 'POST' and request.POST.get('action') == 'update_loyalty_reward':
         if not settings.LOYALTY_ENABLED:
             messages.error(request, 'Le programme fidélité est temporairement désactivé.')
@@ -1031,6 +1057,7 @@ def owner_dashboard(request):
         'dashboard_now': timezone.localtime(),
         'loyalty_reward': _active_loyalty_reward(),
         'loyalty_reward_types': LoyaltyReward.REWARD_TYPES,
+        'availability_products': Product.objects.select_related('category').order_by('category__order', 'name'),
         'kitchen_app': True,
         'meta_title': 'Dashboard propriétaire | Pizza Vitti',
     })
@@ -1482,9 +1509,13 @@ def track_order(request):
     order = None
     if request.method == 'POST':
         number = request.POST.get('order_number','').strip().upper()
-        order = Order.objects.filter(order_number__iexact=number).first()
-        if not order: messages.error(request, 'Aucune commande trouvée avec ce numéro.')
-    return render(request, 'shop/track_order.html', {'order': order})
+        email = request.POST.get('email','').strip()
+        order = Order.objects.filter(order_number__iexact=number, email__iexact=email).first()
+        if not order: messages.error(request, 'Commande introuvable. Vérifiez le numéro et l’adresse email.')
+    if order:
+        status_order = ['received', 'preparing', 'ready', 'delivered']
+        order.progress_step = status_order.index(order.status) + 1 if order.status in status_order else 0
+    return render(request, 'shop/track_order.html', {'order': order, 'meta_robots': 'noindex,nofollow'})
 
 @require_POST
 def report_order_issue(request, order_number):

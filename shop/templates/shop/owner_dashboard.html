@@ -20,6 +20,21 @@
       <article><span>Achats ouverts</span><strong>{{ open_purchase_count }}</strong></article>
     </section>
 
+    <section class="ops-panel availability-panel">
+      <div class="ops-panel-head"><div><p class="ops-eyebrow">Carte en direct</p><h2>Disponibilité des produits</h2></div><span>Visible immédiatement sur le menu</span></div>
+      <div class="availability-owner-list">
+        {% for product in availability_products %}
+          <form method="post" class="availability-owner-row">
+            {% csrf_token %}<input type="hidden" name="action" value="update_product_availability"><input type="hidden" name="product_id" value="{{ product.id }}">
+            <div><strong>{{ product.name }}</strong><small>{{ product.category.name|default:'Menu' }}</small></div>
+            <select name="availability_status" data-availability-select>{% for value,label in product.AVAILABILITY %}<option value="{{ value }}" {% if product.availability_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+            <input type="datetime-local" name="available_again_at" value="{% if product.available_again_at %}{{ product.available_again_at|date:'Y-m-d\TH:i' }}{% endif %}">
+            <button class="button" type="submit">Enregistrer</button>
+          </form>
+        {% empty %}<p class="ops-empty">Aucun produit.</p>{% endfor %}
+      </div>
+    </section>
+
     <section class="ops-grid two">
       <article class="ops-panel">
         <div class="ops-panel-head">

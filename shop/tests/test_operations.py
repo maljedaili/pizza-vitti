@@ -236,6 +236,41 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(checkout, 'autocomplete="email"')
         self.assertContains(checkout, 'autocomplete="tel"')
 
+    def test_sold_out_product_stays_visible_but_cannot_be_ordered(self):
+        self.product.availability_status = 'sold_out'
+        self.product.save()
+
+        menu = self.client.get('/fr/menu/pizzas/')
+        self.assertContains(menu, self.product.name)
+        self.assertContains(menu, 'Épuisé aujourd’hui')
+        self.assertNotContains(menu, f'action="{reverse("shop:add_to_cart", args=[self.product.id])}"')
+
+        response = self.client.post(reverse('shop:add_to_cart', args=[self.product.id]), {'qty': 1})
+        self.assertEqual(response.status_code, 302)
+        self.assertNotIn(str(self.product.id), self.client.session.get('cart', {}))
+
+    def test_owner_can_schedule_product_and_tracking_requires_email(self):
+        owner = get_user_model().objects.create_superuser('owner-test', 'owner@example.com', 'SecurePass123!')
+        self.client.force_login(owner)
+        available_again = timezone.localtime() + timedelta(hours=2)
+        response = self.client.post(reverse('shop:owner_dashboard'), {
+            'action': 'update_product_availability',
+            'product_id': self.product.id,
+            'availability_status': 'scheduled',
+            'available_again_at': available_again.strftime('%Y-%m-%dT%H:%M'),
+        })
+        self.assertRedirects(response, reverse('shop:owner_dashboard'))
+        self.product.refresh_from_db()
+        self.assertEqual(self.product.availability_status, 'scheduled')
+        self.assertFalse(self.product.is_available)
+
+        order = self.create_order(1, 'PV-TRACK-1')
+        wrong = self.client.post(reverse('shop:track_order'), {'order_number': order.order_number, 'email': 'wrong@example.com'})
+        self.assertNotContains(wrong, 'order-tracking-result')
+        correct = self.client.post(reverse('shop:track_order'), {'order_number': order.order_number, 'email': order.email})
+        self.assertContains(correct, 'order-tracking-result')
+        self.assertContains(correct, 'order-progress')
+
 
 class StorefrontProductionRulesTests(TestCase):
     def test_camera_section_is_not_routed(self):
