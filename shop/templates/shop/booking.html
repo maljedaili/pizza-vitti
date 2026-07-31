@@ -2,14 +2,14 @@
 
 {% block content %}
 <section class="page-title reveal">
-  <p class="eyebrow">Réservation</p>
-  <h1>Réserver une table chez Pizza Vitti</h1>
-  <p>Envoyez votre demande. Elle sera confirmée séparément par e-mail ou téléphone.</p>
+  <p class="eyebrow">{{ T.booking }}</p>
+  <h1>{{ T.booking_title }} · Pizza Vitti</h1>
+  <p>{{ T.booking_text }}</p>
 </section>
 <section class="checkout booking-layout reveal">
   <form class="card" method="post" novalidate>
     {% csrf_token %}
-    <h2>Votre demande</h2>
+    <h2>{{ T.booking }}</h2>
     {% if form.non_field_errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
     <div class="form-grid">
       {% for field in form %}
@@ -20,14 +20,14 @@
         </div>
       {% endfor %}
     </div>
-    <button class="button">Envoyer ma demande</button>
-    <small>Votre table n’est pas confirmée tant que Pizza Vitti ne vous a pas répondu.</small>
+    <button class="button">{{ T.booking_send }}</button>
+    <small>{{ T.booking_text }}</small>
   </form>
   <aside class="card booking-side">
     <h2>Pizza Vitti</h2>
     <p>{{ site_config.address }}<br><a href="tel:+33556421449">{{ site_config.telephone }}</a></p>
     {% for row in weekly_hours %}<p class="location-hour"><span>{{ row.label }}</span><strong>{{ row.display }}</strong></p>{% endfor %}
-    <a class="button ghost" target="_blank" rel="noopener" href="{{ site_config.google_maps_url }}">Ouvrir Google Maps</a>
+    <a class="button ghost" target="_blank" rel="noopener" href="{{ site_config.google_maps_url }}">{{ T.open_maps }}</a>
   </aside>
 </section>
 {% endblock %}

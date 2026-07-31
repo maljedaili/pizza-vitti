@@ -5,9 +5,9 @@
   <form method="post" class="card checkout-form" data-checkout-form>
     {% csrf_token %}
     <input type="hidden" name="checkout_token" value="{{ checkout_token }}">
-    <p class="eyebrow">Commande à emporter</p>
-    <h1>Finaliser ma commande</h1>
-    <p>Choisissez votre créneau puis récupérez votre commande chez Pizza Vitti, {{ site_config.address }}.</p>
+    <p class="eyebrow">{{ T.order }}</p>
+    <h1>{{ T.finalize }}</h1>
+    <p>{{ T.pickup_text }} · Pizza Vitti, {{ site_config.address }}.</p>
 
     {% if form.non_field_errors %}
       <div class="form-errors" role="alert">{{ form.non_field_errors }}</div>
@@ -15,7 +15,7 @@
 
     {% if table_number %}
       <div class="loyalty-note success">
-        <strong>Commande à table</strong>
+        <strong>{{ T.order }}</strong>
         <span>Table {{ table_number }}</span>
       </div>
     {% endif %}
@@ -32,14 +32,14 @@
     </div>
 
     <div class="pickup-assurance">
-      <strong>Retrait au restaurant uniquement</strong>
-      <span>Pour la livraison, utilisez les plateformes partenaires affichées sur l’accueil lorsqu’elles sont disponibles.</span>
+      <strong>{{ T.pickup }}</strong>
+      <span>{{ T.delivery_text }}</span>
     </div>
-    <button class="button checkout-submit" data-submit-once>Confirmer la commande</button>
+    <button class="button checkout-submit" data-submit-once>{{ T.finalize }}</button>
   </form>
 
   <aside class="card checkout-summary-card">
-    <h2>Résumé de la commande</h2>
+    <h2>{{ T.summary }}</h2>
     {% for item in items %}
       <div class="checkout-summary-row">
         <span>{{ item.qty }} × {{ item.product.name }}</span>
@@ -51,10 +51,9 @@
         </form>
       </div>
     {% endfor %}
-    <div class="summary-line"><span>Sous-total</span><strong>{{ subtotal }} €</strong></div>
+    <div class="summary-line"><span>{{ T.summary }}</span><strong>{{ subtotal }} €</strong></div>
     {% if discount %}<div class="summary-line discount"><span>Réduction</span><strong>− {{ discount }} €</strong></div>{% endif %}
-    <div class="total"><span>Total</span><strong>{{ total }} €</strong></div>
-    <p class="muted">Les prix et disponibilités sont vérifiés à nouveau lors de la validation.</p>
+    <div class="total"><span>{{ T.total }}</span><strong>{{ total }} €</strong></div>
   </aside>
 </section>
 {% endblock %}

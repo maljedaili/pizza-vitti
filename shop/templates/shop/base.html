@@ -69,7 +69,7 @@
   </button>
   <div class="order-preview-panel">
     <div class="order-preview-head">
-      <strong>Votre commande</strong>
+      <strong>{{ T.my_cart }}</strong>
       <button type="button" data-order-preview-close aria-label="Fermer">×</button>
     </div>
     <div class="order-preview-lines">
@@ -86,10 +86,10 @@
       {% endfor %}
       {% if cart_preview_more %}<small>+ {{ cart_preview_more }} autre(s) article(s)</small>{% endif %}
     </div>
-    <div class="order-preview-total"><span>Total</span><strong>{{ cart_preview_total }} €</strong></div>
+    <div class="order-preview-total"><span>{{ T.total }}</span><strong>{{ cart_preview_total }} €</strong></div>
     <div class="order-preview-actions">
-      <a class="button ghost" href="{{ url_cart }}">Modifier</a>
-      <a class="button" href="{{ url_checkout }}">Valider</a>
+      <a class="button ghost" href="{{ url_cart }}">{{ T.update }}</a>
+      <a class="button" href="{{ url_checkout }}">{{ T.finalize }}</a>
     </div>
   </div>
 </aside>

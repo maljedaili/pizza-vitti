@@ -2,6 +2,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from shop.models import Category, Product, SiteConfiguration
+from shop.translations import PAGE_SLUGS
 
 
 class DrinksPageTests(TestCase):
@@ -82,3 +83,23 @@ class DrinksPageTests(TestCase):
             slug__in=('caffe-the', 'cafe-allonge', 'digestifs'),
         ).order_by('order').values_list('slug', flat=True))
         self.assertEqual(categories, ['caffe-the', 'cafe-allonge', 'digestifs'])
+
+    def test_all_localized_public_pages_render(self):
+        for language in ('fr', 'en', 'es', 'it', 'pt', 'nl', 'zh', 'ja', 'ar'):
+            for page in ('home', 'menu', 'booking', 'reviews', 'gallery', 'contact', 'cart'):
+                slug = PAGE_SLUGS[page][language]
+                path = f'/{language}/{slug}/' if slug else f'/{language}/'
+                with self.subTest(language=language, page=page):
+                    self.assertEqual(self.client.get(path).status_code, 200)
+
+    def test_shared_public_interface_is_translated(self):
+        english_booking = self.client.get('/en/booking/')
+        english_contact = self.client.get('/en/contact/')
+        english_drinks = self.client.get('/en/menu/boissons/')
+
+        self.assertContains(english_booking, 'Book · Pizza Vitti')
+        self.assertContains(english_booking, '>Guests<')
+        self.assertContains(english_contact, '<h1>Contact</h1>', html=True)
+        self.assertContains(english_drinks, 'Quantity · Café')
+        self.assertNotContains(english_booking, 'Votre demande')
+        self.assertNotContains(english_contact, 'Nous contacter')

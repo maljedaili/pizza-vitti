@@ -2,10 +2,10 @@
   <a href="{{ product.get_absolute_url }}" class="product-img is-3d-product" data-product-tilt>
     <img src="{{ product.display_image }}" alt="{{ product.translated_name|default:product.name }}" width="900" height="900" loading="lazy">
     <span class="product-badges">
-      {% if product.is_best_seller %}<b>Populaire</b>{% endif %}
-      {% if product.is_vegetarian %}<b>Végétarien</b>{% endif %}
-      {% if product.is_spicy %}<b>Épicé</b>{% endif %}
-      {% if product.is_signature %}<b>Signature</b>{% endif %}
+      {% if product.is_best_seller %}<b>{{ T.popular }}</b>{% endif %}
+      {% if product.is_vegetarian %}<b>{{ T.vegetarian }}</b>{% endif %}
+      {% if product.is_spicy %}<b>{{ T.spicy }}</b>{% endif %}
+      {% if product.is_signature %}<b>{{ T.signature }}</b>{% endif %}
       {% if product.badge and not product.is_vegetarian and not product.is_spicy and not product.is_signature %}<b>{{ product.badge }}</b>{% endif %}
     </span>
   </a>
@@ -21,7 +21,7 @@
         {% if product.vintage %}<span>{{ product.vintage }}</span>{% endif %}
       </p>
     {% endif %}
-    {% if product.allergens %}<p class="allergens"><strong>Allergènes :</strong> {{ product.allergens }}</p>{% endif %}
+    {% if product.allergens %}<p class="allergens"><strong>{{ T.allergens }} :</strong> {{ product.allergens }}</p>{% endif %}
     <div class="buy">
       {% if product.glass_price or product.bottle_price %}
         <strong>{% if product.glass_price %}{{ product.glass_price }} € / verre{% endif %}{% if product.glass_price and product.bottle_price %} · {% endif %}{% if product.bottle_price %}{{ product.bottle_price }} € / bouteille{% endif %}</strong>
@@ -32,8 +32,8 @@
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <label>
-          <span class="visually-hidden">Quantité pour {{ product.name }}</span>
-          <input type="number" name="qty" value="1" min="1" max="20" inputmode="numeric" aria-label="Quantité pour {{ product.name }}">
+          <span class="visually-hidden">{{ T.quantity }} · {{ product.name }}</span>
+          <input type="number" name="qty" value="1" min="1" max="20" inputmode="numeric" aria-label="{{ T.quantity }} · {{ product.name }}">
         </label>
         <button>{{ T.add }}</button>
       </form>

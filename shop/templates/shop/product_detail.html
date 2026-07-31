@@ -10,13 +10,13 @@
     <p class="eyebrow">{{ product.translated_category_name|default:product.category.name }}</p>
     <h1>{{ product.translated_name|default:product.name }}</h1>
     <div class="detail-badges">
-      {% if product.is_best_seller %}<span>Populaire</span>{% endif %}
-      {% if product.is_vegetarian %}<span>Végétarien</span>{% endif %}
-      {% if product.is_spicy %}<span>Épicé</span>{% endif %}
-      {% if product.is_signature %}<span>Signature</span>{% endif %}
+      {% if product.is_best_seller %}<span>{{ T.popular }}</span>{% endif %}
+      {% if product.is_vegetarian %}<span>{{ T.vegetarian }}</span>{% endif %}
+      {% if product.is_spicy %}<span>{{ T.spicy }}</span>{% endif %}
+      {% if product.is_signature %}<span>{{ T.signature }}</span>{% endif %}
     </div>
     <p>{{ product.translated_description|default:product.description }}</p>
-    {% if product.allergens %}<p class="allergens"><strong>Allergènes :</strong> {{ product.allergens }}</p>{% endif %}
+    {% if product.allergens %}<p class="allergens"><strong>{{ T.allergens }} :</strong> {{ product.allergens }}</p>{% endif %}
     <h2><span data-product-total data-base-price="{{ product.price }}">{{ product.price }}</span> € <small>/ {{ product.unit }}</small></h2>
     <form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="product-customizer" data-product-customizer>
       {% csrf_token %}

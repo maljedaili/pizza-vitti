@@ -24,7 +24,7 @@ from django.views.decorators.http import require_POST
 import stripe
 from .forms import CheckoutForm, ReservationForm
 from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, LoyaltyRedemption, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder, CameraLocation, SecurityCamera, PromoCode, SiteConfiguration
-from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_path
+from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_path, t_for
 
 
 def _password_matches(raw_password, configured_password):
@@ -671,6 +671,20 @@ def checkout(request):
     checkout_email = request.user.email if request.user.is_authenticated else ''
     initial = {'name': checkout_name, 'email': checkout_email}
     form = CheckoutForm(request.POST or None, initial=initial)
+    checkout_copy = t_for(get_lang_from_path(request.path))
+    checkout_labels = {
+        'name': checkout_copy['name'], 'email': checkout_copy['email'],
+        'phone': checkout_copy['phone'],
+        'collection_slot': f"{checkout_copy['date']} · {checkout_copy['time']}",
+        'notes': checkout_copy['notes'], 'payment_method': checkout_copy['payment'],
+        'accepted_terms': checkout_copy['order_terms'],
+    }
+    for field_name, label in checkout_labels.items():
+        form.fields[field_name].label = label
+    form.fields['payment_method'].choices = [
+        (value, checkout_copy['card_payment'] if value == 'stripe' else checkout_copy['pay_pickup'])
+        for value, _label in form.fields['payment_method'].choices
+    ]
     discount = Decimal('0.00')
     promo = None
     if request.method == 'POST':
@@ -1530,6 +1544,15 @@ def bot_reply(request):
 
 def booking(request):
     form = ReservationForm(request.POST or None)
+    booking_copy = t_for(get_lang_from_path(request.path))
+    booking_labels = {
+        'name': booking_copy['name'], 'email': booking_copy['email'],
+        'phone': booking_copy['phone'], 'guests': booking_copy['guests'],
+        'date': booking_copy['date'], 'time': booking_copy['time'],
+        'message': booking_copy['message'],
+    }
+    for field_name, label in booking_labels.items():
+        form.fields[field_name].label = label
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(

@@ -2,9 +2,9 @@
 
 {% block content %}
 <section class="page-title reveal">
-  <p class="eyebrow">Avis vérifiés</p>
-  <h1>Les avis sur Pizza Vitti</h1>
-  <p>Ces avis sont associés à la <a href="https://www.google.com/search?q=pizza+vitti+-+ornano" target="_blank" rel="noopener">fiche Google de Pizza Vitti – Ornano ↗</a>.</p>
+  <p class="eyebrow">{{ T.reviews }}</p>
+  <h1>{{ T.reviews_title }} · Pizza Vitti</h1>
+  <p>{{ T.reviews_text }} <a href="https://www.google.com/search?q=pizza+vitti+-+ornano" target="_blank" rel="noopener">{{ T.see_google }} ↗</a></p>
 </section>
 {% if reviews %}
   <section class="testimonials reveal">
@@ -18,6 +18,6 @@
     {% endfor %}
   </section>
 {% else %}
-  <section class="empty authentic-empty">Consultez les <a href="https://www.google.com/search?q=pizza+vitti+-+ornano" target="_blank" rel="noopener">avis Google de Pizza Vitti – Ornano ↗</a>.</section>
+  <section class="empty authentic-empty"><a href="https://www.google.com/search?q=pizza+vitti+-+ornano" target="_blank" rel="noopener">{{ T.see_google }} · Pizza Vitti ↗</a></section>
 {% endif %}
 {% endblock %}

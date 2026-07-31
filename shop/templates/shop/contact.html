@@ -3,26 +3,26 @@
 {% block content %}
 <section class="card reveal">
   <p class="eyebrow">Pizza Vitti Bordeaux</p>
-  <h1>Nous contacter</h1>
+  <h1>{{ T.contact_title }}</h1>
   <p>{{ site_config.address }} · <a href="tel:+33556421449">{{ site_config.telephone }}</a></p>
   <form method="post" class="form-grid">
     {% csrf_token %}
-    <label>Nom<input name="name" autocomplete="name" required></label>
-    <label>E-mail<input name="email" type="email" autocomplete="email" required></label>
-    <label>Téléphone<input name="phone" autocomplete="tel"></label>
-    <label>Sujet<input name="subject"></label>
-    <label class="wide">Message<textarea name="message" required></textarea></label>
-    <p class="wide privacy-form-note">Vos informations servent uniquement à traiter votre demande. Consultez notre <a href="{% url 'shop:privacy_policy' %}">politique de confidentialité</a>.</p>
-    <button class="button">Envoyer</button>
+    <label>{{ T.name }}<input name="name" autocomplete="name" required></label>
+    <label>{{ T.email }}<input name="email" type="email" autocomplete="email" required></label>
+    <label>{{ T.phone }}<input name="phone" autocomplete="tel"></label>
+    <label>{{ T.subject }}<input name="subject"></label>
+    <label class="wide">{{ T.message }}<textarea name="message" required></textarea></label>
+    <p class="wide privacy-form-note"><a href="{% url 'shop:privacy_policy' %}">{{ T.privacy }}</a></p>
+    <button class="button">{{ T.send }}</button>
   </form>
 </section>
 <section class="map-section reveal">
   <div>
-    <p class="eyebrow">Horaires</p>
+    <p class="eyebrow">{{ T.open_hours }}</p>
     <h2>{{ restaurant_status.label }}</h2>
     <p>{{ restaurant_status.detail }}</p>
     {% for row in weekly_hours %}<p class="location-hour"><span>{{ row.label }}</span><strong>{{ row.display }}</strong></p>{% endfor %}
-    <a class="button" target="_blank" rel="noopener" href="{{ site_config.google_maps_url }}">Ouvrir Google Maps</a>
+    <a class="button" target="_blank" rel="noopener" href="{{ site_config.google_maps_url }}">{{ T.open_maps }}</a>
   </div>
   <iframe title="Localisation de Pizza Vitti" loading="lazy" src="https://www.google.com/maps?q=Pizza%20Vitti%20236%20Rue%20d'Ornano%2033000%20Bordeaux&output=embed"></iframe>
 </section>
