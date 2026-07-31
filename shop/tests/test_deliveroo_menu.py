@@ -66,3 +66,11 @@ class SyncDeliverooMenuCommandTests(TestCase):
             Product.objects.filter(category__slug='nos-pizza', is_available=True).count(),
             16,
         )
+
+    def test_reuses_production_category_when_its_slug_was_already_normalized(self):
+        existing = Category.objects.create(name='Nos Pizzas', slug='nos-pizzas')
+
+        call_command('sync_deliveroo_menu')
+
+        self.assertEqual(Category.objects.filter(name__iexact='Nos Pizzas').count(), 1)
+        self.assertEqual(Product.objects.filter(category=existing, is_available=True).count(), 16)

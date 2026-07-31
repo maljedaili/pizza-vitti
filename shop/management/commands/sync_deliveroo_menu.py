@@ -74,10 +74,15 @@ class Command(BaseCommand):
     help = 'Synchronize the public menu with the Pizza Vitti Deliveroo listing.'
 
     def handle(self, *args, **options):
-        pizza_category, _ = Category.objects.get_or_create(
-            slug='nos-pizza',
-            defaults={'name': 'Nos Pizzas', 'order': 11, 'is_active': True},
+        pizza_category = (
+            Category.objects.filter(name__iexact='Nos Pizzas').first()
+            or Category.objects.filter(name__iexact='Nos Pizza').first()
+            or Category.objects.filter(slug='nos-pizza').first()
         )
+        if pizza_category is None:
+            pizza_category = Category.objects.create(
+                name='Nos Pizzas', slug='nos-pizza', order=11, is_active=True,
+            )
         pizza_category.name = 'Nos Pizzas'
         pizza_category.is_active = True
         pizza_category.save(update_fields=['name', 'is_active', 'updated_at'])
