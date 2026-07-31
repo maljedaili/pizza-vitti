@@ -29,7 +29,7 @@
       {% else %}
         <strong>{{ product.price }} €</strong><small>/ {{ product.unit }}</small>
       {% endif %}
-      {% if product.is_orderable %}<form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="quick-add">
+      {% if product.is_orderable %}<form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="quick-add"{% if product.requires_age_verification %} data-age-restricted{% endif %}>
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.get_full_path }}">
         <label>

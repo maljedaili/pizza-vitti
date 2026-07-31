@@ -38,7 +38,7 @@ class SyncDeliverooMenuCommandTests(TestCase):
             13,
         )
         self.assertEqual(
-            Product.objects.filter(category__slug='vins-deliveroo', is_available=True).count(),
+            Product.objects.filter(category__slug__startswith='carte-des-vins-', is_available=True).count(),
             8,
         )
         self.assertEqual(
@@ -51,11 +51,13 @@ class SyncDeliverooMenuCommandTests(TestCase):
 
         regina = Product.objects.get(slug='la-regina')
         coke = Product.objects.get(name='Coca-Cola 33cl')
-        wine = Product.objects.get(name='Chianti', category__slug='vins-deliveroo')
+        wine = Product.objects.get(name='Chianti', category__slug='carte-des-vins-rouges')
+        white_wine = Product.objects.get(name='Sélection Pizza Vitti Blanc', category__slug='carte-des-vins-blancs')
         beer = Product.objects.get(name='Peroni 33cl')
         self.assertIn('deliveroo-la-regina.webp', regina.external_image)
         self.assertIn('deliveroo-soft-drinks.webp', coke.external_image)
-        self.assertIn('deliveroo-wines.webp', wine.external_image)
+        self.assertIn('vins-rouges.webp', wine.external_image)
+        self.assertIn('vins-blancs.webp', white_wine.external_image)
         self.assertIn('deliveroo-beers.webp', beer.external_image)
 
     def test_is_safe_to_run_repeatedly(self):

@@ -37,6 +37,13 @@ WINES = [
     ("Moscato d'Asti", 'Bouteille.', '30.00', 'bouteille'),
 ]
 
+WINE_GROUPS = [
+    ('carte-des-vins-rouges', 'Carte des vins – rouges', 'vins-rouges.webp', WINES[0:1] + WINES[3:6]),
+    ('carte-des-vins-blancs', 'Carte des vins – blancs', 'vins-blancs.webp', WINES[1:2]),
+    ('carte-des-vins-roses', 'Carte des vins – rosés', 'vins-roses.webp', WINES[2:3] + WINES[6:7]),
+    ('carte-des-vins-petillants', 'Carte des vins – pétillants', 'vins-petillants.webp', WINES[7:8]),
+]
+
 BEERS = [
     ('Peroni 33cl', 'Bière italienne 33cl.', '5.00', '33cl'),
     ('Moretti 33cl', 'Bière italienne 33cl.', '5.00', '33cl'),
@@ -47,7 +54,7 @@ def sync_named_products(category, products, badge, image_path):
     listed_names = []
     for name, description, price, unit in products:
         listed_names.append(name)
-        product = Product.objects.filter(category=category, name=name).first()
+        product = Product.objects.filter(name=name).first()
         if product is None:
             product = Product(name=name)
         product.category = category
@@ -116,17 +123,27 @@ class Command(BaseCommand):
         drinks = Product.objects.filter(category__slug='analcolici', is_available=True)
         drinks.update(external_image=f'{PIZZA_IMAGE_ROOT}deliveroo-soft-drinks.webp')
 
-        wine_category, _ = Category.objects.get_or_create(
-            slug='vins-deliveroo',
-            defaults={'name': 'Vins', 'order': 24, 'is_active': True},
-        )
-        wine_category.is_active = True
-        wine_category.save(update_fields=['is_active', 'updated_at'])
-        hidden_wines = sync_named_products(
-            wine_category,
-            WINES,
-            'Vin',
-            f'{PIZZA_IMAGE_ROOT}deliveroo-wines.webp',
+        hidden_wines = 0
+        for order, (slug, name, filename, wines) in enumerate(WINE_GROUPS, start=106):
+            wine_category, _ = Category.objects.get_or_create(
+                slug=slug,
+                defaults={'name': name, 'order': order, 'is_active': True},
+            )
+            wine_category.name = name
+            wine_category.order = order
+            wine_category.is_active = True
+            wine_category.static_image_path = f'/static/shop/img/drinks/{filename}'
+            wine_category.save(update_fields=['name', 'order', 'is_active', 'static_image_path', 'updated_at'])
+            hidden_wines += sync_named_products(
+                wine_category,
+                wines,
+                'Vin · 18+',
+                wine_category.static_image_path,
+            )
+
+        Product.objects.filter(category__slug='vins-deliveroo').update(
+            is_available=False,
+            availability_status='sold_out',
         )
 
         beer_category, _ = Category.objects.get_or_create(

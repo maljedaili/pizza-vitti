@@ -1886,6 +1886,57 @@ body.public-site {
   filter: brightness(1.08);
 }
 
+.public-site .age-gate {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(13, 14, 21, 0.78);
+  backdrop-filter: blur(8px);
+}
+
+.public-site .age-gate[hidden] { display: none; }
+
+.public-site .age-gate > section {
+  position: relative;
+  width: min(500px, 100%);
+  padding: 34px;
+  border: 1px solid rgba(155, 108, 255, 0.42);
+  border-radius: 16px;
+  background: var(--pv-night);
+  color: var(--pv-white);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
+}
+
+.public-site .age-gate h2 { margin: 8px 0 12px; color: var(--pv-white); }
+.public-site .age-gate p:not(.eyebrow),
+.public-site .age-gate small { color: #d8d3e2; line-height: 1.55; }
+.public-site .age-gate small { display: block; margin-top: 18px; }
+.public-site .age-gate-badge {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 950;
+}
+.public-site .age-gate-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.public-site .age-gate-actions .ghost { border: 1px solid rgba(255,255,255,.25); background: transparent; color: #fff; }
+
+@media (max-width: 560px) {
+  .public-site .age-gate > section { padding: 26px 22px; }
+  .public-site .age-gate-badge { position: static; margin-bottom: 16px; }
+  .public-site .age-gate-actions { display: grid; }
+}
+
 .public-site .social-icons .instagram-link {
   width: auto;
   height: auto;

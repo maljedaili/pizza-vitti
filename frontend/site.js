@@ -28,6 +28,50 @@ if (publicSite) {
     });
   });
 
+  const ageGate = document.querySelector("[data-age-gate]");
+  const restrictedForms = [...document.querySelectorAll("form[data-age-restricted]")];
+  let pendingRestrictedForm = null;
+  const ageIsConfirmed = () => window.localStorage.getItem("pizzaVittiAge18") === "yes";
+  const markAgeConfirmed = (form) => {
+    if (!form.querySelector('input[name="age_confirmed"]')) {
+      const confirmation = document.createElement("input");
+      confirmation.type = "hidden";
+      confirmation.name = "age_confirmed";
+      confirmation.value = "1";
+      form.append(confirmation);
+    }
+  };
+  restrictedForms.forEach((form) => {
+    if (ageIsConfirmed()) markAgeConfirmed(form);
+    form.addEventListener("submit", (event) => {
+      if (ageIsConfirmed()) {
+        markAgeConfirmed(form);
+        return;
+      }
+      event.preventDefault();
+      pendingRestrictedForm = form;
+      if (ageGate) {
+        ageGate.hidden = false;
+        document.body.style.overflow = "hidden";
+        ageGate.querySelector("[data-age-confirm]")?.focus();
+      }
+    });
+  });
+  ageGate?.querySelector("[data-age-confirm]")?.addEventListener("click", () => {
+    window.localStorage.setItem("pizzaVittiAge18", "yes");
+    restrictedForms.forEach(markAgeConfirmed);
+    ageGate.hidden = true;
+    document.body.style.overflow = "";
+    const form = pendingRestrictedForm;
+    pendingRestrictedForm = null;
+    form?.requestSubmit();
+  });
+  ageGate?.querySelector("[data-age-decline]")?.addEventListener("click", () => {
+    ageGate.hidden = true;
+    document.body.style.overflow = "";
+    pendingRestrictedForm = null;
+  });
+
   document.querySelectorAll("[data-hero-motion]").forEach((hero) => {
     hero.addEventListener("pointermove", (event) => {
       const bounds = hero.getBoundingClientRect();

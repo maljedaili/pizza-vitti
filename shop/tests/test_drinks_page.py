@@ -34,10 +34,35 @@ class DrinksPageTests(TestCase):
         self.assertNotContains(response, 'payment-cards-visa-mastercard-cb.png')
         self.assertNotContains(response, 'data-drinks-nav')
         self.assertContains(response, '/static/shop/img/drinks/cafe-allonge.webp')
+        self.assertContains(response, '/static/shop/img/drinks/vins-rouges.webp')
+        self.assertContains(response, '/static/shop/img/drinks/vins-blancs.webp')
+        self.assertContains(response, 'id="cat-carte-des-vins-rouges"')
+        self.assertContains(response, 'id="cat-carte-des-vins-blancs"')
+        self.assertContains(response, 'data-age-restricted')
+        self.assertContains(response, 'Avez-vous 18 ans ou plus')
         self.assertContains(response, 'name="qty"')
         self.assertContains(response, '"@type": "Menu"')
         self.assertNotContains(response, 'id="cat-birre"')
         self.assertContains(response, 'Moretti 33cl')
+
+    def test_alcohol_requires_server_side_age_confirmation(self):
+        wine = Product.objects.get(name='Chianti')
+        target = '/fr/menu/boissons/'
+
+        rejected = self.client.post(
+            f'/panier/ajouter/{wine.id}/',
+            {'qty': 1, 'next': target},
+        )
+        self.assertRedirects(rejected, target)
+        self.assertNotIn(str(wine.id), self.client.session.get('cart', {}))
+
+        accepted = self.client.post(
+            f'/panier/ajouter/{wine.id}/',
+            {'qty': 1, 'next': target, 'age_confirmed': '1'},
+        )
+        self.assertRedirects(accepted, target)
+        self.assertEqual(self.client.session['cart'][str(wine.id)], 1)
+        self.assertTrue(self.client.session['alcohol_age_verified'])
 
     def test_english_and_arabic_copy(self):
         english = self.client.get('/en/menu/boissons/')

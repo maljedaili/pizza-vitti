@@ -19,7 +19,7 @@
     <p>{{ product.translated_description|default:product.description }}</p>
     {% if product.allergens %}<p class="allergens"><strong>{{ T.allergens }} :</strong> {{ product.allergens }}</p>{% endif %}
     <h2><span data-product-total data-base-price="{{ product.price }}">{{ product.price }}</span> € <small>/ {{ product.unit }}</small></h2>
-    {% if product.is_orderable %}<form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="product-customizer" data-product-customizer>
+    {% if product.is_orderable %}<form method="post" action="{% url 'shop:add_to_cart' product.id %}" class="product-customizer" data-product-customizer{% if product.requires_age_verification %} data-age-restricted{% endif %}>
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ url_cart }}">
       {% if supplements %}
@@ -45,4 +45,5 @@
     {% endif %}
   </div>
 </section>
+{% if has_age_restricted_products %}{% include 'shop/_age_gate.html' %}{% endif %}
 {% endblock %}

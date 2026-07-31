@@ -14,13 +14,17 @@
   </div>
 </section>
 {% if is_drinks_page and group_products %}
-  <section class="menu-category grouped-menu-section drinks-menu-grid">
-    <div class="grid">
-      {% for product in group_products %}
-        {% include 'shop/product_card.html' %}
-      {% endfor %}
-    </div>
-  </section>
+  {% for section in group_sections %}
+    <section class="menu-category grouped-menu-section drinks-menu-grid" id="cat-{{ section.category.slug }}">
+      <div class="section-head compact">
+        <p class="eyebrow">{{ menu_group.eyebrow }}</p>
+        <h2>{{ section.category.translated_name|default:section.category.name }}</h2>
+      </div>
+      <div class="grid">
+        {% for product in section.products %}{% include 'shop/product_card.html' %}{% endfor %}
+      </div>
+    </section>
+  {% endfor %}
 {% elif group_sections %}
   {% for section in group_sections %}
     <section class="menu-category grouped-menu-section" id="cat-{{ section.category.slug }}">
@@ -38,4 +42,5 @@
 {% else %}
   <div class="grid">{% for product in page_obj %}{% include 'shop/product_card.html' %}{% empty %}<p class="empty">{{ T.empty_menu }}</p>{% endfor %}</div>
 {% endif %}
+{% if has_age_restricted_products %}{% include 'shop/_age_gate.html' %}{% endif %}
 {% endblock %}

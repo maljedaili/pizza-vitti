@@ -188,6 +188,21 @@ DRINK_CATEGORY_ORDER = [
     'vins-deliveroo', 'analcolici', 'digestifs',
 ]
 
+ALCOHOL_CATEGORY_SLUGS = {
+    'carte-des-vins-rouges', 'carte-des-vins-blancs', 'carte-des-vins-roses',
+    'carte-des-vins-petillants', 'aperitivo', 'vins-deliveroo', 'birre', 'digestifs',
+}
+
+
+def _requires_age_verification(product):
+    category_slug = product.category.slug if product.category else ''
+    if category_slug in ALCOHOL_CATEGORY_SLUGS:
+        return True
+    product_text = f'{product.name} {product.badge}'.lower()
+    return category_slug == 'analcolici' and any(
+        word in product_text for word in ('bière', 'beer', 'birra', 'peroni', 'moretti')
+    )
+
 MENU_GROUP_IMAGE_FIELDS = {
     'pizzas': 'pizzas_banner_image',
     'pastas': 'pastas_banner_image',
@@ -490,6 +505,10 @@ def menu_group(request, group, lang=None):
         categories.sort(key=lambda category: drink_order.get(category.slug, 999))
     products = list(Product.objects.filter(category__in=categories).select_related('category'))
     _apply_menu_translations(products, categories, lang)
+    for product in products:
+        product.requires_age_verification = _requires_age_verification(product)
+        if group == 'boissons' and not product.image and product.category.static_image_path:
+            product.external_image = product.category.static_image_path
     sections = []
     for category in categories:
         section_products = [product for product in products if product.category_id == category.id]
@@ -571,12 +590,14 @@ def menu_group(request, group, lang=None):
         'meta_description': 'Découvrez les cafés italiens, boissons fraîches, apéritifs, digestifs et la carte des vins de Pizza Vitti à Bordeaux.' if group == 'boissons' else menu_group_data['summary'],
         'meta_image': '/static/shop/img/drinks/shirley-temple-cosmopolitan.jpg' if group == 'boissons' else '',
         'drinks_structured_data': drinks_structured_data,
+        'has_age_restricted_products': any(product.requires_age_verification for product in products),
     })
 
 def product_detail(request, slug):
     product = get_object_or_404(Product, slug=slug)
     lang = get_lang_from_path(request.path)
     _apply_menu_translations([product], [product.category] if product.category else [], lang)
+    product.requires_age_verification = _requires_age_verification(product)
     favorite_product_ids = set()
     if request.user.is_authenticated:
         favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
@@ -585,6 +606,7 @@ def product_detail(request, slug):
         category__name__icontains='suppl',
     ).select_related('category') if product.category and 'pizza' in _category_key(product.category) and 'suppl' not in _category_key(product.category) else Product.objects.none()
     return render(request, 'shop/product_detail.html', {'product': product, 'supplements': supplements, 'favorite_product_ids': favorite_product_ids,
+        'has_age_restricted_products': product.requires_age_verification,
         'meta_title': product.meta_title or f'{product.name} | Pizza Vitti',
         'meta_description': product.meta_description or product.description[:155]})
 
@@ -609,6 +631,12 @@ def add_to_cart(request, product_id):
     if not product.is_orderable:
         messages.error(request, 'Ce produit est temporairement indisponible.')
         return redirect(_safe_next_url(request, reverse('shop:boutique')))
+    if _requires_age_verification(product):
+        confirmed = request.POST.get('age_confirmed') == '1' or request.session.get('alcohol_age_verified') is True
+        if not confirmed:
+            messages.error(request, 'Vous devez confirmer que vous avez 18 ans ou plus pour commander de l’alcool.')
+            return redirect(_safe_next_url(request, reverse('shop:boutique')))
+        request.session['alcohol_age_verified'] = True
     cart = request.session.get('cart', {})
     try:
         qty = int(request.POST.get('qty', 1))
