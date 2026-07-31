@@ -2,6 +2,7 @@ from decimal import Decimal
 from datetime import date, datetime, timedelta
 from functools import wraps
 import json
+import requests
 from urllib.parse import quote
 from uuid import uuid4
 from django.conf import settings
@@ -1536,6 +1537,74 @@ def blog_detail(request, slug):
     post = get_object_or_404(BlogPost, slug=slug, is_published=True)
     return render(request, 'shop/blog_detail.html', {'post': post, 'meta_title': post.meta_title or post.title, 'meta_description': post.meta_description or post.excerpt})
 
+
+def _assistant_menu_context():
+    lines = []
+    products = (
+        Product.objects.filter(professional_only=False)
+        .select_related('category')
+        .order_by('category__order', 'category__name', 'name')[:90]
+    )
+    for product in products:
+        category = product.category.name if product.category else 'Menu'
+        details = [product.description.strip()]
+        if product.allergens:
+            details.append(f'Allergènes déclarés : {product.allergens}')
+        if product.is_vegetarian:
+            details.append('végétarien')
+        availability = product.get_availability_status_display()
+        lines.append(
+            f'- {category} | {product.name} | {product.price:.2f} € / {product.unit} | '
+            f'{availability} | {"; ".join(part for part in details if part)}'
+        )
+    return '\n'.join(lines)
+
+
+def _openai_assistant_reply(message, table_number=''):
+    if not settings.OPENAI_API_KEY:
+        return ''
+    table_context = f'Le client est à la table {table_number}.' if table_number else 'Aucune table QR n’est associée à cette conversation.'
+    instructions = f"""
+Tu es l’assistant officiel de Pizza Vitti - Ornano, 236 rue d’Ornano, 33000 Bordeaux.
+Réponds dans la langue utilisée par le client, avec un ton chaleureux, clair et concis.
+Tu aides uniquement pour le restaurant : menu, prix, ingrédients, allergènes, commande, réservation,
+retrait, paiement, fidélité, adresse et avis. Ne prétends jamais avoir confirmé une réservation,
+modifié ou remboursé une commande. Ne donne jamais de conseil médical sur les allergènes : demande
+au client de confirmer auprès du restaurant. Si une information n’est pas fournie ci-dessous,
+dis-le honnêtement et propose la page Contact. N’invente aucun plat, prix, horaire ou disponibilité.
+{table_context}
+
+MENU ACTUEL DU SITE :
+{_assistant_menu_context()}
+""".strip()
+    try:
+        response = requests.post(
+            'https://api.openai.com/v1/responses',
+            headers={
+                'Authorization': f'Bearer {settings.OPENAI_API_KEY}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'model': settings.OPENAI_MODEL,
+                'instructions': instructions,
+                'input': message[:1200],
+                'max_output_tokens': 350,
+            },
+            timeout=settings.OPENAI_TIMEOUT_SECONDS,
+        )
+        response.raise_for_status()
+        output = response.json().get('output') or []
+        parts = []
+        for item in output:
+            if item.get('type') != 'message':
+                continue
+            for content in item.get('content') or []:
+                if content.get('type') == 'output_text' and content.get('text'):
+                    parts.append(content['text'].strip())
+        return '\n'.join(parts).strip()
+    except (requests.RequestException, ValueError, TypeError):
+        return ''
+
 def contact(request):
     if request.method == 'POST':
         CustomerMessage.objects.create(name=request.POST.get('name',''), email=request.POST.get('email',''), phone=request.POST.get('phone',''), subject=request.POST.get('subject',''), message=request.POST.get('message',''))
@@ -1545,9 +1614,13 @@ def contact(request):
 
 @require_POST
 def bot_reply(request):
-    msg = request.POST.get('message','').lower()
+    raw_message = request.POST.get('message', '').strip()[:1200]
+    msg = raw_message.lower()
     table_number = request.session.get('table_number', '').strip()
-    if any(w in msg for w in ['table', 'qr', 'scan', 'scanner']):
+    ai_answer = _openai_assistant_reply(raw_message, table_number) if raw_message else ''
+    if ai_answer:
+        answer = ai_answer
+    elif any(w in msg for w in ['table', 'qr', 'scan', 'scanner']):
         answer = f"Vous êtes sur la table {table_number}. Ajoutez vos plats au panier puis validez la commande." if table_number else "Scannez le QR code posé sur votre table : le site mémorise la table, puis vous pouvez commander depuis le menu."
     elif any(w in msg for w in ['menu', 'pizza', 'pasta', 'pâtes', 'raviol', 'boisson', 'dessert']):
         answer = "Le menu est organisé par familles : pizzas, pastas et ravioles, antipasti, menu bambino, douceurs et boissons. Cliquez sur une photo de catégorie pour ouvrir la page correspondante."
@@ -1560,7 +1633,7 @@ def bot_reply(request):
         answer = "Vous pouvez payer par carte bancaire si Stripe est configuré, ou choisir le paiement au retrait / sur place selon l’organisation du restaurant."
     elif any(w in msg for w in ['réserver', 'reserver', 'reservation', 'réservation']):
         answer = "Pour réserver une table, utilisez la page Réserver et indiquez votre nom, téléphone, date, heure et nombre de personnes."
-    elif any(w in msg for w in ['adresse', 'où', 'ou', 'localisation', 'maps', 'venir']):
+    elif any(w in msg for w in ['adresse', 'où', 'localisation', 'maps', 'venir']):
         answer = "Pizza Vitti se trouve au 236 Rue d'Ornano, 33000 Bordeaux. Vous pouvez ouvrir Google Maps depuis la page contact ou le pied de page."
     elif any(w in msg for w in ['allerg', 'végétarien', 'vegetarien', 'sans gluten', 'halal']):
         answer = "Pour les allergènes ou demandes spéciales, ajoutez une note dans votre commande ou demandez confirmation au restaurant avant de valider."

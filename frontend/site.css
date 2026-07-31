@@ -1049,6 +1049,51 @@ body.public-site {
   border-radius: 8px;
 }
 
+.public-site .blog-social-share {
+  margin: 42px 0 28px;
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid var(--pv-line);
+  border-radius: 8px;
+  background: #f8f6ff;
+}
+
+.public-site .blog-social-share h2,
+.public-site .blog-social-share p {
+  margin: 0;
+}
+
+.public-site .blog-social-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.public-site .reviewer-photo {
+  width: 52px;
+  height: 52px;
+  margin-bottom: 12px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 7px 18px #17192326;
+}
+
+@media (max-width: 700px) {
+  .public-site .blog-social-share {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .public-site .blog-social-actions {
+    justify-content: flex-start;
+  }
+}
+
 .public-site .hero > *,
 .public-site .shop-hero > *,
 .public-site .blog-page-hero > *,

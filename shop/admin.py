@@ -123,10 +123,10 @@ class ExceptionalClosureAdmin(admin.ModelAdmin):
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('name','rating','source','review_date','is_published')
+    list_display = ('name','rating','source','review_date','google_updated_at','is_published')
     list_filter = ('rating','source','is_published')
     list_editable = ('rating','is_published')
-    search_fields = ('name','comment','source','source_url')
+    search_fields = ('name','comment','source','source_url','google_review_id')
     actions = ('publish_reviews','hide_reviews')
 
     @admin.action(description='Afficher les avis sélectionnés')

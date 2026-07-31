@@ -246,6 +246,9 @@ class Review(TimeStampedModel):
     comment = models.TextField(blank=True)
     source = models.CharField(max_length=80, blank=True)
     source_url = models.URLField(blank=True, help_text='Lien vérifiable vers la source de l’avis.')
+    google_review_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    reviewer_photo_url = models.URLField(blank=True)
+    google_updated_at = models.DateTimeField(blank=True, null=True)
     review_date = models.DateField(blank=True, null=True)
     is_published = models.BooleanField(default=True)
     class Meta:

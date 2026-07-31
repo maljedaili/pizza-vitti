@@ -1,1 +1,25 @@
-{% extends 'shop/base.html' %}{% block content %}<article class="card prose blog-detail"><p class="eyebrow">{{ T.blog }} · {{ post.created_at|date:'d F Y' }}</p><h1>{{ post.title }}</h1>{% if post.display_image %}<img class="blog-detail-img" src="{{ post.display_image }}" alt="{{ post.title }}">{% endif %}<p class="lead">{{ post.excerpt }}</p><div>{{ post.body|linebreaks }}</div><p><a class="button ghost" href="{{ url_blog }}">← {{ T.blog }}</a></p></article>{% endblock %}
+{% extends 'shop/base.html' %}
+{% block content %}
+<article class="card prose blog-detail">
+  <p class="eyebrow">{{ T.blog }} · {{ post.created_at|date:'d F Y' }}</p>
+  <h1>{{ post.title }}</h1>
+  {% if post.display_image %}<img class="blog-detail-img" src="{{ post.display_image }}" alt="{{ post.title }}">{% endif %}
+  <p class="lead">{{ post.excerpt }}</p>
+  <div>{{ post.body|linebreaks }}</div>
+
+  <section class="blog-social-share" aria-labelledby="share-title">
+    <div>
+      <p class="eyebrow">Réseaux sociaux</p>
+      <h2 id="share-title">Partager cet article</h2>
+    </div>
+    <div class="blog-social-actions">
+      <a class="button" href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener noreferrer">Facebook</a>
+      <a class="button" href="https://wa.me/?text={{ post.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+      <a class="button ghost" href="mailto:?subject={{ post.title|urlencode }}&amp;body={{ request.build_absolute_uri|urlencode }}">E-mail</a>
+      {% if instagram_url %}<a class="button ghost" href="{{ instagram_url }}" target="_blank" rel="noopener noreferrer">Instagram</a>{% endif %}
+    </div>
+  </section>
+
+  <p><a class="button ghost" href="{{ url_blog }}">← {{ T.blog }}</a></p>
+</article>
+{% endblock %}

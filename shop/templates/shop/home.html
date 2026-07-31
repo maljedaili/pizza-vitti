@@ -112,6 +112,7 @@
   <div class="testimonials reveal">
     {% for review in reviews|slice:":3" %}
       <article>
+        {% if review.reviewer_photo_url %}<img class="reviewer-photo" src="{{ review.reviewer_photo_url }}" alt="Photo de {{ review.name }}" loading="lazy" referrerpolicy="no-referrer">{% endif %}
         <span class="review-stars" aria-label="{{ review.rating|default:5 }} étoiles">★★★★★</span>
         <p>“{{ review.comment|default:'Très bonne adresse à Bordeaux.' }}”</p>
         <strong>{{ review.name }}</strong>
