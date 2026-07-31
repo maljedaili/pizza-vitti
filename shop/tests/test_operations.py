@@ -154,7 +154,7 @@ class CustomerLoyaltyTests(TestCase):
         response = self.client.get(reverse('shop:home'))
         self.assertNotContains(response, 'Google Play en préparation')
         self.assertContains(response, 'class="home-google-play"')
-        self.assertContains(response, 'https://play.google.com/apps/testing/kayen.fr')
+        self.assertContains(response, 'https://play.google.com/store/apps/details?id=kayen.fr')
         self.assertContains(response, 'Site créé par')
         self.assertContains(response, reverse('shop:account_deletion'))
 

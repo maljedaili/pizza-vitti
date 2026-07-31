@@ -27,6 +27,7 @@ class DrinksPageTests(TestCase):
         self.assertNotContains(response, 'drinks-menu-hero')
         self.assertContains(response, 'class="toolbar menu-toolbar"')
         self.assertContains(response, 'class="menu-category grouped-menu-section"')
+        self.assertContains(response, 'payment-cards-visa-mastercard-cb.png')
         self.assertNotContains(response, 'data-drinks-nav')
         self.assertContains(response, 'id="cat-cafe-allonge"')
         self.assertContains(response, '/static/shop/img/drinks/cafe-allonge.webp')
