@@ -6,6 +6,13 @@ from django.urls import reverse
 
 
 class BotAssistantTests(TestCase):
+    def test_public_home_includes_chat_interface(self):
+        response = self.client.get('/fr/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-bot-form')
+        self.assertContains(response, reverse('shop:bot_reply'))
+
     @override_settings(OPENAI_API_KEY='')
     def test_falls_back_to_local_assistant_without_key(self):
         response = self.client.post(reverse('shop:bot_reply'), {'message': 'bonjour'})

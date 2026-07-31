@@ -97,6 +97,26 @@
 {% if not kitchen_app %}
 {% if WHATSAPP_NUMBER %}<a class="chat" href="https://wa.me/{{ WHATSAPP_NUMBER }}" target="_blank" rel="noopener">WhatsApp</a>{% endif %}
 {% if show_review_prompt %}{% include 'shop/partials/review_links.html' %}{% endif %}
+<aside class="bot" data-bot aria-label="Assistant Pizza Vitti">
+  <button class="bot-toggle bot-toggle-photo" type="button" data-bot-toggle aria-expanded="false" aria-label="{{ T.help }}">
+    <span class="visually-hidden">{{ T.help }}</span>
+  </button>
+  <section class="bot-panel" aria-live="polite">
+    <strong>{{ T.help }}</strong>
+    <div class="bot-log" data-bot-log><p><strong>Assistant :</strong> {{ T.assistant_hello }}</p></div>
+    <div class="bot-suggestions" aria-label="Questions rapides">
+      <button type="button" data-bot-suggest="Quelles pizzas recommandez-vous ?">Pizzas</button>
+      <button type="button" data-bot-suggest="Quels sont les allergènes ?">Allergènes</button>
+      <button type="button" data-bot-suggest="Comment réserver une table ?">Réserver</button>
+    </div>
+    <form method="post" data-bot-form data-url="{% url 'shop:bot_reply' %}">
+      {% csrf_token %}
+      <label class="visually-hidden" for="pizza-vitti-chat-message">{{ T.message }}</label>
+      <input id="pizza-vitti-chat-message" name="message" maxlength="1200" autocomplete="off" placeholder="{{ T.message }}" required>
+      <button type="submit">{{ T.send }}</button>
+    </form>
+  </section>
+</aside>
 <nav class="mobile-bottom-nav" aria-label="{{ T.menu }}">
   <a href="{{ url_home }}"><span aria-hidden="true">⌂</span>{{ T.home }}</a>
   <a href="{{ url_menu }}"><span aria-hidden="true">☰</span>{{ T.menu }}</a>

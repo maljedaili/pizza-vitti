@@ -10,7 +10,12 @@ document.addEventListener('click', e => {
     navToggle?.setAttribute('aria-expanded', 'false');
     navToggle?.setAttribute('aria-label', 'Ouvrir le menu');
   }
-  if (e.target.matches('[data-bot-toggle]')) document.querySelector('[data-bot]').classList.toggle('open');
+  const botToggle = e.target.closest('[data-bot-toggle]');
+  if (botToggle) {
+    const bot = document.querySelector('[data-bot]');
+    const isOpen = bot.classList.toggle('open');
+    botToggle.setAttribute('aria-expanded', String(isOpen));
+  }
 });
 const observer = new IntersectionObserver(entries => entries.forEach(entry => {
   if (entry.isIntersecting) entry.target.classList.add('show');
