@@ -115,7 +115,7 @@ def site_settings(request):
         'restaurant_status': status,
         'weekly_hours': hours,
         'structured_data': json.dumps(structured_data, ensure_ascii=False),
-        'show_blog': BlogPost.objects.filter(is_published=True, body__regex=r'.{300,}').exists(),
+        'show_blog': True,
         'show_app_promo': resolver_name in {'home', 'localized_home_short', 'customer_dashboard'},
         'show_review_prompt': resolver_name in {'reviews', 'invoice'},
         'meta_robots': 'noindex,nofollow' if (

@@ -213,7 +213,7 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(response, 'Qu’est-ce qui vous ferait plaisir')
         self.assertNotContains(response, 'restaurant-status-band')
         self.assertNotContains(response, 'Les favoris de nos clients')
-        self.assertNotContains(response, 'bot-toggle-photo')
+        self.assertContains(response, 'Assistant Vitti')
         self.assertContains(response, 'Pizza Vitti')
         self.assertNotContains(response, f'<a href="{reverse("shop:home")}">Accueil</a>', html=True)
         self.assertNotContains(response, '>Fidélité</a>')
