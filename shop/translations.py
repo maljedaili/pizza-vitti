@@ -95,6 +95,20 @@ TRANSLATIONS['fr']['order_now'] = 'Commander à emporter'
 TRANSLATIONS['fr']['created'] = 'Site créé par'
 TRANSLATIONS['ar']['created'] = 'تم إنشاء الموقع بواسطة'
 
+ORDER_FLOW_TRANSLATIONS = {
+    'fr': {'order_steps':'Étapes de commande','cart_step':'Panier','details_step':'Coordonnées','confirmation_step':'Confirmation','continue_menu':'Continuer le menu','restaurant_open':'Ouvert maintenant','restaurant_closed':'Fermé','availability_below':'Créneaux disponibles à l’étape suivante','pickup_at':'Retrait au','no_slots':'Aucun créneau de retrait n’est disponible pour le moment.','call_us':'Appelez-nous au'},
+    'en': {'order_steps':'Order steps','cart_step':'Cart','details_step':'Details','confirmation_step':'Confirmation','continue_menu':'Continue shopping','restaurant_open':'Open now','restaurant_closed':'Closed','availability_below':'Available pickup times are shown below','pickup_at':'Pickup at','no_slots':'No pickup time is currently available.','call_us':'Call us at'},
+    'es': {'order_steps':'Pasos del pedido','cart_step':'Carrito','details_step':'Datos','confirmation_step':'Confirmación','continue_menu':'Seguir con el menú','restaurant_open':'Abierto ahora','restaurant_closed':'Cerrado','availability_below':'Los horarios de recogida aparecen a continuación','pickup_at':'Recogida en','no_slots':'No hay horarios de recogida disponibles.','call_us':'Llámanos al'},
+    'it': {'order_steps':'Fasi dell’ordine','cart_step':'Carrello','details_step':'Dati','confirmation_step':'Conferma','continue_menu':'Continua con il menu','restaurant_open':'Aperto ora','restaurant_closed':'Chiuso','availability_below':'Gli orari di ritiro sono indicati qui sotto','pickup_at':'Ritiro presso','no_slots':'Nessun orario di ritiro è disponibile.','call_us':'Chiamaci al'},
+    'pt': {'order_steps':'Etapas do pedido','cart_step':'Carrinho','details_step':'Dados','confirmation_step':'Confirmação','continue_menu':'Continuar no menu','restaurant_open':'Aberto agora','restaurant_closed':'Fechado','availability_below':'Os horários de levantamento aparecem abaixo','pickup_at':'Levantamento em','no_slots':'Não há horários de levantamento disponíveis.','call_us':'Ligue para'},
+    'nl': {'order_steps':'Bestelstappen','cart_step':'Winkelwagen','details_step':'Gegevens','confirmation_step':'Bevestiging','continue_menu':'Verder met het menu','restaurant_open':'Nu open','restaurant_closed':'Gesloten','availability_below':'Beschikbare afhaaltijden staan hieronder','pickup_at':'Afhalen bij','no_slots':'Er is momenteel geen afhaaltijd beschikbaar.','call_us':'Bel ons op'},
+    'zh': {'order_steps':'订单步骤','cart_step':'购物车','details_step':'信息','confirmation_step':'确认','continue_menu':'继续浏览菜单','restaurant_open':'营业中','restaurant_closed':'已关闭','availability_below':'可选取餐时间如下','pickup_at':'取餐地址','no_slots':'目前没有可用的取餐时间。','call_us':'请致电'},
+    'ja': {'order_steps':'注文手順','cart_step':'カート','details_step':'お客様情報','confirmation_step':'確認','continue_menu':'メニューを続ける','restaurant_open':'営業中','restaurant_closed':'営業時間外','availability_below':'受け取り可能時間は下に表示されます','pickup_at':'受け取り場所','no_slots':'現在選択できる受け取り時間がありません。','call_us':'お電話ください'},
+    'ar': {'order_steps':'خطوات الطلب','cart_step':'السلة','details_step':'البيانات','confirmation_step':'التأكيد','continue_menu':'متابعة القائمة','restaurant_open':'مفتوح الآن','restaurant_closed':'مغلق','availability_below':'مواعيد الاستلام المتاحة موضحة أدناه','pickup_at':'الاستلام من','no_slots':'لا يوجد موعد استلام متاح حالياً.','call_us':'اتصل بنا على'},
+}
+for _language, _copy in ORDER_FLOW_TRANSLATIONS.items():
+    TRANSLATIONS[_language].update(_copy)
+
 def get_lang_from_path(path):
     parts = [p for p in path.split('/') if p]
     if parts and parts[0] in TRANSLATIONS:

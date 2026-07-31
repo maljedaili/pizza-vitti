@@ -50,6 +50,23 @@ class CheckoutForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields['name'].widget.attrs.update({
+            'autocomplete': 'name',
+            'autocapitalize': 'words',
+        })
+        self.fields['email'].widget.attrs.update({
+            'autocomplete': 'email',
+            'inputmode': 'email',
+        })
+        self.fields['phone'].widget.attrs.update({
+            'autocomplete': 'tel',
+            'inputmode': 'tel',
+        })
+        self.fields['notes'].widget.attrs.update({'rows': 3})
+        self.fields['promo_code'].widget.attrs.update({
+            'autocomplete': 'off',
+            'autocapitalize': 'characters',
+        })
         today = timezone.localdate()
         choices = []
         for offset in range(14):
@@ -58,7 +75,11 @@ class CheckoutForm(forms.Form):
                 value = f'{day.isoformat()}|{slot:%H:%M}'
                 label = f'{day:%d/%m/%Y} à {slot:%H:%M}'
                 choices.append((value, label))
+        self.has_available_slots = bool(choices)
         self.fields['collection_slot'].choices = choices
+        if not self.has_available_slots:
+            self.fields['collection_slot'].choices = [('', '—')]
+            self.fields['collection_slot'].widget.attrs['disabled'] = True
         payment_choices = [('cash', 'Paiement au retrait')]
         if settings.STRIPE_SECRET_KEY:
             payment_choices.insert(0, ('stripe', 'Carte bancaire sécurisée'))

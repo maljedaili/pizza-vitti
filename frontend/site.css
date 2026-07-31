@@ -657,6 +657,81 @@
   min-height: 52px;
 }
 
+.public-site .checkout-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.public-site .checkout-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.public-site .checkout-steps li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--pv-muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.public-site .checkout-steps span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border: 1px solid var(--pv-line);
+  border-radius: 50%;
+  background: #fff;
+}
+
+.public-site .checkout-steps .active,
+.public-site .checkout-steps .complete {
+  color: var(--pv-night);
+}
+
+.public-site .checkout-steps .active span,
+.public-site .checkout-steps .complete span {
+  border-color: var(--pv-tomato);
+  background: var(--pv-tomato);
+  color: #fff;
+}
+
+.public-site .order-status-note {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 22px;
+  border-radius: 12px;
+  padding: 13px 15px;
+  background: #fff5e8;
+  color: #8c3f19;
+}
+
+.public-site .order-status-note.is-open {
+  background: #edf8ef;
+  color: #286437;
+}
+
+.public-site .order-status-note > span {
+  font-size: 0.8rem;
+}
+
+.public-site .order-status-note div {
+  display: grid;
+  gap: 2px;
+}
+
+.public-site .order-status-note small {
+  color: var(--pv-muted);
+}
+
 .public-site .mobile-bottom-nav {
   display: none;
 }
@@ -707,6 +782,43 @@
     background: rgba(255, 255, 255, 0.97);
     box-shadow: 0 -10px 30px rgba(32, 35, 31, 0.12);
     backdrop-filter: blur(14px);
+  }
+
+  .public-site .checkout {
+    width: min(100% - 24px, 1180px);
+    margin: 20px auto;
+    padding: 0;
+  }
+
+  .public-site .checkout-summary-card {
+    grid-row: 1;
+    margin-bottom: 0;
+  }
+
+  .public-site .checkout-form {
+    grid-row: 2;
+    margin-top: 0;
+  }
+
+  .public-site .checkout-steps li {
+    display: grid;
+    justify-items: center;
+    gap: 5px;
+    text-align: center;
+    font-size: 0.68rem;
+  }
+
+  .public-site .cart-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .public-site .cart-actions .cart-checkout-action {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: 54px;
+    display: grid;
+    place-items: center;
   }
 
   .public-site .mobile-bottom-nav a {

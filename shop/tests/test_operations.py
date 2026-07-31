@@ -219,6 +219,23 @@ class CustomerLoyaltyTests(TestCase):
         self.assertNotContains(response, '>Fidélité</a>')
         self.assertNotContains(response, '>Application</a>')
 
+    def test_mobile_order_flow_shows_progress_status_and_total(self):
+        session = self.client.session
+        session['cart'] = {str(self.product.id): 1}
+        session.save()
+
+        cart = self.client.get(reverse('shop:cart'))
+        self.assertContains(cart, 'class="checkout-steps"')
+        self.assertContains(cart, 'order-status-note')
+        self.assertContains(cart, 'Continuer le menu')
+        self.assertContains(cart, 'Finaliser la commande · 12,00 €')
+
+        checkout = self.client.get(reverse('shop:checkout'))
+        self.assertContains(checkout, 'Coordonnées')
+        self.assertContains(checkout, 'autocomplete="name"')
+        self.assertContains(checkout, 'autocomplete="email"')
+        self.assertContains(checkout, 'autocomplete="tel"')
+
 
 class StorefrontProductionRulesTests(TestCase):
     def test_camera_section_is_not_routed(self):

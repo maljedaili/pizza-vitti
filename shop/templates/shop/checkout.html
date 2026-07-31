@@ -5,6 +5,11 @@
   <form method="post" class="card checkout-form" data-checkout-form>
     {% csrf_token %}
     <input type="hidden" name="checkout_token" value="{{ checkout_token }}">
+    <ol class="checkout-steps" aria-label="{{ T.order_steps }}">
+      <li class="complete"><span>✓</span> {{ T.cart_step }}</li>
+      <li class="active"><span>2</span> {{ T.details_step }}</li>
+      <li><span>3</span> {{ T.confirmation_step }}</li>
+    </ol>
     <p class="eyebrow">{{ T.order }}</p>
     <h1>{{ T.finalize }}</h1>
     <p>{{ T.pickup_text }} · Pizza Vitti, {{ site_config.address }}.</p>
@@ -32,10 +37,15 @@
     </div>
 
     <div class="pickup-assurance">
-      <strong>{{ T.pickup }}</strong>
-      <span>{{ T.delivery_text }}</span>
+      <strong>{% if restaurant_status.is_open %}{{ T.restaurant_open }}{% else %}{{ T.restaurant_closed }}{% endif %} · {{ T.pickup }}</strong>
+      <span>{{ T.availability_below }} · {{ T.delivery_text }}</span>
     </div>
-    <button class="button checkout-submit" data-submit-once>{{ T.finalize }}</button>
+    {% if slots_available %}
+      <button class="button checkout-submit" data-submit-once>{{ T.finalize }} · {{ total }} €</button>
+    {% else %}
+      <div class="form-errors" role="alert">{{ T.no_slots }} {{ T.call_us }} <a href="tel:+33556421449">05 56 42 14 49</a>.</div>
+      <button class="button checkout-submit" disabled>{{ T.no_slots }}</button>
+    {% endif %}
   </form>
 
   <aside class="card checkout-summary-card">

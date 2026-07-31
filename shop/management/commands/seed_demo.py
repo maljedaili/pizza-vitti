@@ -141,7 +141,7 @@ MENU = [
         ('Salade italienne', "Salade, jambon aux herbes, oignons rouges, olives Kalamata, tomates cerise, copeaux de parmesan, œuf, huile d'olive extra vierge à la truffe blanche.", '16.50', 'salade', 'Salade'),
         ('Tartare de saumon', 'Saumon frais, concombre, avocat, perles de grenades.', '15.90', 'portion', 'Frais'),
     ]),
-    ('Nos Pizza', [
+    ('Nos Pizzas', [
         ('La Margherita', 'Sauce tomate, mozzarella fior di latte, tomates cerise, olives, basilic.', '11.50', 'pizza', 'Pizza'),
         ('La Regina', 'Sauce tomate, mozzarella fior di latte, jambon blanc cuit aux herbes, champignons, olives, origan.', '13.50', 'pizza', 'Pizza'),
         ('La Quattro stagioni', 'Sauce tomate, mozzarella fior di latte, jambon blanc cuit aux herbes, artichauts, champignons, olives, origan.', '14.90', 'pizza', 'Pizza'),
@@ -253,7 +253,7 @@ class Command(BaseCommand):
                         'unit': unit,
                         'badge': badge,
                         'stock': 100,
-                        'is_featured': cat_name in ['Nos Pizza', 'Nos entrées', 'Antipasti à partager', 'Nos Pastas', 'Nos douceurs'] and item_order < 4,
+                        'is_featured': cat_name in ['Nos Pizzas', 'Nos entrées', 'Antipasti à partager', 'Nos Pastas', 'Nos douceurs'] and item_order < 4,
                         'professional_only': False,
                         'external_image': img(*search_words),
                         'is_available': True,

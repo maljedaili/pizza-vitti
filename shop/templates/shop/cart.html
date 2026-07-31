@@ -2,7 +2,17 @@
 
 {% block content %}
 <section class="card">
+  <ol class="checkout-steps" aria-label="{{ T.order_steps }}">
+    <li class="active"><span>1</span> {{ T.cart_step }}</li>
+    <li><span>2</span> {{ T.details_step }}</li>
+    <li><span>3</span> {{ T.confirmation_step }}</li>
+  </ol>
   <h1>{{ T.my_cart }}</h1>
+
+  <div class="order-status-note {% if restaurant_status.is_open %}is-open{% endif %}">
+    <span aria-hidden="true">●</span>
+    <div><strong>{% if restaurant_status.is_open %}{{ T.restaurant_open }}{% else %}{{ T.restaurant_closed }}{% endif %}</strong><small>{{ T.availability_below }} · {{ T.pickup_at }} {{ site_config.address }}</small></div>
+  </div>
 
   {% if table_number %}
     <div class="loyalty-note success">
@@ -56,8 +66,9 @@
 
       <div class="total">{{ T.total }} <strong>{{ total }} €</strong></div>
       <div class="cart-actions">
+        <a class="button ghost" href="{{ url_menu }}">{{ T.continue_menu }}</a>
         <button class="button ghost" type="submit">{{ T.update }}</button>
-        <a class="button" href="{{ url_checkout }}">{{ T.order }}</a>
+        <a class="button cart-checkout-action" href="{{ url_checkout }}">{{ T.finalize }} · {{ total }} €</a>
       </div>
     </form>
   {% else %}

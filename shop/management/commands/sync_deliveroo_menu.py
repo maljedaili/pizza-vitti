@@ -75,10 +75,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         pizza_category, _ = Category.objects.get_or_create(
             slug='nos-pizza',
-            defaults={'name': 'Nos Pizza', 'order': 11, 'is_active': True},
+            defaults={'name': 'Nos Pizzas', 'order': 11, 'is_active': True},
         )
+        pizza_category.name = 'Nos Pizzas'
         pizza_category.is_active = True
-        pizza_category.save(update_fields=['is_active', 'updated_at'])
+        pizza_category.save(update_fields=['name', 'is_active', 'updated_at'])
 
         pizza_ids = []
         for slug, aliases, name, description, price, filename in PIZZAS:

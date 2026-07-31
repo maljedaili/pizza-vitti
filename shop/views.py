@@ -681,6 +681,8 @@ def checkout(request):
     }
     for field_name, label in checkout_labels.items():
         form.fields[field_name].label = label
+    if not form.has_available_slots:
+        form.fields['collection_slot'].choices = [('', checkout_copy['no_slots'])]
     form.fields['payment_method'].choices = [
         (value, checkout_copy['card_payment'] if value == 'stripe' else checkout_copy['pay_pickup'])
         for value, _label in form.fields['payment_method'].choices
@@ -763,6 +765,7 @@ def checkout(request):
         'pizza_qty': pizza_qty, 'loyalty': loyalty, 'loyalty_remaining': loyalty['remaining'],
         'loyalty_gift_eligible': bool(reward_count), 'loyalty_account_required': not request.user.is_authenticated,
         'checkout_name': checkout_name, 'checkout_email': checkout_email, 'table_number': table_number,
+        'slots_available': form.has_available_slots,
         'meta_title': 'Commander une pizza à emporter à Bordeaux | Pizza Vitti',
         'meta_description': 'Finalisez votre commande Pizza Vitti et choisissez votre créneau de retrait au restaurant.',
         'meta_robots': 'noindex,nofollow',
