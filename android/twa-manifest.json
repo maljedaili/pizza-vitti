@@ -20,7 +20,7 @@
     "path": "android.keystore",
     "alias": "android"
   },
-  "appVersionName": "1.0.3",
+  "appVersionName": "1.0.4",
   "appVersionCode": 10,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
@@ -46,5 +46,5 @@
     "window-controls-overlay",
     "standalone"
   ],
-  "appVersion": "1.0.3"
+  "appVersion": "1.0.4"
 }
