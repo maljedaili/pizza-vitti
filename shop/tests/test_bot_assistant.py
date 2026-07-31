@@ -20,6 +20,13 @@ class BotAssistantTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('Bonjour', response.json()['answer'])
 
+    @override_settings(OPENAI_API_KEY='')
+    def test_english_opening_question_has_relevant_fallback(self):
+        response = self.client.post(reverse('shop:bot_reply'), {'message': 'are you open?'})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("today's opening status", response.json()['answer'])
+
     @override_settings(
         OPENAI_API_KEY='test-key',
         OPENAI_MODEL='gpt-5.6-sol',

@@ -1616,6 +1616,7 @@ def contact(request):
 def bot_reply(request):
     raw_message = request.POST.get('message', '').strip()[:1200]
     msg = raw_message.lower()
+    english = any(word in msg for word in [' are ', ' you ', 'what', 'where', 'when', 'how', 'open', 'hello', 'please'])
     table_number = request.session.get('table_number', '').strip()
     ai_answer = _openai_assistant_reply(raw_message, table_number) if raw_message else ''
     if ai_answer:
@@ -1633,6 +1634,12 @@ def bot_reply(request):
         answer = "Vous pouvez payer par carte bancaire si Stripe est configuré, ou choisir le paiement au retrait / sur place selon l’organisation du restaurant."
     elif any(w in msg for w in ['réserver', 'reserver', 'reservation', 'réservation']):
         answer = "Pour réserver une table, utilisez la page Réserver et indiquez votre nom, téléphone, date, heure et nombre de personnes."
+    elif any(w in msg for w in ['horaire', 'heures', 'ouvert', 'ouverte', 'open', 'opening hours', 'close', 'closing']):
+        answer = (
+            "For today's opening status, please check the Pizza Vitti – Ornano Google listing or call the restaurant, as exceptional hours can change."
+            if english else
+            "Pour savoir si le restaurant est ouvert aujourd’hui, consultez la fiche Google Pizza Vitti – Ornano ou appelez le restaurant, car les horaires exceptionnels peuvent changer."
+        )
     elif any(w in msg for w in ['adresse', 'où', 'localisation', 'maps', 'venir']):
         answer = "Pizza Vitti se trouve au 236 Rue d'Ornano, 33000 Bordeaux. Vous pouvez ouvrir Google Maps depuis la page contact ou le pied de page."
     elif any(w in msg for w in ['allerg', 'végétarien', 'vegetarien', 'sans gluten', 'halal']):
@@ -1642,9 +1649,17 @@ def bot_reply(request):
     elif any(w in msg for w in ['avis', 'review', 'google', 'commentaire']):
         answer = "Après votre commande, vous pouvez laisser un avis depuis la page Avis. Vos commentaires Google aident beaucoup Pizza Vitti."
     elif any(w in msg for w in ['bonjour', 'salut', 'hello', 'hi']):
-        answer = "Bonjour ! Je peux vous aider à choisir le menu, commander à table, réserver ou suivre une commande."
+        answer = (
+            "Hello! I can help you choose from the menu, order at your table, book, or track an order."
+            if english else
+            "Bonjour ! Je peux vous aider à choisir le menu, commander à table, réserver ou suivre une commande."
+        )
     else:
-        answer = "Je peux vous aider pour le menu, les pizzas, les pastas, les boissons, la commande QR à table, la réservation, le paiement, les allergènes et les avis Google."
+        answer = (
+            "I can help with the menu, pizzas, pasta, drinks, table ordering, bookings, payments, allergens and Google reviews. Please ask a restaurant-related question."
+            if english else
+            "Je peux vous aider pour le menu, les pizzas, les pastas, les boissons, la commande QR à table, la réservation, le paiement, les allergènes et les avis Google."
+        )
     return JsonResponse({'answer': answer})
 
 

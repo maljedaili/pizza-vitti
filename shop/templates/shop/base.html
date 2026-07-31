@@ -99,7 +99,8 @@
 {% if show_review_prompt %}{% include 'shop/partials/review_links.html' %}{% endif %}
 <aside class="bot" data-bot aria-label="Assistant Pizza Vitti">
   <button class="bot-toggle bot-toggle-photo" type="button" data-bot-toggle aria-expanded="false" aria-label="{{ T.help }}">
-    <span class="visually-hidden">{{ T.help }}</span>
+    <span class="bot-toggle-icon" aria-hidden="true">✦</span>
+    <span class="bot-toggle-copy"><strong>Assistant Vitti</strong><small>{{ T.help }}</small></span>
   </button>
   <section class="bot-panel" aria-live="polite">
     <strong>{{ T.help }}</strong>

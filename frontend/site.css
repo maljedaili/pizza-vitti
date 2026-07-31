@@ -1764,14 +1764,48 @@ body.public-site {
 }
 
 .public-site .bot-toggle-photo {
-  width: 168px;
-  height: 82px;
-  padding: 0;
+  width: auto;
+  min-width: 202px;
+  min-height: 62px;
+  padding: 10px 16px 10px 11px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background:
-    url("/static/shop/img/chat/lets-chat-reference.png") left bottom / 194px auto no-repeat;
-  box-shadow: 0 18px 42px rgba(23, 25, 35, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--pv-purple), #8e2d86);
+  color: var(--pv-white);
+  text-align: left;
+  box-shadow: 0 18px 42px rgba(50, 27, 79, 0.34);
+}
+
+.public-site .bot-toggle-icon {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff2bd;
+  font-size: 1.35rem;
+}
+
+.public-site .bot-toggle-copy {
+  display: grid;
+  gap: 2px;
+  line-height: 1.08;
+}
+
+.public-site .bot-toggle-copy strong {
+  color: var(--pv-white);
+  font-size: 0.96rem;
+}
+
+.public-site .bot-toggle-copy small {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.72rem;
 }
 
 .public-site .bot {
@@ -1781,6 +1815,8 @@ body.public-site {
 }
 
 .public-site .bot-panel {
+  width: min(390px, calc(100vw - 28px));
+  padding: 18px;
   margin: 0 0 10px;
   border: 1px solid rgba(155, 108, 255, 0.45);
   border-radius: 8px;
@@ -1824,7 +1860,8 @@ body.public-site {
 }
 
 .public-site .bot-toggle-photo:hover {
-  background-color: transparent;
+  background: linear-gradient(135deg, #d54a3d, #7b2678);
+  transform: translateY(-2px);
 }
 
 @media (max-width: 1050px) {
@@ -2084,9 +2121,9 @@ body.public-site {
   }
 
   .public-site .bot-toggle-photo {
-    width: 142px;
-    height: 70px;
-    background-size: 164px auto;
+    min-width: 184px;
+    min-height: 56px;
+    padding: 8px 13px 8px 9px;
   }
 
   .public-site .mobile-app-promo {
