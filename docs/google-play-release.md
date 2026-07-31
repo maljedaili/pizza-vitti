@@ -8,7 +8,7 @@ L'application Android est une Trusted Web Activity qui ouvre la PWA Pizza Vitti.
 - Package Android : `kayen.fr`
 - URL de démarrage : `https://pizza-vitti.kayen.fr/fr/`
 - Projet Android : `android/`
-- API Android ciblée par cette release : `35`
+- API Android ciblée par cette release : `36`
 - API de compilation : `36`
 
 Le package Android devient définitif dès la création de l'application dans Google
@@ -149,6 +149,6 @@ npx --yes @bubblewrap/cli update
 npx --yes @bubblewrap/cli build
 ```
 
-Bubblewrap peut régénérer `android/app/build.gradle`. Cette première release cible
-l'API 35, acceptée jusqu'au 30 août 2026. Avant tout envoi à partir du 31 août 2026,
-passer `targetSdkVersion` à `36` ou à une version plus récente exigée par Google Play.
+Bubblewrap peut régénérer `android/app/build.gradle`. Vérifier après chaque mise à
+jour que `targetSdkVersion` reste à `36` ou à une version plus récente exigée par
+Google Play.
