@@ -555,6 +555,7 @@ def menu_group(request, group, lang=None):
         'menu_group': menu_group_data,
         'menu_groups': _menu_groups(lang),
         'group_sections': sections,
+        'group_products': products,
         'favorite_product_ids': favorite_product_ids,
         'meta_title': f"{menu_group_data['title']} | Pizza Vitti Bordeaux",
         'meta_description': menu_group_data['summary'],

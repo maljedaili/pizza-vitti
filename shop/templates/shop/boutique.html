@@ -13,7 +13,15 @@
     {% for group in menu_groups %}<a href="{{ group.url }}"{% if menu_group.slug == group.slug %} class="active"{% endif %}>{{ group.title }}</a>{% endfor %}
   </div>
 </section>
-{% if group_sections %}
+{% if is_drinks_page and group_products %}
+  <section class="menu-category grouped-menu-section drinks-menu-grid">
+    <div class="grid">
+      {% for product in group_products %}
+        {% include 'shop/product_card.html' %}
+      {% endfor %}
+    </div>
+  </section>
+{% elif group_sections %}
   {% for section in group_sections %}
     <section class="menu-category grouped-menu-section" id="cat-{{ section.category.slug }}">
       <div class="section-head compact">
