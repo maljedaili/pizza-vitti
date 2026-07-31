@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from shop.models import BlogPost
+from shop.models import BlogPost, SiteConfiguration
 
 
 class BlogVisibilityTests(TestCase):
@@ -16,3 +16,14 @@ class BlogVisibilityTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Ajoutez vos articles depuis l’administration.')
+
+    def test_blog_links_to_configured_social_profiles(self):
+        site = SiteConfiguration.load()
+        site.instagram_url = 'https://www.instagram.com/pizza_vitti_bordeaux/'
+        site.facebook_url = 'https://www.facebook.com/Pizza-vitti-235744923253527'
+        site.save(update_fields=['instagram_url', 'facebook_url'])
+
+        response = self.client.get('/fr/blog/')
+
+        self.assertContains(response, site.instagram_url)
+        self.assertContains(response, site.facebook_url)

@@ -1812,6 +1812,45 @@ body.public-site {
   display: flex;
   flex-direction: column-reverse;
   align-items: flex-end;
+  bottom: 18px;
+}
+
+.public-site .blog-social-hub {
+  width: min(1180px, 92%);
+  margin: 0 auto 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 28px;
+  border: 1px solid rgba(155, 108, 255, 0.3);
+  border-radius: 12px;
+  background: var(--pv-night);
+  color: var(--pv-white);
+}
+
+.public-site .blog-social-hub h2,
+.public-site .blog-social-hub p {
+  margin: 4px 0;
+  color: var(--pv-white);
+}
+
+.public-site .blog-social-hub .eyebrow {
+  color: var(--pv-purple-light);
+}
+
+.public-site .blog-social-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.public-site .social-instagram {
+  background: linear-gradient(135deg, #833ab4, #e1306c, #f77737);
+}
+
+.public-site .social-facebook {
+  background: #1877f2;
 }
 
 .public-site .bot-panel {
@@ -2113,6 +2152,12 @@ body.public-site {
 
   .public-site .bot {
     right: 12px;
+    bottom: 72px;
+  }
+
+  .public-site .blog-social-hub {
+    display: grid;
+    padding: 20px;
   }
 
   .public-site .bot-toggle {
