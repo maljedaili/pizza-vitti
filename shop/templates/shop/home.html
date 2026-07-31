@@ -2,7 +2,11 @@
 {% load static %}
 
 {% block content %}
-<section class="home-hero reveal" data-hero-motion>
+<section class="home-hero hero-video-full reveal" data-hero-motion>
+  <video class="home-hero-video" autoplay muted loop playsinline preload="metadata" poster="{% static 'shop/video/pizza-vitti-hero-poster.jpg' %}" aria-hidden="true">
+    <source media="(max-width: 700px)" src="{% static 'shop/video/pizza-vitti-hero-mobile.mp4' %}" type="video/mp4">
+    <source src="{% static 'shop/video/pizza-vitti-hero.mp4' %}" type="video/mp4">
+  </video>
   <div class="home-hero-copy">
     <p class="eyebrow">{{ T.hero_eyebrow }}</p>
     <h1>{{ T.hero_title }}</h1>

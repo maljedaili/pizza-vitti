@@ -408,6 +408,53 @@
   }
 }
 
+/* Full-width Pizza Vitti Reel hero. */
+.public-site .home-hero.hero-video-full {
+  width: 100%;
+  min-height: min(820px, calc(100vh - 72px));
+  margin: 0;
+  border-radius: 0;
+  background: #0d0e15 url("/static/shop/video/pizza-vitti-hero-poster.jpg") center / cover no-repeat;
+}
+
+.public-site .home-hero-video {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.public-site .home-hero.hero-video-full::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  background: linear-gradient(90deg, rgba(8, 7, 10, 0.78) 0%, rgba(8, 7, 10, 0.46) 48%, rgba(8, 7, 10, 0.12) 100%);
+  pointer-events: none;
+}
+
+@media (max-width: 700px) {
+  .public-site .home-hero.hero-video-full {
+    width: 100%;
+    min-height: calc(100svh - 70px);
+    margin: 0;
+    border-radius: 0;
+    padding: 32px 22px 88px;
+  }
+
+  .public-site .home-hero-video { object-position: center; }
+  .public-site .home-hero.hero-video-full::before {
+    background: linear-gradient(0deg, rgba(8, 7, 10, 0.88) 0%, rgba(8, 7, 10, 0.34) 76%, rgba(8, 7, 10, 0.15) 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .public-site .home-hero-video { display: none; }
+}
+
 .public-site .restaurant-status-band,
 .public-site .home-delivery-note {
   width: min(1180px, 92%);
