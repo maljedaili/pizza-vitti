@@ -23,6 +23,7 @@ class DrinksPageTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'class="shop-hero menu-hero reveal"')
+        self.assertContains(response, '/static/shop/img/drinks/shirley-temple-cosmopolitan.jpg')
         self.assertNotContains(response, 'drinks-menu-hero')
         self.assertContains(response, 'class="toolbar menu-toolbar"')
         self.assertContains(response, 'class="menu-category grouped-menu-section"')

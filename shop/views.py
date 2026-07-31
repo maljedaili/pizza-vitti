@@ -155,7 +155,7 @@ MENU_GROUPS = [
         'eyebrow': 'Bar',
         'summary': 'Softs, bières, vins, apéritifs, digestifs, cafés et thés.',
         'kind': 'is-drink',
-        'image': '/media/gallery/45e8414417d58a2774dc544f972c5d7a773a39e2.jpeg',
+        'image': '/static/shop/img/drinks/shirley-temple-cosmopolitan.jpg',
         'matches': ('aperitivo', 'digestif', 'birre', 'analcolici', 'caff', 'cafe', 'cappuccino', 'chocolat', 'the', 'vin'),
     },
 ]
@@ -565,7 +565,7 @@ def menu_group(request, group, lang=None):
         },
         'meta_title': 'Boissons, cafés et vins italiens | Pizza Vitti Bordeaux' if group == 'boissons' else f"{menu_group_data['title']} | Pizza Vitti Bordeaux",
         'meta_description': 'Découvrez les cafés italiens, boissons fraîches, apéritifs, digestifs et la carte des vins de Pizza Vitti à Bordeaux.' if group == 'boissons' else menu_group_data['summary'],
-        'meta_image': '/static/shop/img/drinks/hero-bar-italien-1920.webp' if group == 'boissons' else '',
+        'meta_image': '/static/shop/img/drinks/shirley-temple-cosmopolitan.jpg' if group == 'boissons' else '',
         'drinks_structured_data': drinks_structured_data,
     })
 
