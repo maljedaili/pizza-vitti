@@ -1490,7 +1490,7 @@ body.public-site {
 }
 
 .public-site .footer-grid {
-  grid-template-columns: 0.9fr 1fr 1.05fr 1.25fr 1fr;
+  grid-template-columns: 0.9fr 1.1fr 1.35fr 1fr;
   gap: 28px;
   align-items: start;
 }
