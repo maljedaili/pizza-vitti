@@ -1849,8 +1849,47 @@ body.public-site {
   background: linear-gradient(135deg, #833ab4, #e1306c, #f77737);
 }
 
-.public-site .social-facebook {
-  background: #1877f2;
+.public-site .instagram-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 46px;
+  padding: 10px 15px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #833ab4, #c13584 48%, #f77737);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 900;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 12px 28px rgba(131, 58, 180, 0.24);
+}
+
+.public-site .instagram-link svg {
+  width: 23px;
+  height: 23px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+}
+
+.public-site .instagram-link .instagram-dot {
+  fill: currentColor;
+  stroke: none;
+}
+
+.public-site .instagram-link:hover,
+.public-site .instagram-link:focus-visible {
+  color: #fff;
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+}
+
+.public-site .social-icons .instagram-link {
+  width: auto;
+  height: auto;
+  font-size: 0.82rem;
 }
 
 .public-site .bot-panel {

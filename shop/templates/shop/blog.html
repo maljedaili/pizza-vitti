@@ -9,13 +9,12 @@
 
 <section class="blog-social-hub reveal" aria-label="Réseaux sociaux Pizza Vitti">
   <div>
-    <p class="eyebrow">Instagram &amp; Facebook</p>
-    <h2>{{ T.social_title }}</h2>
-    <p>{{ T.social_text }}</p>
+    <p class="eyebrow">Instagram</p>
+    <h2>Suivez Pizza Vitti sur Instagram</h2>
+    <p>Découvrez les nouveautés, événements, promotions et photos du restaurant.</p>
   </div>
   <div class="blog-social-actions">
-    {% if INSTAGRAM_URL %}<a class="button social-instagram" href="{{ INSTAGRAM_URL }}" target="_blank" rel="noopener noreferrer">Instagram</a>{% endif %}
-    {% if FACEBOOK_URL %}<a class="button social-facebook" href="{{ FACEBOOK_URL }}" target="_blank" rel="noopener noreferrer">Facebook</a>{% endif %}
+    {% if INSTAGRAM_URL %}{% include 'shop/_instagram_link.html' %}{% endif %}
   </div>
 </section>
 
