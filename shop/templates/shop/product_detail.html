@@ -25,7 +25,7 @@
       {% if supplements %}
         <fieldset>
           <legend>Personnaliser ma pizza</legend>
-          <p>Les suppléments disponibles sont ajoutés et calculés par le serveur.</p>
+          <p>{{ T.extras_server_note }}</p>
           {% for supplement in supplements %}
             <label>
               <input type="checkbox" name="supplements" value="{{ supplement.id }}" data-supplement-price="{{ supplement.price }}">
@@ -36,7 +36,7 @@
         </fieldset>
       {% endif %}
       <div class="inline">
-        <label><span class="visually-hidden">Quantité</span><input type="number" name="qty" value="1" min="1" max="20" data-product-qty></label>
+        <label><span class="visually-hidden">{{ T.quantity }}</span><input type="number" name="qty" value="1" min="1" max="20" data-product-qty></label>
         <button class="button">{{ T.add }}</button>
       </div>
     </form>{% else %}<div class="availability-message"><strong>{% if product.availability_status == 'scheduled' and product.available_again_at %}{{ T.available_again }} {{ product.available_again_at|date:'d/m H:i' }}{% else %}{{ T.sold_out }}{% endif %}</strong></div>{% endif %}

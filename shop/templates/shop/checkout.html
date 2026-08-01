@@ -21,7 +21,7 @@
     {% if table_number %}
       <div class="loyalty-note success">
         <strong>{{ T.order }}</strong>
-        <span>Table {{ table_number }}</span>
+        <span>{{ T.table }} {{ table_number }}</span>
       </div>
     {% endif %}
 
@@ -57,12 +57,12 @@
         <form method="post" action="{% url 'shop:remove_from_cart' item.product.id %}">
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ url_checkout }}">
-          <button type="submit" class="remove-mini" aria-label="Supprimer {{ item.product.name }}">×</button>
+          <button type="submit" class="remove-mini" aria-label="{{ T.remove }} {{ item.product.name }}">×</button>
         </form>
       </div>
     {% endfor %}
     <div class="summary-line"><span>{{ T.summary }}</span><strong>{{ subtotal }} €</strong></div>
-    {% if discount %}<div class="summary-line discount"><span>Réduction</span><strong>− {{ discount }} €</strong></div>{% endif %}
+    {% if discount %}<div class="summary-line discount"><span>{{ T.discount }}</span><strong>− {{ discount }} €</strong></div>{% endif %}
     <div class="total"><span>{{ T.total }}</span><strong>{{ total }} €</strong></div>
   </aside>
 </section>

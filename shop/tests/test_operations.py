@@ -259,10 +259,16 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(english_menu, 'aria-label="Close"')
         self.assertNotContains(english_menu, 'Ma commande')
 
+        english_cart = self.client.get('/en/cart/')
+        self.assertContains(english_cart, 'Pizza Vitti loyalty')
+        self.assertContains(english_cart, 'Create my loyalty card')
+        self.assertNotContains(english_cart, 'Créer ma carte fidélité')
+
         arabic_cart = self.client.get('/ar/cart/')
         self.assertContains(arabic_cart, 'طلبي')
         self.assertContains(arabic_cart, 'الكمية')
         self.assertContains(arabic_cart, '>حذف</button>')
+        self.assertContains(arabic_cart, 'برنامج ولاء Pizza Vitti')
 
     def test_sold_out_product_stays_visible_but_cannot_be_ordered(self):
         self.product.availability_status = 'sold_out'
