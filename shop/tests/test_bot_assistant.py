@@ -13,6 +13,27 @@ class BotAssistantTests(TestCase):
         self.assertContains(response, 'data-bot-form')
         self.assertContains(response, reverse('shop:bot_reply'))
 
+    def test_chat_interface_and_quick_answers_follow_language(self):
+        english = self.client.get('/en/home/')
+        arabic = self.client.get('/ar/')
+
+        self.assertContains(english, 'Quick questions')
+        self.assertContains(english, 'Which pizzas do you recommend?')
+        self.assertContains(english, 'name="lang" value="en"')
+        self.assertContains(arabic, 'أسئلة سريعة')
+        self.assertContains(arabic, 'name="lang" value="ar"')
+
+        english_answer = self.client.post(
+            reverse('shop:bot_reply'),
+            {'message': 'What allergens are present?', 'lang': 'en'},
+        )
+        arabic_answer = self.client.post(
+            reverse('shop:bot_reply'),
+            {'message': 'كيف أحجز طاولة؟', 'lang': 'ar'},
+        )
+        self.assertIn('check the product details', english_answer.json()['answer'])
+        self.assertIn('لحجز طاولة', arabic_answer.json()['answer'])
+
     @override_settings(OPENAI_API_KEY='')
     def test_falls_back_to_local_assistant_without_key(self):
         response = self.client.post(reverse('shop:bot_reply'), {'message': 'bonjour'})

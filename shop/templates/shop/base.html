@@ -100,18 +100,19 @@
 <aside class="bot" data-bot aria-label="Assistant Pizza Vitti">
   <button class="bot-toggle bot-toggle-photo" type="button" data-bot-toggle aria-expanded="false" aria-label="{{ T.help }}">
     <span class="bot-toggle-icon" aria-hidden="true">✦</span>
-    <span class="bot-toggle-copy"><strong>Assistant Vitti</strong><small>{{ T.help }}</small></span>
+    <span class="bot-toggle-copy"><strong>{{ T.assistant_name }}</strong><small>{{ T.help }}</small></span>
   </button>
   <section class="bot-panel" aria-live="polite">
     <strong>{{ T.help }}</strong>
-    <div class="bot-log" data-bot-log><p><strong>Assistant :</strong> {{ T.assistant_hello }}</p></div>
-    <div class="bot-suggestions" aria-label="Questions rapides">
-      <button type="button" data-bot-suggest="Quelles pizzas recommandez-vous ?">Pizzas</button>
-      <button type="button" data-bot-suggest="Quels sont les allergènes ?">Allergènes</button>
-      <button type="button" data-bot-suggest="Comment réserver une table ?">Réserver</button>
+    <div class="bot-log" data-bot-log><p><strong>{{ T.assistant_name }} :</strong> {{ T.assistant_hello }}</p></div>
+    <div class="bot-suggestions" aria-label="{{ T.quick_questions }}">
+      <button type="button" data-bot-suggest="{{ T.pizza_prompt }}">{{ T.pizza_short }}</button>
+      <button type="button" data-bot-suggest="{{ T.allergen_prompt }}">{{ T.allergen_short }}</button>
+      <button type="button" data-bot-suggest="{{ T.booking_prompt }}">{{ T.booking_short }}</button>
     </div>
     <form method="post" data-bot-form data-url="{% url 'shop:bot_reply' %}">
       {% csrf_token %}
+      <input type="hidden" name="lang" value="{{ current_lang }}">
       <label class="visually-hidden" for="pizza-vitti-chat-message">{{ T.message }}</label>
       <input id="pizza-vitti-chat-message" name="message" maxlength="1200" autocomplete="off" placeholder="{{ T.message }}" required>
       <button type="submit">{{ T.send }}</button>

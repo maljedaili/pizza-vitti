@@ -1645,6 +1645,10 @@ def contact(request):
 def bot_reply(request):
     raw_message = request.POST.get('message', '').strip()[:1200]
     msg = raw_message.lower()
+    lang = request.POST.get('lang', 'fr')
+    if lang not in TRANSLATIONS:
+        lang = 'fr'
+    assistant_copy = t_for(lang)
     english = any(word in msg for word in [' are ', ' you ', 'what', 'where', 'when', 'how', 'open', 'hello', 'please'])
     table_number = request.session.get('table_number', '').strip()
     ai_answer = _openai_assistant_reply(raw_message, table_number) if raw_message else ''
@@ -1652,8 +1656,8 @@ def bot_reply(request):
         answer = ai_answer
     elif any(w in msg for w in ['table', 'qr', 'scan', 'scanner']):
         answer = f"Vous êtes sur la table {table_number}. Ajoutez vos plats au panier puis validez la commande." if table_number else "Scannez le QR code posé sur votre table : le site mémorise la table, puis vous pouvez commander depuis le menu."
-    elif any(w in msg for w in ['menu', 'pizza', 'pasta', 'pâtes', 'raviol', 'boisson', 'dessert']):
-        answer = "Le menu est organisé par familles : pizzas, pastas et ravioles, antipasti, menu bambino, douceurs et boissons. Cliquez sur une photo de catégorie pour ouvrir la page correspondante."
+    elif any(w in msg for w in ['menu', 'pizza', 'pasta', 'pâtes', 'raviol', 'boisson', 'dessert', 'pizze', 'pizzas', '披萨', 'ピザ', 'بيتزا']):
+        answer = assistant_copy['assistant_menu_answer']
     elif settings.LOYALTY_ENABLED and any(w in msg for w in ['fidélité', 'fidelite', 'cadeau', '5 pizza', '5 pizzas']):
         reward = _active_loyalty_reward()
         pizzas_required = reward.pizzas_required if reward else 5
@@ -1661,8 +1665,8 @@ def bot_reply(request):
         answer = f"Offre fidélité : {pizzas_required} pizzas commandées avec votre compte = {gift}. Créez votre carte fidélité ou connectez-vous avant de valider la commande."
     elif any(w in msg for w in ['payer', 'visa', 'carte', 'paiement', 'stripe', 'cash', 'espèce', 'espece']):
         answer = "Vous pouvez payer par carte bancaire si Stripe est configuré, ou choisir le paiement au retrait / sur place selon l’organisation du restaurant."
-    elif any(w in msg for w in ['réserver', 'reserver', 'reservation', 'réservation']):
-        answer = "Pour réserver une table, utilisez la page Réserver et indiquez votre nom, téléphone, date, heure et nombre de personnes."
+    elif any(w in msg for w in ['réserver', 'reserver', 'reservation', 'réservation', 'book', 'reservar', 'prenot', 'reserveer', '预订', '予約', 'احجز', 'حجز']):
+        answer = assistant_copy['assistant_booking_answer']
     elif any(w in msg for w in ['horaire', 'heures', 'ouvert', 'ouverte', 'open', 'opening hours', 'close', 'closing']):
         answer = (
             "For today's opening status, please check the Pizza Vitti – Ornano Google listing or call the restaurant, as exceptional hours can change."
@@ -1671,8 +1675,8 @@ def bot_reply(request):
         )
     elif any(w in msg for w in ['adresse', 'où', 'localisation', 'maps', 'venir']):
         answer = "Pizza Vitti se trouve au 236 Rue d'Ornano, 33000 Bordeaux. Vous pouvez ouvrir Google Maps depuis la page contact ou le pied de page."
-    elif any(w in msg for w in ['allerg', 'végétarien', 'vegetarien', 'sans gluten', 'halal']):
-        answer = "Pour les allergènes ou demandes spéciales, ajoutez une note dans votre commande ou demandez confirmation au restaurant avant de valider."
+    elif any(w in msg for w in ['allerg', 'végétarien', 'vegetarien', 'sans gluten', 'halal', 'alérgen', 'alerg', '过敏', 'アレルゲン', 'الحساسية']):
+        answer = assistant_copy['assistant_allergen_answer']
     elif any(w in msg for w in ['suivi', 'statut', 'prête', 'prete', 'préparation', 'preparation']):
         answer = "Après commande, conservez votre numéro de commande. La facture affiche le statut : reçue, en préparation, prête ou servie."
     elif any(w in msg for w in ['avis', 'review', 'google', 'commentaire']):
