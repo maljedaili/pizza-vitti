@@ -100,7 +100,7 @@
       {% endif %}
     </div>
   </div>
-  <div class="loyalty-signup-photo" role="img" aria-label="Pizza italienne Pizza Vitti"></div>
+  <div class="loyalty-signup-photo" role="img" aria-label="{{ T.pizza_photo }}"></div>
 </section>
 {% endif %}
 
@@ -116,9 +116,9 @@
   <div class="testimonials reveal">
     {% for review in reviews|slice:":3" %}
       <article>
-        {% if review.reviewer_photo_url %}<img class="reviewer-photo" src="{{ review.reviewer_photo_url }}" alt="Photo de {{ review.name }}" loading="lazy" referrerpolicy="no-referrer">{% endif %}
-        <span class="review-stars" aria-label="{{ review.rating|default:5 }} étoiles">★★★★★</span>
-        <p>“{{ review.comment|default:'Très bonne adresse à Bordeaux.' }}”</p>
+        {% if review.reviewer_photo_url %}<img class="reviewer-photo" src="{{ review.reviewer_photo_url }}" alt="{{ T.photo_by }} {{ review.name }}" loading="lazy" referrerpolicy="no-referrer">{% endif %}
+        <span class="review-stars" aria-label="{{ review.rating|default:5 }} {{ T.stars }}">★★★★★</span>
+        <p>“{{ review.comment|default:T.review_fallback }}”</p>
         <strong>{{ review.name }}</strong>
         <small><a href="{{ review.source_url }}" target="_blank" rel="noopener">{{ review.source|default:'Google' }} ↗</a></small>
       </article>

@@ -4,17 +4,17 @@
 <section class="page-title reveal">
   <p class="eyebrow">{{ T.reviews }}</p>
   <h1>{{ T.reviews_title }} · Pizza Vitti</h1>
-  <p>{{ T.reviews_text }} <a href="https://www.google.com/search?q=pizza+vitti+-+ornano" target="_blank" rel="noopener" title="Voir la fiche Google de Pizza Vitti">{{ T.see_google }} ↗</a></p>
+  <p>{{ T.reviews_text }} <a href="https://www.google.com/search?q=pizza+vitti+-+ornano" target="_blank" rel="noopener" title="{{ T.view_google_profile }}">{{ T.see_google }} ↗</a></p>
 </section>
 {% if reviews %}
   <section class="testimonials reveal">
     {% for review in reviews %}
       <article>
-        {% if review.reviewer_photo_url %}<img class="reviewer-photo" src="{{ review.reviewer_photo_url }}" alt="Photo de {{ review.name }}" loading="lazy" referrerpolicy="no-referrer">{% endif %}
+        {% if review.reviewer_photo_url %}<img class="reviewer-photo" src="{{ review.reviewer_photo_url }}" alt="{{ T.photo_by }} {{ review.name }}" loading="lazy" referrerpolicy="no-referrer">{% endif %}
         <strong>{{ review.name }}</strong>
-        <span aria-label="{{ review.rating }} étoiles">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
+        <span aria-label="{{ review.rating }} {{ T.stars }}">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
         <p>{{ review.comment }}</p>
-        <small><a href="{{ review.source_url }}" target="_blank" rel="noopener">{{ review.source|default:'Source' }} ↗</a>{% if review.review_date %} · {{ review.review_date|date:'d/m/Y' }}{% endif %}</small>
+        <small><a href="{{ review.source_url }}" target="_blank" rel="noopener">{{ review.source|default:T.source }} ↗</a>{% if review.review_date %} · {{ review.review_date|date:'d/m/Y' }}{% endif %}</small>
       </article>
     {% endfor %}
   </section>

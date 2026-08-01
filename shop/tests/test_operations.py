@@ -204,6 +204,20 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(english_pizzas, '<h1>Our pizzas</h1>', html=True)
         self.assertContains(arabic_home, 'البيتزا')
 
+    def test_public_accessibility_labels_follow_the_selected_language(self):
+        english = self.client.get('/en/home/')
+        english_gallery = self.client.get('/en/gallery/')
+        arabic = self.client.get('/ar/')
+
+        self.assertContains(english, 'aria-label="Open menu"')
+        self.assertContains(english, 'aria-label="Accepted payments: Visa, Mastercard and CB"')
+        self.assertContains(english, 'aria-label="Follow Pizza Vitti on Instagram"')
+        self.assertContains(english, 'aria-label="Pizza Vitti Italian pizza"')
+        self.assertNotContains(english, 'aria-label="Ouvrir le menu"')
+        self.assertContains(english_gallery, 'alt="Pizza Vitti photo"')
+        self.assertContains(arabic, 'aria-label="فتح القائمة"')
+        self.assertContains(arabic, 'aria-label="وسائل الدفع المقبولة: Visa وMastercard وCB"')
+
     def test_customer_can_delete_account_and_associated_data(self):
         order = self.create_order(2, 'PV-DELETE-1')
         Favorite.objects.create(user=self.user, product=self.product)
