@@ -634,7 +634,8 @@ def add_to_cart(request, product_id):
     if _requires_age_verification(product):
         confirmed = request.POST.get('age_confirmed') == '1' or request.session.get('alcohol_age_verified') is True
         if not confirmed:
-            messages.error(request, 'Vous devez confirmer que vous avez 18 ans ou plus pour commander de l’alcool.')
+            next_path = request.POST.get('next', '')
+            messages.error(request, t_for(get_lang_from_path(next_path))['age_required_error'])
             return redirect(_safe_next_url(request, reverse('shop:boutique')))
         request.session['alcohol_age_verified'] = True
     cart = request.session.get('cart', {})

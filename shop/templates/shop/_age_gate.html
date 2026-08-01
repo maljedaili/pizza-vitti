@@ -1,13 +1,13 @@
 <div class="age-gate" data-age-gate hidden>
   <section role="dialog" aria-modal="true" aria-labelledby="age-gate-title">
     <span class="age-gate-badge" aria-hidden="true">18+</span>
-    <p class="eyebrow">Vente d’alcool</p>
-    <h2 id="age-gate-title">Avez-vous 18 ans ou plus&nbsp;?</h2>
-    <p>Vous devez être majeur pour consulter et commander une boisson alcoolisée.</p>
+    <p class="eyebrow">{{ T.alcohol_sale }}</p>
+    <h2 id="age-gate-title">{{ T.age_question }}</h2>
+    <p>{{ T.age_explanation }}</p>
     <div class="age-gate-actions">
-      <button type="button" data-age-confirm>Oui, j’ai 18 ans ou plus</button>
-      <button type="button" class="ghost" data-age-decline>Non</button>
+      <button type="button" data-age-confirm>{{ T.age_confirm }}</button>
+      <button type="button" class="ghost" data-age-decline>{{ T.age_decline }}</button>
     </div>
-    <small>L’abus d’alcool est dangereux pour la santé. À consommer avec modération.</small>
+    <small>{{ T.alcohol_warning }}</small>
   </section>
 </div>

@@ -15,7 +15,7 @@ class BlogVisibilityTests(TestCase):
         response = self.client.get('/fr/blog/')
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Ajoutez vos articles depuis l’administration.')
+        self.assertContains(response, 'De nouveaux articles arrivent bientôt.')
 
     def test_blog_links_only_to_instagram(self):
         site = SiteConfiguration.load()
@@ -28,3 +28,12 @@ class BlogVisibilityTests(TestCase):
         self.assertContains(response, site.instagram_url)
         self.assertContains(response, '@pizzavitti.bordeaux')
         self.assertNotContains(response, 'facebook.com')
+
+    def test_blog_interface_is_translated(self):
+        english = self.client.get('/en/blog/')
+        arabic = self.client.get('/ar/blog/')
+
+        self.assertContains(english, 'Follow Pizza Vitti on Instagram')
+        self.assertContains(english, 'Restaurant news')
+        self.assertNotContains(english, 'Nouvelles du restaurant')
+        self.assertContains(arabic, 'تابع Pizza Vitti على Instagram')

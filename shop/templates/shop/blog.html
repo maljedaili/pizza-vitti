@@ -10,8 +10,8 @@
 <section class="blog-social-hub reveal" aria-label="Réseaux sociaux Pizza Vitti">
   <div>
     <p class="eyebrow">Instagram</p>
-    <h2>Suivez Pizza Vitti sur Instagram</h2>
-    <p>Découvrez les nouveautés, événements, promotions et photos du restaurant.</p>
+    <h2>{{ T.instagram_follow }}</h2>
+    <p>{{ T.instagram_text }}</p>
   </div>
   <div class="blog-social-actions">
     {% if INSTAGRAM_URL %}{% include 'shop/_instagram_link.html' %}{% endif %}
@@ -35,7 +35,7 @@
     {% endfor %}
   </div>
   <aside class="blog-sidebar card">
-    <p class="eyebrow">Nouvelles du restaurant</p>
+    <p class="eyebrow">{{ T.restaurant_news }}</p>
     <h2>Pizza Vitti</h2>
     <p>{{ T.newsletter_text }}</p>
     <form class="newsletter" method="post" action="{% url 'shop:newsletter' %}">
@@ -61,7 +61,7 @@
       </article>
     {% endif %}
   {% empty %}
-    <p class="empty">Ajoutez vos articles depuis l’administration.</p>
+    <p class="empty">{{ T.empty_blog }}</p>
   {% endfor %}
 </div>
 {% endblock %}

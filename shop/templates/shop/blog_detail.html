@@ -9,8 +9,8 @@
 
   <section class="blog-social-share" aria-labelledby="share-title">
     <div>
-      <p class="eyebrow">Réseaux sociaux</p>
-      <h2 id="share-title">Partager cet article</h2>
+      <p class="eyebrow">{{ T.social_networks }}</p>
+      <h2 id="share-title">{{ T.share_article }}</h2>
     </div>
     <div class="blog-social-actions">
       <a class="button" href="https://wa.me/?text={{ post.title|urlencode }}%20{{ request.build_absolute_uri|urlencode }}" target="_blank" rel="noopener noreferrer">WhatsApp</a>

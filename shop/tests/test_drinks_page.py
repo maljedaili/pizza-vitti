@@ -64,6 +64,16 @@ class DrinksPageTests(TestCase):
         self.assertEqual(self.client.session['cart'][str(wine.id)], 1)
         self.assertTrue(self.client.session['alcohol_age_verified'])
 
+    def test_age_error_uses_selected_language(self):
+        wine = Product.objects.get(name='Chianti')
+        response = self.client.post(
+            f'/panier/ajouter/{wine.id}/',
+            {'qty': 1, 'next': '/en/menu/boissons/'},
+            follow=True,
+        )
+
+        self.assertContains(response, 'You must confirm that you are 18 or over to order alcohol.')
+
     def test_english_and_arabic_copy(self):
         english = self.client.get('/en/menu/boissons/')
         arabic = self.client.get('/ar/menu/boissons/')
@@ -73,6 +83,9 @@ class DrinksPageTests(TestCase):
         self.assertNotContains(english, '<h1>Boissons</h1>', html=True)
         self.assertContains(arabic, '<h1>المشروبات</h1>', html=True)
         self.assertContains(arabic, 'dir="rtl"')
+        self.assertContains(english, 'Are you 18 or over?')
+        self.assertContains(arabic, 'هل عمرك 18 عاماً أو أكثر؟')
+        self.assertNotContains(english, 'Avez-vous 18 ans ou plus')
 
     def test_language_switch_keeps_the_visitor_on_the_drinks_page(self):
         response = self.client.get('/fr/menu/boissons/')

@@ -229,6 +229,7 @@ class CustomerLoyaltyTests(TestCase):
         css = (Path(settings.BASE_DIR) / 'shop/static/shop/dist/site.css').read_text()
         self.assertIn('body.public-site:has(.menu-first) .bot', css)
         self.assertIn('bottom:calc(76px + env(safe-area-inset-bottom))', css)
+        self.assertIn('grid-template-columns:118px minmax(0,1fr)', css)
 
     def test_mobile_order_flow_shows_progress_status_and_total(self):
         session = self.client.session
