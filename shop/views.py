@@ -173,12 +173,63 @@ DRINKS_GROUP_TRANSLATIONS = {
     'ar': {'title': 'المشروبات', 'eyebrow': 'بار إيطالي', 'summary': 'مشروبات غازية وبيرة ونبيذ ومقبلات ومشروبات هاضمة وقهوة وشاي.'},
 }
 
-ARABIC_MENU_GROUP_TRANSLATIONS = {
-    'pizzas': {'title': 'البيتزا', 'eyebrow': 'بيتزا', 'summary': 'بيتزا منزلية مع إضافات لتخصيص طلبكم.'},
-    'pastas': {'title': 'المعكرونة', 'eyebrow': 'باستا', 'summary': 'معكرونة إيطالية ورافيولي ووصفات سخية تُقدّم ساخنة.'},
-    'antipasti': {'title': 'المقبلات', 'eyebrow': 'للمشاركة', 'summary': 'مقبلات وبروشيتا وسلطات للبداية أو المشاركة.'},
-    'bambino': {'title': 'قائمة الأطفال', 'eyebrow': 'أطفال', 'summary': 'قائمة بسيطة ولذيذة مخصّصة للصغار.'},
-    'douceurs': {'title': 'الحلويات', 'eyebrow': 'حلويات', 'summary': 'تيراميسو وبانا كوتا وآيس كريم وحلويات إيطالية.'},
+MENU_GROUP_TRANSLATIONS = {
+    'en': {
+        'pizzas': {'title': 'Our pizzas', 'eyebrow': 'Pizza', 'summary': 'House-made pizzas with extras to personalise your order.'},
+        'pastas': {'title': 'Our pasta', 'eyebrow': 'Pasta', 'summary': 'Italian pasta, ravioli and generous recipes served piping hot.'},
+        'antipasti': {'title': 'Starters & antipasti', 'eyebrow': 'To share', 'summary': 'Starters, antipasti, bruschetta and salads to begin or share.'},
+        'bambino': {'title': 'Kids menu', 'eyebrow': 'Children', 'summary': 'A simple and delicious menu created for younger guests.'},
+        'douceurs': {'title': 'Our desserts', 'eyebrow': 'Desserts', 'summary': 'Tiramisu, panna cotta, ice cream and Italian desserts.'},
+    },
+    'es': {
+        'pizzas': {'title': 'Nuestras pizzas', 'eyebrow': 'Pizza', 'summary': 'Pizzas caseras con extras para personalizar tu pedido.'},
+        'pastas': {'title': 'Nuestras pastas', 'eyebrow': 'Pasta', 'summary': 'Pasta italiana, raviolis y recetas generosas servidas bien calientes.'},
+        'antipasti': {'title': 'Entrantes y antipasti', 'eyebrow': 'Para compartir', 'summary': 'Entrantes, antipasti, bruschettas y ensaladas para empezar o compartir.'},
+        'bambino': {'title': 'Menú infantil', 'eyebrow': 'Niños', 'summary': 'Un menú sencillo y sabroso pensado para los más pequeños.'},
+        'douceurs': {'title': 'Nuestros postres', 'eyebrow': 'Postres', 'summary': 'Tiramisú, panna cotta, helados y postres italianos.'},
+    },
+    'it': {
+        'pizzas': {'title': 'Le nostre pizze', 'eyebrow': 'Pizza', 'summary': 'Pizze fatte in casa con aggiunte per personalizzare l’ordine.'},
+        'pastas': {'title': 'La nostra pasta', 'eyebrow': 'Pasta', 'summary': 'Pasta italiana, ravioli e ricette generose servite ben calde.'},
+        'antipasti': {'title': 'Antipasti', 'eyebrow': 'Da condividere', 'summary': 'Antipasti, bruschette e insalate per iniziare o condividere.'},
+        'bambino': {'title': 'Menu bambino', 'eyebrow': 'Bambini', 'summary': 'Un menu semplice e gustoso pensato per i più piccoli.'},
+        'douceurs': {'title': 'I nostri dolci', 'eyebrow': 'Dolci', 'summary': 'Tiramisù, panna cotta, gelati e dessert italiani.'},
+    },
+    'pt': {
+        'pizzas': {'title': 'As nossas pizzas', 'eyebrow': 'Pizza', 'summary': 'Pizzas artesanais com extras para personalizar o pedido.'},
+        'pastas': {'title': 'As nossas massas', 'eyebrow': 'Pasta', 'summary': 'Massas italianas, ravioli e receitas generosas servidas bem quentes.'},
+        'antipasti': {'title': 'Entradas e antipasti', 'eyebrow': 'Para partilhar', 'summary': 'Entradas, antipasti, bruschettas e saladas para começar ou partilhar.'},
+        'bambino': {'title': 'Menu infantil', 'eyebrow': 'Crianças', 'summary': 'Um menu simples e saboroso pensado para os mais novos.'},
+        'douceurs': {'title': 'As nossas sobremesas', 'eyebrow': 'Sobremesas', 'summary': 'Tiramisù, panna cotta, gelados e sobremesas italianas.'},
+    },
+    'nl': {
+        'pizzas': {'title': 'Onze pizza’s', 'eyebrow': 'Pizza', 'summary': 'Huisgemaakte pizza’s met extra’s om je bestelling aan te passen.'},
+        'pastas': {'title': 'Onze pasta', 'eyebrow': 'Pasta', 'summary': 'Italiaanse pasta, ravioli en royale gerechten, warm geserveerd.'},
+        'antipasti': {'title': 'Voorgerechten & antipasti', 'eyebrow': 'Om te delen', 'summary': 'Voorgerechten, antipasti, bruschetta en salades om te starten of delen.'},
+        'bambino': {'title': 'Kindermenu', 'eyebrow': 'Kinderen', 'summary': 'Een eenvoudig en lekker menu voor onze jongste gasten.'},
+        'douceurs': {'title': 'Onze desserts', 'eyebrow': 'Desserts', 'summary': 'Tiramisu, panna cotta, ijs en Italiaanse desserts.'},
+    },
+    'zh': {
+        'pizzas': {'title': '我们的披萨', 'eyebrow': '披萨', 'summary': '手工披萨，可选配料定制您的订单。'},
+        'pastas': {'title': '我们的意面', 'eyebrow': '意面', 'summary': '热腾腾的意大利面、意式饺子和丰盛菜品。'},
+        'antipasti': {'title': '前菜与开胃菜', 'eyebrow': '分享', 'summary': '前菜、意式开胃菜、烤面包和沙拉，适合开胃或分享。'},
+        'bambino': {'title': '儿童菜单', 'eyebrow': '儿童', 'summary': '为小客人准备的简单美味菜单。'},
+        'douceurs': {'title': '我们的甜点', 'eyebrow': '甜点', 'summary': '提拉米苏、奶冻、冰淇淋和意大利甜点。'},
+    },
+    'ja': {
+        'pizzas': {'title': 'ピザ', 'eyebrow': 'ピザ', 'summary': '手作りピザにトッピングを追加してカスタマイズできます。'},
+        'pastas': {'title': 'パスタ', 'eyebrow': 'パスタ', 'summary': '熱々のイタリアンパスタ、ラビオリ、ボリュームある料理。'},
+        'antipasti': {'title': '前菜＆アンティパスト', 'eyebrow': 'シェア', 'summary': '前菜、ブルスケッタ、サラダをスターターやシェアに。'},
+        'bambino': {'title': 'キッズメニュー', 'eyebrow': 'お子様', 'summary': 'お子様向けのシンプルでおいしいメニュー。'},
+        'douceurs': {'title': 'デザート', 'eyebrow': 'デザート', 'summary': 'ティラミス、パンナコッタ、アイス、イタリアンスイーツ。'},
+    },
+    'ar': {
+        'pizzas': {'title': 'البيتزا', 'eyebrow': 'بيتزا', 'summary': 'بيتزا منزلية مع إضافات لتخصيص طلبكم.'},
+        'pastas': {'title': 'المعكرونة', 'eyebrow': 'باستا', 'summary': 'معكرونة إيطالية ورافيولي ووصفات سخية تُقدّم ساخنة.'},
+        'antipasti': {'title': 'المقبلات', 'eyebrow': 'للمشاركة', 'summary': 'مقبلات وبروشيتا وسلطات للبداية أو المشاركة.'},
+        'bambino': {'title': 'قائمة الأطفال', 'eyebrow': 'أطفال', 'summary': 'قائمة بسيطة ولذيذة مخصّصة للصغار.'},
+        'douceurs': {'title': 'الحلويات', 'eyebrow': 'حلويات', 'summary': 'تيراميسو وبانا كوتا وآيس كريم وحلويات إيطالية.'},
+    },
 }
 
 DRINK_CATEGORY_ORDER = [
@@ -239,8 +290,8 @@ def _menu_groups(lang='fr'):
         item = group.copy()
         if group['slug'] == 'boissons':
             item.update(DRINKS_GROUP_TRANSLATIONS.get(lang, DRINKS_GROUP_TRANSLATIONS['fr']))
-        elif lang == 'ar' and group['slug'] in ARABIC_MENU_GROUP_TRANSLATIONS:
-            item.update(ARABIC_MENU_GROUP_TRANSLATIONS[group['slug']])
+        elif group['slug'] in MENU_GROUP_TRANSLATIONS.get(lang, {}):
+            item.update(MENU_GROUP_TRANSLATIONS[lang][group['slug']])
         _apply_menu_group_image(item, site_config)
         item['url'] = reverse('shop:localized_menu_group', args=[lang, group['slug']])
         item['count'] = sum(category.products.filter(is_available=True).count() for category in categories)
@@ -255,8 +306,8 @@ def _menu_group_by_slug(slug, lang='fr'):
             item = group.copy()
             if slug == 'boissons':
                 item.update(DRINKS_GROUP_TRANSLATIONS.get(lang, DRINKS_GROUP_TRANSLATIONS['fr']))
-            elif lang == 'ar' and slug in ARABIC_MENU_GROUP_TRANSLATIONS:
-                item.update(ARABIC_MENU_GROUP_TRANSLATIONS[slug])
+            elif slug in MENU_GROUP_TRANSLATIONS.get(lang, {}):
+                item.update(MENU_GROUP_TRANSLATIONS[lang][slug])
             _apply_menu_group_image(item, site_config)
             return item
     return None

@@ -193,6 +193,17 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(arabic, 'مغلق')
         self.assertContains(arabic, 'aria-label="معلومات الطلب"')
 
+    def test_menu_category_cards_follow_the_selected_language(self):
+        english_home = self.client.get('/en/home/')
+        english_pizzas = self.client.get('/en/menu/pizzas/')
+        arabic_home = self.client.get('/ar/')
+
+        self.assertContains(english_home, 'Our pizzas')
+        self.assertContains(english_home, 'House-made pizzas with extras')
+        self.assertNotContains(english_home, 'Nos pizzas')
+        self.assertContains(english_pizzas, '<h1>Our pizzas</h1>', html=True)
+        self.assertContains(arabic_home, 'البيتزا')
+
     def test_customer_can_delete_account_and_associated_data(self):
         order = self.create_order(2, 'PV-DELETE-1')
         Favorite.objects.create(user=self.user, product=self.product)
