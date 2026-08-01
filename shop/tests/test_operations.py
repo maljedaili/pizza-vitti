@@ -233,6 +233,17 @@ class CustomerLoyaltyTests(TestCase):
         english_product = self.client.get(f'/en/product/{self.product.slug}/')
         self.assertContains(english_product, 'Add to favourites')
 
+    def test_language_switcher_preserves_the_current_public_page(self):
+        english_menu = self.client.get('/en/menu/')
+        english_reviews = self.client.get('/en/reviews/')
+        english_product = self.client.get(f'/en/product/{self.product.slug}/')
+
+        self.assertContains(english_menu, 'href="/es/menu/"')
+        self.assertContains(english_menu, 'href="/ar/menu/"')
+        self.assertNotContains(english_menu, 'href="/es/inicio"')
+        self.assertContains(english_reviews, 'href="/it/recensioni/"')
+        self.assertContains(english_product, f'href="/ar/product/{self.product.slug}/"')
+
     def test_customer_can_delete_account_and_associated_data(self):
         order = self.create_order(2, 'PV-DELETE-1')
         Favorite.objects.create(user=self.user, product=self.product)

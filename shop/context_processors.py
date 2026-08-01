@@ -5,7 +5,7 @@ from .hours import restaurant_status, weekly_hours
 from .models import BlogPost, Category, Product, SiteConfiguration
 from django.db.models import Case, When, IntegerField
 from django.urls import reverse
-from .translations import HOME_SLUGS, LANGUAGE_OPTIONS, get_lang_from_path, t_for, localized_url, lang_home
+from .translations import HOME_SLUGS, LANGUAGE_OPTIONS, PAGE_SLUGS, get_lang_from_path, t_for, localized_url, lang_home
 
 def _menu_category_order(qs):
     return qs.annotate(
@@ -68,12 +68,27 @@ def site_settings(request):
     site = SiteConfiguration.load()
     resolver_name = request.resolver_match.url_name if request.resolver_match else ''
     language_menu = []
+    localized_page_key = None
+    if resolver_name == 'localized_page':
+        current_slug = request.resolver_match.kwargs.get('page')
+        localized_page_key = next(
+            (key for key, slugs in PAGE_SLUGS.items() if slugs.get(lang) == current_slug),
+            None,
+        )
     for code, label, name, default_href in LANGUAGE_OPTIONS:
         href = default_href
         if resolver_name == 'localized_menu_group':
             group = request.resolver_match.kwargs.get('group')
             if group:
                 href = reverse('shop:localized_menu_group', args=[code, group])
+        elif resolver_name == 'localized_product_detail':
+            slug = request.resolver_match.kwargs.get('slug')
+            if slug:
+                href = reverse('shop:localized_product_detail', args=[code, slug])
+        elif localized_page_key:
+            href = localized_url(localized_page_key, code)
+        elif resolver_name in {'home', 'localized_home_short'}:
+            href = localized_url('home', code)
         language_menu.append((code, label, name, href))
     private_page_names = {
         'cart', 'checkout', 'invoice', 'track_order', 'customer_dashboard',
