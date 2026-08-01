@@ -65,21 +65,34 @@ def restaurant_status(now=None):
             'is_open': False,
             'label': 'Fermé',
             'detail': 'Horaires temporairement indisponibles',
+            'detail_kind': 'unavailable',
         }
     if opening['is_open']:
         return {
             'is_open': True,
             'label': 'Ouvert maintenant',
             'detail': f"Ferme à {opening['closes_at']:%H:%M}",
+            'detail_kind': 'closes_at',
+            'detail_time': opening['closes_at'],
         }
     if opening['day'] == current.date():
         detail = f"Ouvre aujourd’hui à {opening['time']:%H:%M}"
+        detail_kind = 'opens_today'
     elif opening['day'] == current.date() + timedelta(days=1):
         detail = f"Ouvre demain à {opening['time']:%H:%M}"
+        detail_kind = 'opens_tomorrow'
     else:
         weekday = OpeningPeriod.WEEKDAYS[opening['day'].weekday()][1].lower()
         detail = f"Ouvre {weekday} à {opening['time']:%H:%M}"
-    return {'is_open': False, 'label': 'Fermé', 'detail': detail}
+        detail_kind = 'opens_weekday'
+    return {
+        'is_open': False,
+        'label': 'Fermé',
+        'detail': detail,
+        'detail_kind': detail_kind,
+        'detail_time': opening['time'],
+        'detail_weekday': opening['day'].weekday(),
+    }
 
 
 def weekly_hours():

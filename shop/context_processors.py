@@ -43,14 +43,24 @@ def site_settings(request):
     T = t_for(lang)
     status = restaurant_status()
     hours = weekly_hours()
-    if lang == 'ar':
-        status['label'] = 'مفتوح الآن' if status['is_open'] else 'مغلق'
-        status['detail'] = 'تحقق من ساعات العمل أدناه'
-        arabic_days = ('الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت', 'الأحد')
-        for row, day_name in zip(hours, arabic_days):
-            row['label'] = day_name
-            if row['display'] == 'Fermé':
-                row['display'] = 'مغلق'
+    status['label'] = T['open_now'] if status['is_open'] else T['closed']
+    detail_kind = status.get('detail_kind')
+    detail_time = status.get('detail_time')
+    if detail_kind == 'unavailable':
+        status['detail'] = T['hours_unavailable']
+    elif detail_kind == 'closes_at':
+        status['detail'] = f"{T['closes_at']} {detail_time:%H:%M}"
+    elif detail_kind == 'opens_today':
+        status['detail'] = f"{T['opens_today']} {detail_time:%H:%M}"
+    elif detail_kind == 'opens_tomorrow':
+        status['detail'] = f"{T['opens_tomorrow']} {detail_time:%H:%M}"
+    elif detail_kind == 'opens_weekday':
+        day = T['weekdays'][status['detail_weekday']]
+        status['detail'] = T['opens_on'].format(day=day) + f" {detail_time:%H:%M}"
+    for row in hours:
+        row['label'] = T['weekdays'][row['weekday']]
+        if not row['periods']:
+            row['display'] = T['closed']
     configured_site_url = settings.SITE_URL.rstrip('/')
     host = request.get_host().split(':')[0]
     if configured_site_url.startswith('http://localhost') and host not in ['localhost', '127.0.0.1']:

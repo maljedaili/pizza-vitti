@@ -21,7 +21,7 @@
         </a>
       {% endif %}
     </div>
-    <div class="home-service-points" aria-label="Informations de commande">
+    <div class="home-service-points" aria-label="{{ T.order_information }}">
       <span><b aria-hidden="true">●</b> {{ T.pickup }}</span>
       <span>{{ T.pickup_text }}</span>
       <span>{{ T.secure_payment }}</span>
@@ -46,7 +46,7 @@
       <p>{{ T.select_menu_text }}</p>
     </div>
   </div>
-  <div class="category-photo-grid" aria-label="Catégories du menu">
+  <div class="category-photo-grid" aria-label="{{ T.menu_categories }}">
     {% for group in menu_groups %}
       <a
         class="menu-photo-card {{ group.kind }}"
@@ -155,6 +155,6 @@
       <a class="button ghost" href="tel:+33556421449">{{ T.phone }}</a>
     </div>
   </div>
-  <iframe title="Localisation de Pizza Vitti à Bordeaux" loading="lazy" src="https://www.google.com/maps?q=Pizza%20Vitti%20236%20Rue%20d'Ornano%2033000%20Bordeaux&output=embed"></iframe>
+  <iframe title="{{ T.location_map }}" loading="lazy" src="https://www.google.com/maps?q=Pizza%20Vitti%20236%20Rue%20d'Ornano%2033000%20Bordeaux&output=embed"></iframe>
 </section>
 {% endblock %}

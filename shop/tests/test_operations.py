@@ -179,6 +179,20 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(english_menu, '<title>Pizza Vitti Bordeaux menu</title>', html=True)
         self.assertContains(arabic_home, '<title>بيتزا إيطالية في بوردو | Pizza Vitti</title>', html=True)
 
+    def test_opening_hours_and_status_follow_the_selected_language(self):
+        english = self.client.get('/en/home/')
+        arabic = self.client.get('/ar/')
+
+        self.assertContains(english, 'Monday')
+        self.assertContains(english, 'Closed')
+        self.assertContains(english, 'aria-label="Ordering information"')
+        self.assertContains(english, 'title="Pizza Vitti location in Bordeaux"')
+        self.assertNotContains(english, '>Lundi<')
+        self.assertNotContains(english, '>Fermé<')
+        self.assertContains(arabic, 'الاثنين')
+        self.assertContains(arabic, 'مغلق')
+        self.assertContains(arabic, 'aria-label="معلومات الطلب"')
+
     def test_customer_can_delete_account_and_associated_data(self):
         order = self.create_order(2, 'PV-DELETE-1')
         Favorite.objects.create(user=self.user, product=self.product)
