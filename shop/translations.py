@@ -109,6 +109,20 @@ ORDER_FLOW_TRANSLATIONS = {
 for _language, _copy in ORDER_FLOW_TRANSLATIONS.items():
     TRANSLATIONS[_language].update(_copy)
 
+ORDER_EXPERIENCE_TRANSLATIONS = {
+    'fr': {'my_order':'Ma commande','close':'Fermer','remove':'Supprimer','more_items':'autre(s) article(s)','table_order':'Commande à table','table':'Table','quantity':'Quantité','full_menu':'Menu complet','menu_intro':'Choisissez vos plats, ajoutez-les au panier et finalisez votre commande en quelques instants.','menu_categories':'Catégories du menu'},
+    'en': {'my_order':'My order','close':'Close','remove':'Remove','more_items':'more item(s)','table_order':'Table order','table':'Table','quantity':'Quantity','full_menu':'Full menu','menu_intro':'Choose your dishes, add them to your cart and complete your order in just a few moments.','menu_categories':'Menu categories'},
+    'es': {'my_order':'Mi pedido','close':'Cerrar','remove':'Eliminar','more_items':'artículo(s) más','table_order':'Pedido en mesa','table':'Mesa','quantity':'Cantidad','full_menu':'Menú completo','menu_intro':'Elige tus platos, añádelos al carrito y finaliza tu pedido en unos instantes.','menu_categories':'Categorías del menú'},
+    'it': {'my_order':'Il mio ordine','close':'Chiudi','remove':'Rimuovi','more_items':'altri articoli','table_order':'Ordine al tavolo','table':'Tavolo','quantity':'Quantità','full_menu':'Menu completo','menu_intro':'Scegli i piatti, aggiungili al carrello e completa l’ordine in pochi istanti.','menu_categories':'Categorie del menu'},
+    'pt': {'my_order':'O meu pedido','close':'Fechar','remove':'Remover','more_items':'outro(s) artigo(s)','table_order':'Pedido à mesa','table':'Mesa','quantity':'Quantidade','full_menu':'Menu completo','menu_intro':'Escolha os pratos, adicione-os ao carrinho e finalize o pedido em poucos instantes.','menu_categories':'Categorias do menu'},
+    'nl': {'my_order':'Mijn bestelling','close':'Sluiten','remove':'Verwijderen','more_items':'meer artikel(en)','table_order':'Bestelling aan tafel','table':'Tafel','quantity':'Aantal','full_menu':'Volledig menu','menu_intro':'Kies je gerechten, voeg ze toe aan je winkelwagen en rond je bestelling eenvoudig af.','menu_categories':'Menucategorieën'},
+    'zh': {'my_order':'我的订单','close':'关闭','remove':'删除','more_items':'件其他商品','table_order':'桌边点餐','table':'桌号','quantity':'数量','full_menu':'完整菜单','menu_intro':'选择菜品并加入购物车，几步即可完成订单。','menu_categories':'菜单分类'},
+    'ja': {'my_order':'注文内容','close':'閉じる','remove':'削除','more_items':'件の追加商品','table_order':'テーブル注文','table':'テーブル','quantity':'数量','full_menu':'全メニュー','menu_intro':'料理を選んでカートに追加し、簡単に注文を完了できます。','menu_categories':'メニューカテゴリー'},
+    'ar': {'my_order':'طلبي','close':'إغلاق','remove':'حذف','more_items':'منتجات إضافية','table_order':'طلب على الطاولة','table':'الطاولة','quantity':'الكمية','full_menu':'القائمة الكاملة','menu_intro':'اختر أطباقك وأضفها إلى السلة ثم أكمل طلبك بسهولة.','menu_categories':'فئات القائمة'},
+}
+for _language, _copy in ORDER_EXPERIENCE_TRANSLATIONS.items():
+    TRANSLATIONS[_language].update(_copy)
+
 AVAILABILITY_TRACKING_TRANSLATIONS = {
     'fr': {'sold_out':'Épuisé aujourd’hui','available_later':'Disponible plus tard','available_again':'Disponible à nouveau le','track_order':'Suivre ma commande','track_help':'Saisissez le numéro reçu après la commande et la même adresse email.','order_number':'Numéro de commande','track_button':'Afficher le suivi','received_step':'Reçue','preparing_step':'Préparation','ready_step':'Prête','collected_step':'Récupérée'},
     'en': {'sold_out':'Sold out today','available_later':'Available later','available_again':'Available again','track_order':'Track my order','track_help':'Enter your order number and the same email address used at checkout.','order_number':'Order number','track_button':'Show tracking','received_step':'Received','preparing_step':'Preparing','ready_step':'Ready','collected_step':'Collected'},

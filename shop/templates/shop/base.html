@@ -65,12 +65,12 @@
 {% if cart_count and not kitchen_app %}
 <aside class="order-preview open" data-order-preview>
   <button type="button" class="order-preview-toggle" data-order-preview-toggle>
-    Ma commande <span>{{ cart_count }}</span>
+    {{ T.my_order }} <span>{{ cart_count }}</span>
   </button>
   <div class="order-preview-panel">
     <div class="order-preview-head">
       <strong>{{ T.my_cart }}</strong>
-      <button type="button" data-order-preview-close aria-label="Fermer">×</button>
+      <button type="button" data-order-preview-close aria-label="{{ T.close }}">×</button>
     </div>
     <div class="order-preview-lines">
       {% for item in cart_preview_items %}
@@ -80,11 +80,11 @@
           <form method="post" action="{% url 'shop:remove_from_cart' item.product.id %}">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
-            <button type="submit" class="remove-mini" title="Supprimer {{ item.product.name }}" aria-label="Supprimer {{ item.product.name }}">×</button>
+            <button type="submit" class="remove-mini" title="{{ T.remove }} {{ item.product.name }}" aria-label="{{ T.remove }} {{ item.product.name }}">×</button>
           </form>
         </div>
       {% endfor %}
-      {% if cart_preview_more %}<small>+ {{ cart_preview_more }} autre(s) article(s)</small>{% endif %}
+      {% if cart_preview_more %}<small>+ {{ cart_preview_more }} {{ T.more_items }}</small>{% endif %}
     </div>
     <div class="order-preview-total"><span>{{ T.total }}</span><strong>{{ cart_preview_total }} €</strong></div>
     <div class="order-preview-actions">

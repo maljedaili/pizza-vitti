@@ -3,12 +3,12 @@
 {% block content %}
 <section class="shop-hero menu-hero reveal" data-hero-motion{% if menu_group.image %} style="background-image:linear-gradient(90deg,#0d0e15f0,#1719235c),url('{{ menu_group.image }}')"{% endif %}>
   <p class="eyebrow">{% if menu_group %}{{ menu_group.eyebrow }}{% else %}{{ T.menu }} Pizza Vitti{% endif %}</p>
-  <h1>{% if menu_group %}{{ menu_group.title }}{% elif category %}{{ category.translated_name|default:category.name }}{% else %}Menu complet{% endif %}</h1>
-  <p>{% if menu_group %}{{ menu_group.summary }}{% else %}Choisissez vos plats, ajoutez-les au panier et finalisez votre commande en quelques instants.{% endif %}</p>
+  <h1>{% if menu_group %}{{ menu_group.title }}{% elif category %}{{ category.translated_name|default:category.name }}{% else %}{{ T.full_menu }}{% endif %}</h1>
+  <p>{% if menu_group %}{{ menu_group.summary }}{% else %}{{ T.menu_intro }}{% endif %}</p>
 </section>
 <section class="toolbar menu-toolbar">
   <form><input name="q" placeholder="{{ T.search_placeholder }}" value="{{ query }}"></form>
-  <div class="pills" aria-label="Catégories du menu">
+  <div class="pills" aria-label="{{ T.menu_categories }}">
     <a href="{{ url_menu }}"{% if not menu_group %} class="active"{% endif %}>{{ T.all }}</a>
     {% for group in menu_groups %}<a href="{{ group.url }}"{% if menu_group.slug == group.slug %} class="active"{% endif %}>{{ group.title }}</a>{% endfor %}
   </div>

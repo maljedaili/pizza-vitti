@@ -248,6 +248,22 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(checkout, 'autocomplete="email"')
         self.assertContains(checkout, 'autocomplete="tel"')
 
+    def test_order_controls_follow_the_selected_language(self):
+        session = self.client.session
+        session['cart'] = {str(self.product.id): 1}
+        session.save()
+
+        english_menu = self.client.get('/en/menu/')
+        self.assertContains(english_menu, 'Full menu')
+        self.assertContains(english_menu, 'My order')
+        self.assertContains(english_menu, 'aria-label="Close"')
+        self.assertNotContains(english_menu, 'Ma commande')
+
+        arabic_cart = self.client.get('/ar/cart/')
+        self.assertContains(arabic_cart, 'طلبي')
+        self.assertContains(arabic_cart, 'الكمية')
+        self.assertContains(arabic_cart, '>حذف</button>')
+
     def test_sold_out_product_stays_visible_but_cannot_be_ordered(self):
         self.product.availability_status = 'sold_out'
         self.product.save()
