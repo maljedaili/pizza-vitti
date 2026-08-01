@@ -4,7 +4,7 @@
 <section class="detail product-detail">
   <div class="detail-media is-3d-product" data-product-tilt>
     <img src="{{ product.display_image }}" alt="{{ product.name }}">
-    <span class="product-tilt-hint" aria-hidden="true">↔ Glissez pour tourner</span>
+    <span class="product-tilt-hint" aria-hidden="true">↔ {{ T.swipe_rotate }}</span>
   </div>
   <div>
     <p class="eyebrow">{{ product.translated_category_name|default:product.category.name }}</p>
@@ -24,12 +24,12 @@
       <input type="hidden" name="next" value="{{ url_cart }}">
       {% if supplements %}
         <fieldset>
-          <legend>Personnaliser ma pizza</legend>
+          <legend>{{ T.customize_pizza }}</legend>
           <p>{{ T.extras_server_note }}</p>
           {% for supplement in supplements %}
             <label>
               <input type="checkbox" name="supplements" value="{{ supplement.id }}" data-supplement-price="{{ supplement.price }}">
-              <span>{{ supplement.name }}</span>
+              <span>{{ supplement.translated_name|default:supplement.name }}</span>
               <strong>+ {{ supplement.price }} €</strong>
             </label>
           {% endfor %}
@@ -41,7 +41,7 @@
       </div>
     </form>{% else %}<div class="availability-message"><strong>{% if product.availability_status == 'scheduled' and product.available_again_at %}{{ T.available_again }} {{ product.available_again_at|date:'d/m H:i' }}{% else %}{{ T.sold_out }}{% endif %}</strong></div>{% endif %}
     {% if request.user.is_authenticated %}
-      <form method="post" action="{% url 'shop:toggle_favorite' product.id %}" class="inline favorite-detail">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="button ghost">{% if product.id in favorite_product_ids %}Retirer des favoris{% else %}Ajouter aux favoris{% endif %}</button></form>
+      <form method="post" action="{% url 'shop:toggle_favorite' product.id %}" class="inline favorite-detail">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="button ghost">{% if product.id in favorite_product_ids %}{{ T.remove_favorite }}{% else %}{{ T.add_favorite }}{% endif %}</button></form>
     {% endif %}
   </div>
 </section>

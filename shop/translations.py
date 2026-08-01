@@ -207,6 +207,20 @@ ACCESSIBILITY_TRANSLATIONS = {
 for _language, _copy in ACCESSIBILITY_TRANSLATIONS.items():
     TRANSLATIONS[_language].update(_copy)
 
+PRODUCT_DETAIL_TRANSLATIONS = {
+    'fr': {'swipe_rotate':'Glissez pour tourner','customize_pizza':'Personnaliser ma pizza','favorite':'Favori','add_favorite':'Ajouter aux favoris','remove_favorite':'Retirer des favoris','glass':'verre','bottle':'bouteille'},
+    'en': {'swipe_rotate':'Swipe to rotate','customize_pizza':'Customise my pizza','favorite':'Favourite','add_favorite':'Add to favourites','remove_favorite':'Remove from favourites','glass':'glass','bottle':'bottle'},
+    'es': {'swipe_rotate':'Desliza para girar','customize_pizza':'Personalizar mi pizza','favorite':'Favorito','add_favorite':'Añadir a favoritos','remove_favorite':'Quitar de favoritos','glass':'copa','bottle':'botella'},
+    'it': {'swipe_rotate':'Scorri per ruotare','customize_pizza':'Personalizza la mia pizza','favorite':'Preferito','add_favorite':'Aggiungi ai preferiti','remove_favorite':'Rimuovi dai preferiti','glass':'calice','bottle':'bottiglia'},
+    'pt': {'swipe_rotate':'Deslize para rodar','customize_pizza':'Personalizar a minha pizza','favorite':'Favorito','add_favorite':'Adicionar aos favoritos','remove_favorite':'Remover dos favoritos','glass':'copo','bottle':'garrafa'},
+    'nl': {'swipe_rotate':'Veeg om te draaien','customize_pizza':'Mijn pizza aanpassen','favorite':'Favoriet','add_favorite':'Toevoegen aan favorieten','remove_favorite':'Verwijderen uit favorieten','glass':'glas','bottle':'fles'},
+    'zh': {'swipe_rotate':'滑动旋转','customize_pizza':'定制我的披萨','favorite':'收藏','add_favorite':'加入收藏','remove_favorite':'取消收藏','glass':'杯','bottle':'瓶'},
+    'ja': {'swipe_rotate':'スワイプして回転','customize_pizza':'ピザをカスタマイズ','favorite':'お気に入り','add_favorite':'お気に入りに追加','remove_favorite':'お気に入りから削除','glass':'グラス','bottle':'ボトル'},
+    'ar': {'swipe_rotate':'اسحب للتدوير','customize_pizza':'تخصيص البيتزا','favorite':'المفضلة','add_favorite':'إضافة إلى المفضلة','remove_favorite':'إزالة من المفضلة','glass':'كأس','bottle':'زجاجة'},
+}
+for _language, _copy in PRODUCT_DETAIL_TRANSLATIONS.items():
+    TRANSLATIONS[_language].update(_copy)
+
 AVAILABILITY_TRACKING_TRANSLATIONS = {
     'fr': {'sold_out':'Épuisé aujourd’hui','available_later':'Disponible plus tard','available_again':'Disponible à nouveau le','track_order':'Suivre ma commande','track_help':'Saisissez le numéro reçu après la commande et la même adresse email.','order_number':'Numéro de commande','track_button':'Afficher le suivi','received_step':'Reçue','preparing_step':'Préparation','ready_step':'Prête','collected_step':'Récupérée'},
     'en': {'sold_out':'Sold out today','available_later':'Available later','available_again':'Available again','track_order':'Track my order','track_help':'Enter your order number and the same email address used at checkout.','order_number':'Order number','track_button':'Show tracking','received_step':'Received','preparing_step':'Preparing','ready_step':'Ready','collected_step':'Collected'},

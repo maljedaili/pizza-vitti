@@ -646,22 +646,25 @@ def menu_group(request, group, lang=None):
         'has_age_restricted_products': any(product.requires_age_verification for product in products),
     })
 
-def product_detail(request, slug):
+def product_detail(request, slug, lang=None):
     product = get_object_or_404(Product, slug=slug)
-    lang = get_lang_from_path(request.path)
+    lang = lang if lang in TRANSLATIONS else get_lang_from_path(request.path)
     _apply_menu_translations([product], [product.category] if product.category else [], lang)
     product.requires_age_verification = _requires_age_verification(product)
     favorite_product_ids = set()
     if request.user.is_authenticated:
         favorite_product_ids = set(Favorite.objects.filter(user=request.user).values_list('product_id', flat=True))
-    supplements = Product.objects.filter(
+    supplements = list(Product.objects.filter(
         is_available=True,
         category__name__icontains='suppl',
-    ).select_related('category') if product.category and 'pizza' in _category_key(product.category) and 'suppl' not in _category_key(product.category) else Product.objects.none()
+    ).select_related('category')) if product.category and 'pizza' in _category_key(product.category) and 'suppl' not in _category_key(product.category) else []
+    _apply_menu_translations(supplements, list({item.category for item in supplements if item.category}), lang)
+    translated_name = getattr(product, 'translated_name', product.name)
+    translated_description = getattr(product, 'translated_description', product.description)
     return render(request, 'shop/product_detail.html', {'product': product, 'supplements': supplements, 'favorite_product_ids': favorite_product_ids,
         'has_age_restricted_products': product.requires_age_verification,
-        'meta_title': product.meta_title or f'{product.name} | Pizza Vitti',
-        'meta_description': product.meta_description or product.description[:155]})
+        'meta_title': product.meta_title or f'{translated_name} | Pizza Vitti',
+        'meta_description': product.meta_description or translated_description[:155]})
 
 
 def legacy_boutique_redirect(request):

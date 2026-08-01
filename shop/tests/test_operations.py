@@ -218,6 +218,21 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(arabic, 'aria-label="فتح القائمة"')
         self.assertContains(arabic, 'aria-label="وسائل الدفع المقبولة: Visa وMastercard وCB"')
 
+    def test_product_links_and_controls_preserve_the_selected_language(self):
+        english_menu = self.client.get('/en/menu/pizzas/')
+        self.assertContains(english_menu, f'/en/product/{self.product.slug}/')
+
+        english_product = self.client.get(f'/en/product/{self.product.slug}/')
+        arabic_product = self.client.get(f'/ar/product/{self.product.slug}/')
+        self.assertEqual(english_product.status_code, 200)
+        self.assertContains(english_product, 'Swipe to rotate')
+        self.assertNotContains(english_product, 'Glissez pour tourner')
+        self.assertContains(arabic_product, 'اسحب للتدوير')
+
+        self.client.force_login(self.user)
+        english_product = self.client.get(f'/en/product/{self.product.slug}/')
+        self.assertContains(english_product, 'Add to favourites')
+
     def test_customer_can_delete_account_and_associated_data(self):
         order = self.create_order(2, 'PV-DELETE-1')
         Favorite.objects.create(user=self.user, product=self.product)

@@ -12,6 +12,7 @@ urlpatterns = [
     path('boutique/menu/<slug:group>/', views.legacy_menu_group_redirect, name='menu_group'),
     path('boutique/categorie/<slug:slug>/', views.category, name='category'),
     path('produit/<slug:slug>/', views.product_detail, name='product_detail'),
+    path('<str:lang>/product/<slug:slug>/', views.product_detail, name='localized_product_detail'),
     path('table/<str:table>/', views.table_menu, name='table_menu'),
     path('<str:lang>/table/<str:table>/', views.table_menu, name='localized_table_menu'),
     path('app/', views.app_home, name='app_home'),
