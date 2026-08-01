@@ -2,8 +2,8 @@
 <html lang="{{ current_lang|default:'fr' }}" dir="{{ T.dir|default:'ltr' }}">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ meta_title|default:"Pizza Vitti Bordeaux | Pizzeria italienne, commande en ligne" }}</title>
-  <meta name="description" content="{{ meta_description|default:"Pizza Vitti à Bordeaux : pizzas italiennes artisanales, commande en ligne, réservation et retrait au restaurant." }}">
+  <title>{{ meta_title|default:T.default_meta_title }}</title>
+  <meta name="description" content="{{ meta_description|default:T.default_meta_description }}">
   {% if meta_robots %}<meta name="robots" content="{{ meta_robots }}">{% endif %}
   <meta name="theme-color" content="{% if kitchen_app %}#171923{% else %}#321b4f{% endif %}">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,12 +13,12 @@
   <link rel="apple-touch-icon" href="{% static 'shop/img/pwa/icon-192.png' %}">
   <link rel="canonical" href="{{ SITE_URL }}{{ request.path }}">
   {% for code,label,name,href in LANGUAGES_MENU %}<link rel="alternate" hreflang="{{ code }}" href="{{ SITE_URL }}{{ href }}">{% endfor %}
-  <meta property="og:title" content="{{ meta_title|default:"Pizza Vitti Bordeaux" }}"><meta property="og:type" content="restaurant"><meta property="og:url" content="{{ SITE_URL }}{{ request.path }}">
-  <meta property="og:description" content="{{ meta_description|default:"Pizza italienne artisanale à Bordeaux, à commander en ligne et à retirer au restaurant." }}">
+  <meta property="og:title" content="{{ meta_title|default:T.default_meta_title }}"><meta property="og:type" content="restaurant"><meta property="og:url" content="{{ SITE_URL }}{{ request.path }}">
+  <meta property="og:description" content="{{ meta_description|default:T.default_meta_description }}">
   <meta property="og:image" content="{{ SITE_URL }}{% if meta_image %}{{ meta_image }}{% else %}{% static 'shop/img/hero/menu-pizza-vitti.jpg' %}{% endif %}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{{ meta_title|default:"Pizza Vitti Bordeaux" }}">
-  <meta name="twitter:description" content="{{ meta_description|default:"Pizza italienne artisanale à Bordeaux." }}">
+  <meta name="twitter:title" content="{{ meta_title|default:T.default_meta_title }}">
+  <meta name="twitter:description" content="{{ meta_description|default:T.default_meta_description }}">
   <meta name="twitter:image" content="{{ SITE_URL }}{% if meta_image %}{{ meta_image }}{% else %}{% static 'shop/img/hero/menu-pizza-vitti.jpg' %}{% endif %}">
   <script type="application/ld+json">{{ structured_data|safe }}</script>
   {% if drinks_structured_data %}<script type="application/ld+json">{{ drinks_structured_data|safe }}</script>{% endif %}

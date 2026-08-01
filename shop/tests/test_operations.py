@@ -168,6 +168,17 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(arabic, 'القائمة وطلباتك في تطبيق واحد.')
         self.assertContains(arabic, 'aria-label="تنزيل Pizza Vitti من Google Play"')
 
+    def test_home_and_menu_metadata_follow_the_selected_language(self):
+        english_home = self.client.get('/en/home/')
+        english_menu = self.client.get('/en/menu/')
+        arabic_home = self.client.get('/ar/')
+
+        self.assertContains(english_home, '<title>Italian pizza in Bordeaux | Pizza Vitti</title>', html=True)
+        self.assertContains(english_home, 'content="Artisan Italian pizza in Bordeaux.')
+        self.assertNotContains(english_home, '<title>Pizza italienne à Bordeaux | Pizza Vitti</title>', html=True)
+        self.assertContains(english_menu, '<title>Pizza Vitti Bordeaux menu</title>', html=True)
+        self.assertContains(arabic_home, '<title>بيتزا إيطالية في بوردو | Pizza Vitti</title>', html=True)
+
     def test_customer_can_delete_account_and_associated_data(self):
         order = self.create_order(2, 'PV-DELETE-1')
         Favorite.objects.create(user=self.user, product=self.product)

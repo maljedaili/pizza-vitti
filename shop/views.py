@@ -438,6 +438,7 @@ def home(request):
     reviews = Review.objects.filter(is_published=True).exclude(source_url='')[:6]
     gallery = GalleryImage.objects.filter(is_active=True).exclude(image='').exclude(image__isnull=True)[:6]
     lang = get_lang_from_path(request.path)
+    copy = t_for(lang)
     menu_groups = _menu_groups(lang)
     favorite_product_ids = set()
     if request.user.is_authenticated:
@@ -448,8 +449,8 @@ def home(request):
         'gallery': gallery,
         'favorite_product_ids': favorite_product_ids,
         'hide_review_prompt': True,
-        'meta_title': 'Pizza italienne à Bordeaux | Pizza Vitti',
-        'meta_description': 'Pizza italienne artisanale à Bordeaux. Commandez en ligne et récupérez votre repas chez Pizza Vitti, 236 rue d’Ornano.'
+        'meta_title': copy['home_meta_title'],
+        'meta_description': copy['home_meta_description'],
     })
 
 def about(request):
@@ -466,6 +467,7 @@ def boutique(request):
     paginator = Paginator(qs, 120)
     page_obj = paginator.get_page(request.GET.get('page'))
     lang = get_lang_from_path(request.path)
+    copy = t_for(lang)
     _apply_menu_translations(list(page_obj.object_list), [], lang)
     favorite_product_ids = set()
     if request.user.is_authenticated:
@@ -475,8 +477,8 @@ def boutique(request):
         'query': query,
         'favorite_product_ids': favorite_product_ids,
         'menu_groups': _menu_groups(lang),
-        'meta_title': 'Carte et menu Pizza Vitti Bordeaux',
-        'meta_description': 'Découvrez la carte Pizza Vitti et commandez vos pizzas et plats italiens à emporter à Bordeaux.',
+        'meta_title': copy['menu_meta_title'],
+        'meta_description': copy['menu_meta_description'],
     })
 
 def category(request, slug):
