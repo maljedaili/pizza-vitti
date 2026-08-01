@@ -5,7 +5,7 @@ from .hours import restaurant_status, weekly_hours
 from .models import BlogPost, Category, Product, SiteConfiguration
 from django.db.models import Case, When, IntegerField
 from django.urls import reverse
-from .translations import LANGUAGE_OPTIONS, get_lang_from_path, t_for, localized_url, lang_home
+from .translations import HOME_SLUGS, LANGUAGE_OPTIONS, get_lang_from_path, t_for, localized_url, lang_home
 
 def _menu_category_order(qs):
     return qs.annotate(
@@ -110,13 +110,17 @@ def site_settings(request):
     }
     if same_as:
         structured_data['sameAs'] = same_as
+    is_localized_home = (
+        resolver_name == 'localized_page'
+        and request.resolver_match.kwargs.get('page') == HOME_SLUGS.get(lang)
+    )
     return {
         'site_config': site,
         'restaurant_status': status,
         'weekly_hours': hours,
         'structured_data': json.dumps(structured_data, ensure_ascii=False),
         'show_blog': True,
-        'show_app_promo': resolver_name in {'home', 'localized_home_short', 'customer_dashboard'},
+        'show_app_promo': resolver_name in {'home', 'localized_home_short', 'customer_dashboard'} or is_localized_home,
         'show_review_prompt': resolver_name in {'reviews', 'invoice'},
         'meta_robots': 'noindex,nofollow' if (
             resolver_name in private_page_names

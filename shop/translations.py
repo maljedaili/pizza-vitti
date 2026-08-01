@@ -151,6 +151,20 @@ ASSISTANT_TRANSLATIONS = {
 for _language, _copy in ASSISTANT_TRANSLATIONS.items():
     TRANSLATIONS[_language].update(_copy)
 
+APP_PROMO_TRANSLATIONS = {
+    'fr': {'app_mobile':'Pizza Vitti sur mobile','app_promo_title':'Le menu et vos commandes dans l’application.','app_promo_text':'Installez Pizza Vitti sur Android. Les espaces Propriétaire, Cuisine et Staff restent protégés par leurs accès séparés.','download_google_play':'Télécharger Pizza Vitti sur Google Play','available_google_play':'Disponible sur Google Play'},
+    'en': {'app_mobile':'Pizza Vitti on mobile','app_promo_title':'The menu and your orders in one app.','app_promo_text':'Install Pizza Vitti on Android. Owner, kitchen and staff areas remain protected by separate access.','download_google_play':'Download Pizza Vitti on Google Play','available_google_play':'Available on Google Play'},
+    'es': {'app_mobile':'Pizza Vitti en tu móvil','app_promo_title':'El menú y tus pedidos en una aplicación.','app_promo_text':'Instala Pizza Vitti en Android. Las áreas de propietario, cocina y personal permanecen protegidas con accesos separados.','download_google_play':'Descargar Pizza Vitti en Google Play','available_google_play':'Disponible en Google Play'},
+    'it': {'app_mobile':'Pizza Vitti sul cellulare','app_promo_title':'Il menu e i tuoi ordini in un’unica app.','app_promo_text':'Installa Pizza Vitti su Android. Le aree proprietario, cucina e staff restano protette da accessi separati.','download_google_play':'Scarica Pizza Vitti da Google Play','available_google_play':'Disponibile su Google Play'},
+    'pt': {'app_mobile':'Pizza Vitti no telemóvel','app_promo_title':'O menu e os seus pedidos numa aplicação.','app_promo_text':'Instale Pizza Vitti no Android. As áreas do proprietário, cozinha e equipa continuam protegidas por acessos separados.','download_google_play':'Transferir Pizza Vitti no Google Play','available_google_play':'Disponível no Google Play'},
+    'nl': {'app_mobile':'Pizza Vitti op je mobiel','app_promo_title':'Het menu en je bestellingen in één app.','app_promo_text':'Installeer Pizza Vitti op Android. De omgevingen voor eigenaar, keuken en personeel blijven apart beveiligd.','download_google_play':'Download Pizza Vitti via Google Play','available_google_play':'Beschikbaar op Google Play'},
+    'zh': {'app_mobile':'移动版 Pizza Vitti','app_promo_title':'在一个应用中查看菜单和订单。','app_promo_text':'在 Android 上安装 Pizza Vitti。店主、厨房和员工区域仍由各自的访问权限保护。','download_google_play':'在 Google Play 下载 Pizza Vitti','available_google_play':'Google Play 提供下载'},
+    'ja': {'app_mobile':'モバイル版 Pizza Vitti','app_promo_title':'メニューと注文をひとつのアプリで。','app_promo_text':'Android に Pizza Vitti をインストール。オーナー、キッチン、スタッフ画面は個別のアクセスで保護されます。','download_google_play':'Google Play で Pizza Vitti をダウンロード','available_google_play':'Google Play で入手'},
+    'ar': {'app_mobile':'Pizza Vitti على الهاتف','app_promo_title':'القائمة وطلباتك في تطبيق واحد.','app_promo_text':'ثبّت Pizza Vitti على Android. تبقى مساحات المالك والمطبخ والموظفين محمية بصلاحيات دخول منفصلة.','download_google_play':'تنزيل Pizza Vitti من Google Play','available_google_play':'متاح على Google Play'},
+}
+for _language, _copy in APP_PROMO_TRANSLATIONS.items():
+    TRANSLATIONS[_language].update(_copy)
+
 AVAILABILITY_TRACKING_TRANSLATIONS = {
     'fr': {'sold_out':'Épuisé aujourd’hui','available_later':'Disponible plus tard','available_again':'Disponible à nouveau le','track_order':'Suivre ma commande','track_help':'Saisissez le numéro reçu après la commande et la même adresse email.','order_number':'Numéro de commande','track_button':'Afficher le suivi','received_step':'Reçue','preparing_step':'Préparation','ready_step':'Prête','collected_step':'Récupérée'},
     'en': {'sold_out':'Sold out today','available_later':'Available later','available_again':'Available again','track_order':'Track my order','track_help':'Enter your order number and the same email address used at checkout.','order_number':'Order number','track_button':'Show tracking','received_step':'Received','preparing_step':'Preparing','ready_step':'Ready','collected_step':'Collected'},

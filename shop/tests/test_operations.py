@@ -158,6 +158,16 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(response, 'Site créé par')
         self.assertContains(response, reverse('shop:account_deletion'))
 
+    def test_android_promotion_follows_the_selected_language(self):
+        english = self.client.get('/en/home/')
+        arabic = self.client.get('/ar/')
+
+        self.assertContains(english, 'The menu and your orders in one app.')
+        self.assertContains(english, 'aria-label="Download Pizza Vitti on Google Play"')
+        self.assertNotContains(english, 'Le menu et vos commandes dans l’application.')
+        self.assertContains(arabic, 'القائمة وطلباتك في تطبيق واحد.')
+        self.assertContains(arabic, 'aria-label="تنزيل Pizza Vitti من Google Play"')
+
     def test_customer_can_delete_account_and_associated_data(self):
         order = self.create_order(2, 'PV-DELETE-1')
         Favorite.objects.create(user=self.user, product=self.product)
