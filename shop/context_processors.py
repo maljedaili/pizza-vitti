@@ -162,6 +162,7 @@ def site_settings(request):
         'current_lang': lang,
         'T': T,
         'LANGUAGES_MENU': language_menu,
+        'X_DEFAULT_URL': language_menu[0][3] if language_menu else localized_url('home', 'fr'),
         'lang_home': lang_home(lang),
         'url_home': localized_url('home', lang),
         'url_menu': localized_url('menu', lang),
