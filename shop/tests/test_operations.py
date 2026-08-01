@@ -222,6 +222,14 @@ class CustomerLoyaltyTests(TestCase):
         self.assertNotContains(response, '>Fidélité</a>')
         self.assertNotContains(response, '>Application</a>')
 
+    def test_mobile_css_keeps_chat_visible_on_menu_first_pages(self):
+        from pathlib import Path
+        from django.conf import settings
+
+        css = (Path(settings.BASE_DIR) / 'shop/static/shop/dist/site.css').read_text()
+        self.assertIn('body.public-site:has(.menu-first) .bot', css)
+        self.assertIn('bottom:calc(76px + env(safe-area-inset-bottom))', css)
+
     def test_mobile_order_flow_shows_progress_status_and_total(self):
         session = self.client.session
         session['cart'] = {str(self.product.id): 1}

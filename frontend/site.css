@@ -455,6 +455,16 @@
   .public-site .home-hero-video { display: none; }
 }
 
+/* Keep Assistant Vitti available on every public mobile page. */
+@media (max-width: 850px) {
+  body.public-site:has(.menu-first) .bot,
+  body.public-site .bot {
+    z-index: 95;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    display: flex;
+  }
+}
+
 .public-site .restaurant-status-band,
 .public-site .home-delivery-note {
   width: min(1180px, 92%);
