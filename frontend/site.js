@@ -1,6 +1,20 @@
 const publicSite = document.body.classList.contains("public-site");
 
 if (publicSite) {
+  document.querySelectorAll("[data-hero-video]").forEach((video) => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const dataSaver = navigator.connection?.saveData === true;
+    if (reducedMotion || dataSaver) {
+      video.pause();
+      return;
+    }
+    video.querySelectorAll("source[data-src]").forEach((source) => {
+      source.src = source.dataset.src;
+    });
+    video.load();
+    video.play().catch(() => {});
+  });
+
   document.querySelectorAll("[data-product-customizer]").forEach((form) => {
     const total = document.querySelector("[data-product-total]");
     const quantity = form.querySelector("[data-product-qty]");

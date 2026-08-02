@@ -352,6 +352,9 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(response, 'Qu’est-ce qui vous ferait plaisir')
         self.assertContains(response, 'pizza-vitti-hero.mp4')
         self.assertContains(response, 'pizza-vitti-hero-mobile.mp4')
+        self.assertContains(response, 'data-hero-video')
+        self.assertContains(response, 'preload="none"')
+        self.assertNotContains(response, '<video class="home-hero-video" autoplay')
         self.assertContains(response, 'class="home-hero hero-video-full reveal"')
         self.assertNotContains(response, 'restaurant-status-band')
         self.assertNotContains(response, 'Les favoris de nos clients')
@@ -369,6 +372,15 @@ class CustomerLoyaltyTests(TestCase):
         self.assertIn('body.public-site:has(.menu-first) .bot', css)
         self.assertIn('bottom:calc(76px + env(safe-area-inset-bottom))', css)
         self.assertIn('grid-template-columns:118px minmax(0,1fr)', css)
+
+    def test_hero_video_respects_data_saver_and_reduced_motion(self):
+        from pathlib import Path
+        from django.conf import settings
+
+        javascript = (Path(settings.BASE_DIR) / 'shop/static/shop/dist/site.js').read_text()
+        self.assertIn('navigator.connection?.saveData', javascript)
+        self.assertIn('prefers-reduced-motion: reduce', javascript)
+        self.assertIn('source[data-src]', javascript)
 
     def test_mobile_order_flow_shows_progress_status_and_total(self):
         session = self.client.session
