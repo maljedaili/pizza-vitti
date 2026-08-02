@@ -37,7 +37,7 @@ if (publicSite) {
       const button = form.querySelector("[data-submit-once]");
       if (button) {
         button.disabled = true;
-        button.textContent = "Envoi en cours…";
+        button.textContent = button.dataset.sendingText || "…";
       }
     });
   });

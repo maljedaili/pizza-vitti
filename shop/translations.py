@@ -221,6 +221,20 @@ PRODUCT_DETAIL_TRANSLATIONS = {
 for _language, _copy in PRODUCT_DETAIL_TRANSLATIONS.items():
     TRANSLATIONS[_language].update(_copy)
 
+CART_FEEDBACK_TRANSLATIONS = {
+    'fr': {'product_unavailable':'Ce produit est temporairement indisponible.','item_added':'Article ajouté au panier.','cart_updated':'Panier mis à jour.','item_removed':'Plat retiré du panier.','sending':'Envoi en cours…'},
+    'en': {'product_unavailable':'This item is temporarily unavailable.','item_added':'Item added to your cart.','cart_updated':'Cart updated.','item_removed':'Item removed from your cart.','sending':'Sending…'},
+    'es': {'product_unavailable':'Este artículo no está disponible temporalmente.','item_added':'Artículo añadido al carrito.','cart_updated':'Carrito actualizado.','item_removed':'Artículo eliminado del carrito.','sending':'Enviando…'},
+    'it': {'product_unavailable':'Questo articolo non è temporaneamente disponibile.','item_added':'Articolo aggiunto al carrello.','cart_updated':'Carrello aggiornato.','item_removed':'Articolo rimosso dal carrello.','sending':'Invio in corso…'},
+    'pt': {'product_unavailable':'Este artigo está temporariamente indisponível.','item_added':'Artigo adicionado ao carrinho.','cart_updated':'Carrinho atualizado.','item_removed':'Artigo removido do carrinho.','sending':'A enviar…'},
+    'nl': {'product_unavailable':'Dit artikel is tijdelijk niet beschikbaar.','item_added':'Artikel aan je winkelwagen toegevoegd.','cart_updated':'Winkelwagen bijgewerkt.','item_removed':'Artikel uit je winkelwagen verwijderd.','sending':'Verzenden…'},
+    'zh': {'product_unavailable':'该商品暂时无法供应。','item_added':'商品已加入购物车。','cart_updated':'购物车已更新。','item_removed':'商品已从购物车中删除。','sending':'正在发送…'},
+    'ja': {'product_unavailable':'この商品は一時的に注文できません。','item_added':'カートに追加しました。','cart_updated':'カートを更新しました。','item_removed':'カートから削除しました。','sending':'送信中…'},
+    'ar': {'product_unavailable':'هذا المنتج غير متاح مؤقتاً.','item_added':'تمت إضافة المنتج إلى السلة.','cart_updated':'تم تحديث السلة.','item_removed':'تمت إزالة المنتج من السلة.','sending':'جارٍ الإرسال…'},
+}
+for _language, _copy in CART_FEEDBACK_TRANSLATIONS.items():
+    TRANSLATIONS[_language].update(_copy)
+
 AVAILABILITY_TRACKING_TRANSLATIONS = {
     'fr': {'sold_out':'Épuisé aujourd’hui','available_later':'Disponible plus tard','available_again':'Disponible à nouveau le','track_order':'Suivre ma commande','track_help':'Saisissez le numéro reçu après la commande et la même adresse email.','order_number':'Numéro de commande','track_button':'Afficher le suivi','received_step':'Reçue','preparing_step':'Préparation','ready_step':'Prête','collected_step':'Récupérée'},
     'en': {'sold_out':'Sold out today','available_later':'Available later','available_again':'Available again','track_order':'Track my order','track_help':'Enter your order number and the same email address used at checkout.','order_number':'Order number','track_button':'Show tracking','received_step':'Received','preparing_step':'Preparing','ready_step':'Ready','collected_step':'Collected'},

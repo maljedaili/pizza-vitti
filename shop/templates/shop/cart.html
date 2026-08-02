@@ -49,6 +49,7 @@
 
     <form method="post" action="{% url 'shop:update_cart' %}" class="cart-update-form">
       {% csrf_token %}
+      <input type="hidden" name="next" value="{{ url_cart }}">
       {% for item in items %}
         <div class="cart-row cart-row-edit">
           <span>{{ item.product.name }}</span>

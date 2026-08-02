@@ -434,6 +434,43 @@ class CustomerLoyaltyTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertNotIn(str(self.product.id), self.client.session.get('cart', {}))
 
+    def test_cart_feedback_uses_the_language_of_the_customer_page(self):
+        added = self.client.post(
+            reverse('shop:add_to_cart', args=[self.product.id]),
+            {'qty': 1, 'next': '/en/menu/pizzas/'},
+            follow=True,
+        )
+        self.assertContains(added, 'Item added to your cart.')
+        self.assertNotContains(added, 'Article ajouté au panier.')
+
+        updated = self.client.post(
+            reverse('shop:update_cart'),
+            {f'qty_{self.product.id}': 2, 'next': '/ar/cart/'},
+            follow=True,
+        )
+        self.assertContains(updated, 'تم تحديث السلة.')
+
+        removed = self.client.post(
+            reverse('shop:remove_from_cart', args=[self.product.id]),
+            {'next': '/en/cart/'},
+            follow=True,
+        )
+        self.assertContains(removed, 'Item removed from your cart.')
+
+    def test_empty_localized_checkout_returns_to_the_same_language_menu(self):
+        response = self.client.get('/en/checkout/')
+
+        self.assertRedirects(response, '/en/menu/')
+
+    def test_checkout_submit_state_is_translated(self):
+        session = self.client.session
+        session['cart'] = {str(self.product.id): 1}
+        session.save()
+
+        response = self.client.get('/en/checkout/')
+
+        self.assertContains(response, 'data-sending-text="Sending…"')
+
     def test_owner_can_schedule_product_and_tracking_requires_email(self):
         owner = get_user_model().objects.create_superuser('owner-test', 'owner@example.com', 'SecurePass123!')
         self.client.force_login(owner)

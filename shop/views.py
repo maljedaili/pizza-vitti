@@ -731,15 +731,17 @@ def table_menu(request, table):
 @require_POST
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product.objects.select_related('category'), id=product_id)
+    next_path = request.POST.get('next', '')
+    lang = get_lang_from_path(next_path)
+    copy = t_for(lang)
     if not product.is_orderable:
-        messages.error(request, 'Ce produit est temporairement indisponible.')
-        return redirect(_safe_next_url(request, reverse('shop:boutique')))
+        messages.error(request, copy['product_unavailable'])
+        return redirect(_safe_next_url(request, localized_url('menu', lang)))
     if _requires_age_verification(product):
         confirmed = request.POST.get('age_confirmed') == '1' or request.session.get('alcohol_age_verified') is True
         if not confirmed:
-            next_path = request.POST.get('next', '')
-            messages.error(request, t_for(get_lang_from_path(next_path))['age_required_error'])
-            return redirect(_safe_next_url(request, reverse('shop:boutique')))
+            messages.error(request, copy['age_required_error'])
+            return redirect(_safe_next_url(request, localized_url('menu', lang)))
         request.session['alcohol_age_verified'] = True
     cart = request.session.get('cart', {})
     try:
@@ -758,8 +760,8 @@ def add_to_cart(request, product_id):
         for supplement in supplements:
             cart[str(supplement.id)] = min(20, int(cart.get(str(supplement.id), 0)) + qty)
     request.session['cart'] = cart
-    messages.success(request, 'Article ajouté au panier.')
-    return redirect(_safe_next_url(request, reverse('shop:cart')))
+    messages.success(request, copy['item_added'])
+    return redirect(_safe_next_url(request, localized_url('cart', lang)))
 
 def cart(request):
     items, total = _cart_items(request)
@@ -777,6 +779,8 @@ def cart(request):
 
 @require_POST
 def update_cart(request):
+    next_path = request.POST.get('next', '')
+    lang = get_lang_from_path(next_path)
     cart = {}
     for key, val in request.POST.items():
         if key.startswith('qty_'):
@@ -784,22 +788,26 @@ def update_cart(request):
             except ValueError: qty = 0
             if qty > 0: cart[key[4:]] = qty
     request.session['cart'] = cart
-    messages.success(request, 'Panier mis à jour.')
-    return redirect('shop:cart')
+    messages.success(request, t_for(lang)['cart_updated'])
+    return redirect(_safe_next_url(request, localized_url('cart', lang)))
 
 @require_POST
 def remove_from_cart(request, product_id):
+    next_path = request.POST.get('next', '')
+    lang = get_lang_from_path(next_path)
     cart = request.session.get('cart', {})
     cart.pop(str(product_id), None)
     request.session['cart'] = cart
-    messages.success(request, 'Plat retiré du panier.')
-    return redirect(_safe_next_url(request, reverse('shop:cart')))
+    messages.success(request, t_for(lang)['item_removed'])
+    return redirect(_safe_next_url(request, localized_url('cart', lang)))
 
 def checkout(request):
+    lang = get_lang_from_path(request.path)
+    checkout_copy = t_for(lang)
     items, total = _cart_items(request)
     if not items:
-        messages.error(request, 'Votre panier est vide.')
-        return redirect('shop:localized_page', lang='fr', page='menu')
+        messages.error(request, checkout_copy['empty_cart'])
+        return redirect(localized_url('menu', lang))
     table_number = request.session.get('table_number', '').strip()
     pizza_qty = _pizza_qty(items)
     loyalty = _loyalty_status(request.user, pizza_qty)
@@ -809,7 +817,6 @@ def checkout(request):
     checkout_email = request.user.email if request.user.is_authenticated else ''
     initial = {'name': checkout_name, 'email': checkout_email}
     form = CheckoutForm(request.POST or None, initial=initial)
-    checkout_copy = t_for(get_lang_from_path(request.path))
     checkout_labels = {
         'name': checkout_copy['name'], 'email': checkout_copy['email'],
         'phone': checkout_copy['phone'],

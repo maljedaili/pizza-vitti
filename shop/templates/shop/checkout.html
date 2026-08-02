@@ -41,7 +41,7 @@
       <span>{{ T.availability_below }} · {{ T.delivery_text }}</span>
     </div>
     {% if slots_available %}
-      <button class="button checkout-submit" data-submit-once>{{ T.finalize }} · {{ total }} €</button>
+      <button class="button checkout-submit" data-submit-once data-sending-text="{{ T.sending }}">{{ T.finalize }} · {{ total }} €</button>
     {% else %}
       <div class="form-errors" role="alert">{{ T.no_slots }} {{ T.call_us }} <a href="tel:+33556421449">05 56 42 14 49</a>.</div>
       <button class="button checkout-submit" disabled>{{ T.no_slots }}</button>
