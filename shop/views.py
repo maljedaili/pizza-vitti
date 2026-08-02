@@ -1127,6 +1127,17 @@ def _safe_date(value, fallback):
 
 @owner_required
 def owner_dashboard(request):
+    if request.method == 'POST' and request.POST.get('action') == 'update_order_status':
+        order = get_object_or_404(Order, id=request.POST.get('order_id'))
+        status = request.POST.get('status', '')
+        allowed_statuses = dict(Order.STATUS)
+        if status not in allowed_statuses:
+            messages.error(request, 'Statut de commande invalide.')
+        else:
+            order.status = status
+            order.save(update_fields=['status', 'updated_at'])
+            messages.success(request, f'{order.order_number} · {allowed_statuses[status]}.')
+        return redirect('shop:owner_dashboard')
     if request.method == 'POST' and request.POST.get('action') == 'update_product_availability':
         product = get_object_or_404(Product, id=request.POST.get('product_id'))
         availability_status = request.POST.get('availability_status', '')
@@ -1205,6 +1216,7 @@ def owner_dashboard(request):
         'staff_present_count': present_shifts.count(),
         'open_purchase_count': PurchaseOrder.objects.exclude(status__in=['received','cancelled']).count(),
         'recent_orders': Order.objects.prefetch_related('items').order_by('-created_at')[:8],
+        'order_statuses': Order.STATUS,
         'most_ordered': most_ordered,
         'present_shifts': present_shifts[:6],
         'received_count': active_orders.filter(status='received').count(),

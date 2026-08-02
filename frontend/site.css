@@ -618,6 +618,20 @@
 .ops-alert { display: grid; gap: 5px; border: 1px solid rgba(255,202,104,.28); border-radius: 8px; padding: 15px; background: #3a321f; color: #fff; text-decoration: none; }
 .ops-alert.urgent { border-color: rgba(255,112,125,.38); background: #45252d; }
 .ops-alert span { color: #d9d0bf; font-size: .84rem; }
+.owner-order-list { margin-top: 14px; }
+.owner-order-row { overflow: hidden; border: 1px solid rgba(255,255,255,.08); border-left: 5px solid #ffca68; border-radius: 8px; background: #222638; }
+.owner-order-row.status-preparing { border-left-color: #a98aff; }
+.owner-order-row.status-ready,.owner-order-row.status-delivered { border-left-color: #55dda8; }
+.owner-order-row.status-cancelled,.owner-order-row.status-refused,.owner-order-row.status-not_received { border-left-color: #ff707d; }
+.owner-order-summary { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 13px; }
+.owner-order-summary > a { display: grid; gap: 4px; min-width: 0; color: #fff; text-decoration: none; }
+.owner-order-summary > a:hover strong { color: #bda5ff; }
+.owner-order-summary span,.owner-order-summary time { color: #aeb4c8; font-size: .84rem; }
+.owner-order-summary > div { display: grid; gap: 4px; flex: 0 0 auto; text-align: right; color: #fff; }
+.owner-order-status { display: grid; grid-template-columns: auto minmax(170px,1fr) auto; gap: 9px; align-items: center; border-top: 1px solid rgba(255,255,255,.07); padding: 10px 13px; }
+.owner-order-status label { color: #aeb4c8; font-size: .78rem; font-weight: 900; }
+.owner-order-status select { min-width: 0; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 10px; background: #252a3b; color: #fff; }
+.owner-order-status .button { min-height: 40px; padding: 9px 12px; }
 .availability-toolbar { display: grid; grid-template-columns: minmax(220px,1fr) minmax(180px,.7fr) minmax(160px,.55fr); gap: 10px; margin-top: 16px; }
 .availability-toolbar label { display: grid; gap: 6px; color: #aeb4c8; font-size: .8rem; font-weight: 900; }
 .availability-toolbar input,.availability-toolbar select { min-width: 0; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 11px 12px; background: #252a3b; color: #fff; }
@@ -628,7 +642,7 @@
 .availability-owner-row small { color: #aeb4c8; }
 .availability-owner-row select,.availability-owner-row input { min-width: 0; background: #252a3b; border: 1px solid rgba(255,255,255,.1); color: #fff; border-radius: 8px; }
 @media (max-width: 900px) { .availability-owner-row { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 580px) { .availability-owner-row,.availability-toolbar { grid-template-columns: 1fr; } }
+@media (max-width: 580px) { .availability-owner-row,.availability-toolbar,.owner-order-status { grid-template-columns: 1fr; } .owner-order-status label { display: none; } }
 
 .public-site .product-badges {
   position: absolute;

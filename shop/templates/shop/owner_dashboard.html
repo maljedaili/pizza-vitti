@@ -57,13 +57,20 @@
           <h2>Dernières commandes</h2>
           <a href="{% url 'shop:kitchen_app' %}">Voir cuisine</a>
         </div>
-        <div class="ops-list">
+        <div class="ops-list owner-order-list">
           {% for order in recent_orders %}
-            <div class="ops-list-row">
-              <span>{% if order.table_number %}Table {{ order.table_number }} · {% endif %}{{ order.customer_name }}</span>
-              <strong>{{ order.total|floatformat:2 }} €</strong>
-              <small>{{ order.get_status_display }}</small>
-            </div>
+            <article class="owner-order-row status-{{ order.status }}">
+              <div class="owner-order-summary">
+                <a href="{{ order.get_absolute_url }}"><strong>{{ order.order_number }}</strong><span>{% if order.table_number %}Table {{ order.table_number }} · {% endif %}{{ order.customer_name }}</span></a>
+                <div><strong>{{ order.total|floatformat:2 }} €</strong><time datetime="{{ order.created_at|date:'c' }}">{{ order.created_at|date:'H:i' }}</time></div>
+              </div>
+              <form method="post" class="owner-order-status">
+                {% csrf_token %}<input type="hidden" name="action" value="update_order_status"><input type="hidden" name="order_id" value="{{ order.id }}">
+                <label for="order-status-{{ order.id }}">Statut</label>
+                <select id="order-status-{{ order.id }}" name="status" aria-label="Statut de {{ order.order_number }}">{% for value,label in order_statuses %}<option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+                <button class="button" type="submit">Mettre à jour</button>
+              </form>
+            </article>
           {% empty %}
             <p class="ops-empty">Aucune commande encore.</p>
           {% endfor %}

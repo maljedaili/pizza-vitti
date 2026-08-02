@@ -692,6 +692,35 @@ class OperationsAccessTests(TestCase):
         self.assertContains(response, 'Gestion des tables')
         self.assertContains(response, 'Commandes fournisseurs')
 
+    def test_owner_can_change_an_order_status_from_the_dashboard(self):
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'owner',
+            'username': 'admin',
+            'password': '1234',
+        })
+        order = Order.objects.create(
+            order_number='PV-DASHBOARD-STATUS',
+            customer_name='Client statut',
+            email='statut@example.com',
+            total=Decimal('18.00'),
+            status='received',
+        )
+
+        dashboard = self.client.get(reverse('shop:owner_dashboard'))
+        self.assertContains(dashboard, order.order_number)
+        self.assertContains(dashboard, f'href="{order.get_absolute_url()}"')
+        self.assertContains(dashboard, 'status-received')
+
+        response = self.client.post(reverse('shop:owner_dashboard'), {
+            'action': 'update_order_status',
+            'order_id': order.id,
+            'status': 'preparing',
+        })
+
+        self.assertRedirects(response, reverse('shop:owner_dashboard'))
+        order.refresh_from_db()
+        self.assertEqual(order.status, 'preparing')
+
     @override_settings(
         OWNER_DASHBOARD_PASSWORD='SecureOwnerPass',
         OWNER_DASHBOARD_PASSWORD_HASH='',
