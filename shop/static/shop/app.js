@@ -287,6 +287,43 @@ document.querySelectorAll('[data-live-clock]').forEach(clock => {
   updateClock();
   setInterval(updateClock, 1000);
 });
+document.querySelectorAll('[data-dashboard-refresh]').forEach(dashboard => {
+  const refreshAfter = Number.parseInt(dashboard.dataset.refreshSeconds || '60', 10);
+  const status = dashboard.querySelector('[data-refresh-status]');
+  const refreshButton = dashboard.querySelector('[data-refresh-now]');
+  let remaining = refreshAfter;
+  let dirty = false;
+  const renderStatus = () => {
+    if (!status) return;
+    if (dirty) {
+      status.textContent = 'En pause pendant la modification';
+    } else if (document.hidden) {
+      status.textContent = 'En pause en arrière-plan';
+    } else {
+      status.textContent = `Actualisation dans ${remaining} s`;
+    }
+  };
+  dashboard.querySelectorAll('form').forEach(form => {
+    form.addEventListener('input', () => { dirty = true; renderStatus(); });
+    form.addEventListener('change', () => { dirty = true; renderStatus(); });
+    form.addEventListener('submit', () => { dirty = false; });
+  });
+  refreshButton?.addEventListener('click', () => window.location.reload());
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && !dirty) remaining = refreshAfter;
+    renderStatus();
+  });
+  window.setInterval(() => {
+    if (dirty || document.hidden) return;
+    remaining -= 1;
+    if (remaining <= 0) {
+      window.location.reload();
+      return;
+    }
+    renderStatus();
+  }, 1000);
+  renderStatus();
+});
 document.querySelectorAll('[data-availability-manager]').forEach(manager => {
   const search = manager.querySelector('[data-availability-search]');
   const category = manager.querySelector('[data-availability-category]');

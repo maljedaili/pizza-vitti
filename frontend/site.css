@@ -618,6 +618,11 @@
 .ops-alert { display: grid; gap: 5px; border: 1px solid rgba(255,202,104,.28); border-radius: 8px; padding: 15px; background: #3a321f; color: #fff; text-decoration: none; }
 .ops-alert.urgent { border-color: rgba(255,112,125,.38); background: #45252d; }
 .ops-alert span { color: #d9d0bf; font-size: .84rem; }
+.owner-dashboard-live { display: grid; justify-items: end; gap: 9px; }
+.dashboard-refresh-status { display: flex; align-items: center; gap: 8px; }
+.dashboard-refresh-status span { color: #8f96ac; font-size: .76rem; font-weight: 850; }
+.dashboard-refresh-status button { border: 1px solid rgba(255,255,255,.1); border-radius: 7px; padding: 7px 9px; background: #252a3b; color: #fff; font: inherit; font-size: .76rem; font-weight: 900; cursor: pointer; }
+.dashboard-refresh-status button:hover { border-color: #9b6cff; background: #2b2540; }
 .owner-order-list { margin-top: 14px; }
 .owner-order-row { overflow: hidden; border: 1px solid rgba(255,255,255,.08); border-left: 5px solid #ffca68; border-radius: 8px; background: #222638; }
 .owner-order-row.status-preparing { border-left-color: #a98aff; }
@@ -693,6 +698,7 @@
 @media (max-width: 460px) { .sales-chart { gap: 5px; } .sales-chart-day { grid-template-rows: 28px 140px 24px; } .sales-chart-value { font-size: .62rem; } }
 @media (max-width: 700px) { .reservation-owner-row { grid-template-columns: 64px 1fr; } .reservation-actions { grid-column: 1/-1; } .reservation-actions form,.reservation-actions .button { flex: 1; width: 100%; } }
 @media (max-width: 850px) { .customer-message-row { grid-template-columns: 1fr; } .customer-message-actions { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .owner-dashboard-live { justify-items: start; } .dashboard-refresh-status { flex-wrap: wrap; } }
 
 .public-site .product-badges {
   position: absolute;

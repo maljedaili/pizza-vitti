@@ -3,13 +3,16 @@
 {% block content %}
 <section class="ops-shell">
   {% include 'shop/partials/ops_nav.html' %}
-  <div class="ops-main">
+  <div class="ops-main" data-dashboard-refresh data-refresh-seconds="60">
     <header class="ops-topbar">
       <div>
         <p class="ops-eyebrow">Pilotage restaurant · {{ dashboard_now|date:'l d F Y' }}</p>
         <h1>Dashboard propriétaire</h1>
       </div>
-      <div class="owner-live-time" data-live-clock><strong data-clock-time>{{ dashboard_now|date:'H:i:s' }}</strong><span data-clock-date>{{ dashboard_now|date:'d/m/Y' }}</span></div>
+      <div class="owner-dashboard-live">
+        <div class="owner-live-time" data-live-clock><strong data-clock-time>{{ dashboard_now|date:'H:i:s' }}</strong><span data-clock-date>{{ dashboard_now|date:'d/m/Y' }}</span></div>
+        <div class="dashboard-refresh-status"><span data-refresh-status aria-live="polite">Actualisation dans 60 s</span><button type="button" data-refresh-now>Actualiser</button></div>
+      </div>
     </header>
 
     <section class="ops-kpis">

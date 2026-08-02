@@ -685,6 +685,9 @@ class OperationsAccessTests(TestCase):
         response = self.client.get(reverse('shop:owner_dashboard'))
 
         self.assertContains(response, 'Panier moyen')
+        self.assertContains(response, 'data-dashboard-refresh')
+        self.assertContains(response, 'data-refresh-seconds="60"')
+        self.assertContains(response, 'data-refresh-now')
         self.assertContains(response, '1 commande en attente')
         self.assertContains(response, '1 réservation à confirmer')
         self.assertContains(response, 'data-availability-search')
