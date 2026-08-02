@@ -287,6 +287,31 @@ document.querySelectorAll('[data-live-clock]').forEach(clock => {
   updateClock();
   setInterval(updateClock, 1000);
 });
+document.querySelectorAll('[data-availability-manager]').forEach(manager => {
+  const search = manager.querySelector('[data-availability-search]');
+  const category = manager.querySelector('[data-availability-category]');
+  const status = manager.querySelector('[data-availability-status]');
+  const rows = [...manager.querySelectorAll('.availability-owner-row')];
+  const empty = manager.querySelector('[data-availability-empty]');
+  const filterProducts = () => {
+    const query = (search?.value || '').trim().toLocaleLowerCase('fr');
+    const selectedCategory = category?.value || '';
+    const selectedStatus = status?.value || '';
+    let visible = 0;
+    rows.forEach(row => {
+      const matchesSearch = !query || row.dataset.productName.includes(query);
+      const matchesCategory = !selectedCategory || row.dataset.productCategory === selectedCategory;
+      const isAvailable = row.dataset.productStatus === 'available';
+      const matchesStatus = !selectedStatus || (selectedStatus === 'available' ? isAvailable : !isAvailable);
+      row.hidden = !(matchesSearch && matchesCategory && matchesStatus);
+      if (!row.hidden) visible += 1;
+    });
+    if (empty) empty.hidden = visible !== 0;
+  };
+  search?.addEventListener('input', filterProducts);
+  category?.addEventListener('change', filterProducts);
+  status?.addEventListener('change', filterProducts);
+});
 const cameraWall = document.querySelector('[data-camera-wall]');
 if (cameraWall) {
   const frames = [...cameraWall.querySelectorAll('iframe[data-camera-src]')];

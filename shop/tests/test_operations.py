@@ -654,6 +654,44 @@ class OperationsAccessTests(TestCase):
         self.assertContains(app_response, 'Dashboard propriétaire')
         self.assertContains(app_response, 'Cuisine (commandes)')
 
+    def test_owner_dashboard_shows_metrics_alerts_and_product_filters(self):
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'owner',
+            'username': 'admin',
+            'password': '1234',
+        })
+        category = Category.objects.create(name='Boissons dashboard')
+        product = Product.objects.create(
+            category=category,
+            name='Limonade dashboard',
+            price=Decimal('4.00'),
+            availability_status='sold_out',
+        )
+        order = Order.objects.create(
+            order_number='PV-DASHBOARD-WAIT',
+            customer_name='Client attente',
+            email='attente@example.com',
+            total=Decimal('20.00'),
+            status='received',
+        )
+        Order.objects.filter(pk=order.pk).update(created_at=timezone.now() - timedelta(minutes=20))
+        Reservation.objects.create(
+            name='Client réservation',
+            email='reservation@example.com',
+            date=timezone.localdate() + timedelta(days=1),
+            time='19:30',
+        )
+
+        response = self.client.get(reverse('shop:owner_dashboard'))
+
+        self.assertContains(response, 'Panier moyen')
+        self.assertContains(response, '1 commande en attente')
+        self.assertContains(response, '1 réservation à confirmer')
+        self.assertContains(response, 'data-availability-search')
+        self.assertContains(response, f'data-product-name="{product.name.lower()}"')
+        self.assertContains(response, 'Gestion des tables')
+        self.assertContains(response, 'Commandes fournisseurs')
+
     @override_settings(
         OWNER_DASHBOARD_PASSWORD='SecureOwnerPass',
         OWNER_DASHBOARD_PASSWORD_HASH='',

@@ -1171,11 +1171,23 @@ def owner_dashboard(request):
             messages.success(request, 'Le cadeau fidélité a été mis à jour.')
         return redirect('shop:owner_dashboard')
     today_start, now = _today_bounds()
+    yesterday_start = today_start - timedelta(days=1)
     active_orders = Order.objects.filter(status__in=['received','preparing','ready'])
     today_orders = Order.objects.filter(created_at__gte=today_start)
+    yesterday_orders = Order.objects.filter(created_at__gte=yesterday_start, created_at__lt=today_start)
     today_staff = StaffShift.objects.select_related('staff').filter(check_in_at__date=timezone.localdate())
     present_shifts = today_staff.exclude(status='checked_out')
     stats = today_orders.aggregate(count=Count('id'), revenue=Sum('total'))
+    yesterday_stats = yesterday_orders.aggregate(count=Count('id'), revenue=Sum('total'))
+    orders_count = stats['count'] or 0
+    revenue = stats['revenue'] or Decimal('0.00')
+    yesterday_orders_count = yesterday_stats['count'] or 0
+    yesterday_revenue = yesterday_stats['revenue'] or Decimal('0.00')
+    average_order = revenue / orders_count if orders_count else Decimal('0.00')
+    waiting_orders = active_orders.filter(status='received', created_at__lt=now - timedelta(minutes=15)).count()
+    failed_payments = today_orders.filter(payment_status='failed').count()
+    pending_reservations = Reservation.objects.filter(status='new', date__gte=timezone.localdate()).count()
+    sold_out_count = Product.objects.exclude(availability_status='available').count()
     most_ordered = (
         OrderItem.objects.filter(order__created_at__gte=today_start)
         .values('name')
@@ -1183,8 +1195,12 @@ def owner_dashboard(request):
         .order_by('-quantity')[:5]
     )
     return render(request, 'shop/owner_dashboard.html', {
-        'orders_count': stats['count'] or 0,
-        'revenue': stats['revenue'] or Decimal('0.00'),
+        'orders_count': orders_count,
+        'revenue': revenue,
+        'average_order': average_order,
+        'cancelled_orders_count': today_orders.filter(status='cancelled').count(),
+        'orders_difference': orders_count - yesterday_orders_count,
+        'revenue_difference': revenue - yesterday_revenue,
         'active_orders_count': active_orders.count(),
         'staff_present_count': present_shifts.count(),
         'open_purchase_count': PurchaseOrder.objects.exclude(status__in=['received','cancelled']).count(),
@@ -1194,6 +1210,10 @@ def owner_dashboard(request):
         'received_count': active_orders.filter(status='received').count(),
         'preparing_count': active_orders.filter(status='preparing').count(),
         'ready_count': active_orders.filter(status='ready').count(),
+        'waiting_orders_count': waiting_orders,
+        'failed_payments_count': failed_payments,
+        'pending_reservations_count': pending_reservations,
+        'sold_out_count': sold_out_count,
         'dashboard_now': timezone.localtime(),
         'loyalty_reward': _active_loyalty_reward(),
         'loyalty_reward_types': LoyaltyReward.REWARD_TYPES,
