@@ -126,6 +126,29 @@
       </article>
     </section>
 
+    <section class="ops-grid two dashboard-analytics">
+      <article class="ops-panel">
+        <div class="ops-panel-head"><div><p class="ops-eyebrow">7 derniers jours</p><h2>Chiffre d’affaires</h2></div><strong>{{ seven_day_revenue|floatformat:2 }} €</strong></div>
+        <div class="sales-chart" aria-label="Chiffre d’affaires des sept derniers jours">
+          {% for day in daily_sales %}
+          <div class="sales-chart-day">
+            <div class="sales-chart-value">{{ day.revenue|floatformat:0 }} €</div>
+            <div class="sales-chart-track"><span style="--bar-height: {{ day.percentage }}%"></span></div>
+            <time datetime="{{ day.date|date:'Y-m-d' }}">{{ day.date|date:'D' }}</time>
+          </div>
+          {% endfor %}
+        </div>
+      </article>
+      <article class="ops-panel">
+        <div class="ops-panel-head"><div><p class="ops-eyebrow">Aujourd’hui</p><h2>Origine des commandes</h2></div><a href="{% url 'shop:reports_dashboard' %}">Rapports</a></div>
+        <div class="source-breakdown">
+          {% for source in order_sources %}
+          <div><header><span>{{ source.label }}</span><strong>{{ source.count }}</strong></header><div class="source-track"><span style="--source-width: {{ source.percentage }}%"></span></div></div>
+          {% empty %}<p class="ops-empty">Les commandes du jour apparaîtront ici.</p>{% endfor %}
+        </div>
+      </article>
+    </section>
+
     <section class="ops-grid four">
       <a class="ops-action-card" href="{% url 'shop:floor_plan' %}"><strong>Gestion des tables</strong><span>Plan de salle temps réel et commandes par table.</span></a>
       <a class="ops-action-card" href="{% url 'shop:staff_manage' %}"><strong>Équipe</strong><span>Créer les comptes staff et suivre check-in, pause, sortie.</span></a>

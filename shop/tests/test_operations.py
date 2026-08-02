@@ -721,6 +721,29 @@ class OperationsAccessTests(TestCase):
         order.refresh_from_db()
         self.assertEqual(order.status, 'preparing')
 
+    def test_owner_dashboard_shows_seven_day_sales_and_order_sources(self):
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'owner',
+            'username': 'admin',
+            'password': '1234',
+        })
+        Order.objects.create(
+            order_number='PV-DASHBOARD-SOURCE',
+            customer_name='Client sur place',
+            email='source@example.com',
+            total=Decimal('32.00'),
+            order_type='dine_in',
+        )
+
+        response = self.client.get(reverse('shop:owner_dashboard'))
+
+        self.assertContains(response, '7 derniers jours')
+        self.assertContains(response, 'Chiffre d’affaires')
+        self.assertContains(response, 'Origine des commandes')
+        self.assertContains(response, 'Sur place')
+        self.assertEqual(len(response.context['daily_sales']), 7)
+        self.assertEqual(response.context['seven_day_revenue'], Decimal('32.00'))
+
     @override_settings(
         OWNER_DASHBOARD_PASSWORD='SecureOwnerPass',
         OWNER_DASHBOARD_PASSWORD_HASH='',

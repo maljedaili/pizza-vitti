@@ -632,6 +632,18 @@
 .owner-order-status label { color: #aeb4c8; font-size: .78rem; font-weight: 900; }
 .owner-order-status select { min-width: 0; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 10px; background: #252a3b; color: #fff; }
 .owner-order-status .button { min-height: 40px; padding: 9px 12px; }
+.dashboard-analytics .ops-panel-head > strong { color: #fff; font-size: 1.35rem; }
+.sales-chart { display: grid; grid-template-columns: repeat(7,minmax(42px,1fr)); gap: 9px; align-items:end; min-height: 260px; margin-top: 18px; }
+.sales-chart-day { display: grid; grid-template-rows: 30px 180px 24px; gap: 6px; min-width: 0; text-align: center; }
+.sales-chart-value { align-self:end; overflow: hidden; color: #c8cbda; font-size: .72rem; font-weight: 900; white-space: nowrap; text-overflow: ellipsis; }
+.sales-chart-track { position: relative; overflow: hidden; border-radius: 7px 7px 3px 3px; background: #252a3b; }
+.sales-chart-track span { position: absolute; inset: auto 0 0; min-height: 4px; height: var(--bar-height); border-radius: inherit; background: linear-gradient(180deg,#bda5ff,#8f5cff); }
+.sales-chart-day time { color: #aeb4c8; font-size: .78rem; font-weight: 900; text-transform: capitalize; }
+.source-breakdown { display: grid; gap: 17px; margin-top: 22px; }
+.source-breakdown > div { display: grid; gap: 7px; }
+.source-breakdown header { display: flex; justify-content: space-between; gap: 12px; color: #fff; }
+.source-track { overflow: hidden; height: 10px; border-radius: 999px; background: #252a3b; }
+.source-track span { display: block; width: var(--source-width); height: 100%; min-width: 4px; border-radius: inherit; background: linear-gradient(90deg,#55dda8,#8f5cff); }
 .availability-toolbar { display: grid; grid-template-columns: minmax(220px,1fr) minmax(180px,.7fr) minmax(160px,.55fr); gap: 10px; margin-top: 16px; }
 .availability-toolbar label { display: grid; gap: 6px; color: #aeb4c8; font-size: .8rem; font-weight: 900; }
 .availability-toolbar input,.availability-toolbar select { min-width: 0; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 11px 12px; background: #252a3b; color: #fff; }
@@ -643,6 +655,7 @@
 .availability-owner-row select,.availability-owner-row input { min-width: 0; background: #252a3b; border: 1px solid rgba(255,255,255,.1); color: #fff; border-radius: 8px; }
 @media (max-width: 900px) { .availability-owner-row { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 580px) { .availability-owner-row,.availability-toolbar,.owner-order-status { grid-template-columns: 1fr; } .owner-order-status label { display: none; } }
+@media (max-width: 460px) { .sales-chart { gap: 5px; } .sales-chart-day { grid-template-rows: 28px 140px 24px; } .sales-chart-value { font-size: .62rem; } }
 
 .public-site .product-badges {
   position: absolute;

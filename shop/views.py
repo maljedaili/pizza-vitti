@@ -1199,6 +1199,31 @@ def owner_dashboard(request):
     failed_payments = today_orders.filter(payment_status='failed').count()
     pending_reservations = Reservation.objects.filter(status='new', date__gte=timezone.localdate()).count()
     sold_out_count = Product.objects.exclude(availability_status='available').count()
+    sales_orders = Order.objects.exclude(status__in=['cancelled', 'refunded'])
+    daily_sales = []
+    for day_offset in range(6, -1, -1):
+        sales_date = timezone.localdate() - timedelta(days=day_offset)
+        day_revenue = sales_orders.filter(created_at__date=sales_date).aggregate(total=Sum('total'))['total'] or Decimal('0.00')
+        daily_sales.append({'date': sales_date, 'revenue': day_revenue})
+    maximum_daily_revenue = max((item['revenue'] for item in daily_sales), default=Decimal('0.00'))
+    for item in daily_sales:
+        item['percentage'] = int((item['revenue'] / maximum_daily_revenue) * 100) if maximum_daily_revenue else 0
+    order_type_labels = dict(Order.ORDER_TYPE)
+    order_source_rows = list(
+        today_orders.exclude(status__in=['cancelled', 'refunded'])
+        .values('order_type')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    maximum_source_count = max((item['count'] for item in order_source_rows), default=0)
+    order_sources = [
+        {
+            'label': order_type_labels.get(item['order_type'], item['order_type']),
+            'count': item['count'],
+            'percentage': int((item['count'] / maximum_source_count) * 100) if maximum_source_count else 0,
+        }
+        for item in order_source_rows
+    ]
     most_ordered = (
         OrderItem.objects.filter(order__created_at__gte=today_start)
         .values('name')
@@ -1226,6 +1251,9 @@ def owner_dashboard(request):
         'failed_payments_count': failed_payments,
         'pending_reservations_count': pending_reservations,
         'sold_out_count': sold_out_count,
+        'daily_sales': daily_sales,
+        'seven_day_revenue': sum((item['revenue'] for item in daily_sales), Decimal('0.00')),
+        'order_sources': order_sources,
         'dashboard_now': timezone.localtime(),
         'loyalty_reward': _active_loyalty_reward(),
         'loyalty_reward_types': LoyaltyReward.REWARD_TYPES,
