@@ -25,6 +25,12 @@ from shop.models import (
 
 
 class AndroidAppVerificationTests(TestCase):
+    def test_root_permanently_redirects_to_canonical_french_homepage(self):
+        response = self.client.get('/')
+
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response['Location'], '/fr/')
+
     def test_manifest_opens_the_public_storefront(self):
         response = self.client.get(reverse('manifest_webmanifest'))
         self.assertEqual(response.status_code, 200)
@@ -151,7 +157,7 @@ class CustomerLoyaltyTests(TestCase):
         self.assertEqual(user.last_name, 'Rossi')
 
     def test_public_home_links_to_the_android_testing_application(self):
-        response = self.client.get(reverse('shop:home'))
+        response = self.client.get('/fr/')
         self.assertNotContains(response, 'Google Play en préparation')
         self.assertContains(response, 'class="home-google-play"')
         self.assertContains(response, 'https://play.google.com/store/apps/details?id=kayen.fr')
@@ -319,7 +325,7 @@ class CustomerLoyaltyTests(TestCase):
             'confirm': 'yes',
         })
 
-        self.assertRedirects(response, reverse('shop:home'))
+        self.assertRedirects(response, '/fr/')
         self.assertFalse(get_user_model().objects.filter(pk=self.user.pk).exists())
         self.assertFalse(Favorite.objects.exists())
         self.assertFalse(LoyaltyRedemption.objects.exists())
@@ -341,7 +347,7 @@ class CustomerLoyaltyTests(TestCase):
         self.assertEqual(request_message.subject, 'Suppression de compte Pizza Vitti')
 
     def test_public_navigation_is_reduced_and_home_prioritizes_ordering(self):
-        response = self.client.get(reverse('shop:home'))
+        response = self.client.get('/fr/')
         self.assertContains(response, 'Commander à emporter')
         self.assertContains(response, 'Qu’est-ce qui vous ferait plaisir')
         self.assertContains(response, 'pizza-vitti-hero.mp4')
@@ -351,7 +357,7 @@ class CustomerLoyaltyTests(TestCase):
         self.assertNotContains(response, 'Les favoris de nos clients')
         self.assertContains(response, 'Assistant Vitti')
         self.assertContains(response, 'Pizza Vitti')
-        self.assertNotContains(response, f'<a href="{reverse("shop:home")}">Accueil</a>', html=True)
+        self.assertNotContains(response, '<a href="/fr/">Accueil</a>', html=True)
         self.assertNotContains(response, '>Fidélité</a>')
         self.assertNotContains(response, '>Application</a>')
 

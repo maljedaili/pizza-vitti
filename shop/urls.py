@@ -2,7 +2,7 @@ from django.urls import path
 from . import views
 app_name = 'shop'
 urlpatterns = [
-    path('', views.home, name='home'),
+    path('', views.root_redirect, name='home'),
     path('a-propos/', views.about, name='about'),
     path('faq/', views.faq, name='faq'),
     path('boutique/', views.legacy_boutique_redirect, name='boutique'),

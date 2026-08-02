@@ -485,6 +485,10 @@ def _pizza_qty(items):
             count += item['qty']
     return count
 
+def root_redirect(request):
+    return HttpResponsePermanentRedirect(localized_url('home', 'fr'))
+
+
 def home(request):
     reviews = Review.objects.filter(is_published=True).exclude(source_url='')[:6]
     gallery = GalleryImage.objects.filter(is_active=True).exclude(image='').exclude(image__isnull=True)[:6]
@@ -505,7 +509,7 @@ def home(request):
     })
 
 def about(request):
-    return redirect('shop:home')
+    return HttpResponsePermanentRedirect(localized_url('home', 'fr'))
 
 def faq(request):
     return render(request, 'shop/faq.html', {'meta_title': "FAQ | Commandes Pizza Vitti"})
@@ -1588,7 +1592,7 @@ def qr_tables(request):
         count = min(max(int(request.GET.get('count', 20)), 1), 80)
     except ValueError:
         count = 20
-    base_url = request.build_absolute_uri(reverse('shop:home')).rstrip('/')
+    base_url = request.build_absolute_uri(localized_url('home', 'fr')).rstrip('/')
     tables = []
     for number in range(1, count + 1):
         url = request.build_absolute_uri(reverse('shop:table_menu', args=[number]))
@@ -1834,7 +1838,7 @@ def newsletter(request):
     if email:
         NewsletterSubscriber.objects.get_or_create(email=email, defaults={'is_active': True})
         messages.success(request, 'Merci, votre inscription à la newsletter est enregistrée.')
-    return redirect(_safe_next_url(request, reverse('shop:home')))
+    return redirect(_safe_next_url(request, localized_url('home', 'fr')))
 
 def simple_page(request, title):
     return render(request, 'shop/simple.html', {'title': title})
@@ -1894,7 +1898,7 @@ def account_deletion(request):
             user.delete()
         logout(request)
         messages.success(request, 'Votre compte Pizza Vitti et les données associées ont été supprimés.')
-        return redirect('shop:home')
+        return redirect(localized_url('home', 'fr'))
 
     if request.method == 'POST':
         email = request.POST.get('email', '').strip().lower()
@@ -1921,7 +1925,7 @@ def account_deletion(request):
 
 def localized_dispatch(request, lang, page=None):
     if lang not in TRANSLATIONS:
-        return redirect('shop:home')
+        return redirect(localized_url('home', 'fr'))
     if lang == 'fr' and page == 'accueil':
         return redirect('/fr/')
     page = page or HOME_SLUGS.get(lang, '')
