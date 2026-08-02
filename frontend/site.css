@@ -660,6 +660,19 @@
 .reservation-actions .button { min-height: 42px; padding: 10px 13px; }
 .reservation-actions .confirm { background: #24785d; }
 .reservation-actions .danger { background: #9f2d35; }
+.customer-message-panel { margin-top: 18px; }
+.customer-message-list { display: grid; gap: 10px; margin-top: 16px; }
+.customer-message-row { display: grid; grid-template-columns: minmax(170px,.65fr) minmax(260px,1.35fr) auto; gap: 16px; align-items: center; border: 1px solid rgba(255,255,255,.08); border-left: 5px solid #a98aff; border-radius: 8px; padding: 14px; background: #222638; }
+.customer-message-meta,.customer-message-copy { display: grid; gap: 5px; min-width: 0; }
+.customer-message-meta strong,.customer-message-copy strong { color: #fff; }
+.customer-message-meta time { color: #a98aff; font-size: .8rem; font-weight: 900; }
+.customer-message-meta span { display: grid; gap: 2px; }
+.customer-message-meta a { color: #bda5ff; overflow-wrap: anywhere; }
+.customer-message-copy p { margin: 0; color: #c8cbda; line-height: 1.45; overflow-wrap: anywhere; }
+.customer-message-actions { display: grid; gap: 7px; }
+.customer-message-actions form { margin: 0; }
+.customer-message-actions .button { width: 100%; min-height: 40px; padding: 9px 12px; white-space: nowrap; }
+.customer-message-actions .confirm { background: #24785d; }
 .availability-toolbar { display: grid; grid-template-columns: minmax(220px,1fr) minmax(180px,.7fr) minmax(160px,.55fr); gap: 10px; margin-top: 16px; }
 .availability-toolbar label { display: grid; gap: 6px; color: #aeb4c8; font-size: .8rem; font-weight: 900; }
 .availability-toolbar input,.availability-toolbar select { min-width: 0; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 11px 12px; background: #252a3b; color: #fff; }
@@ -679,6 +692,7 @@
 @media (max-width: 580px) { .availability-owner-row,.availability-toolbar,.owner-order-status { grid-template-columns: 1fr; } .owner-order-status label { display: none; } .availability-actions { display: grid!important; grid-template-columns: 1fr 1fr; } .availability-actions .availability-save { grid-column: 1/-1; } }
 @media (max-width: 460px) { .sales-chart { gap: 5px; } .sales-chart-day { grid-template-rows: 28px 140px 24px; } .sales-chart-value { font-size: .62rem; } }
 @media (max-width: 700px) { .reservation-owner-row { grid-template-columns: 64px 1fr; } .reservation-actions { grid-column: 1/-1; } .reservation-actions form,.reservation-actions .button { flex: 1; width: 100%; } }
+@media (max-width: 850px) { .customer-message-row { grid-template-columns: 1fr; } .customer-message-actions { grid-template-columns: 1fr 1fr; } }
 
 .public-site .product-badges {
   position: absolute;

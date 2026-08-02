@@ -1127,6 +1127,17 @@ def _safe_date(value, fallback):
 
 @owner_required
 def owner_dashboard(request):
+    if request.method == 'POST' and request.POST.get('action') == 'update_customer_message_status':
+        customer_message = get_object_or_404(CustomerMessage, id=request.POST.get('message_id'))
+        status = request.POST.get('status', '')
+        allowed_statuses = {'read': 'marqué comme lu', 'archived': 'archivé'}
+        if status not in allowed_statuses:
+            messages.error(request, 'Statut de message invalide.')
+        else:
+            customer_message.status = status
+            customer_message.save(update_fields=['status', 'updated_at'])
+            messages.success(request, f'Message de {customer_message.name} {allowed_statuses[status]}.')
+        return redirect('shop:owner_dashboard')
     if request.method == 'POST' and request.POST.get('action') == 'update_reservation_status':
         reservation = get_object_or_404(Reservation, id=request.POST.get('reservation_id'))
         status = request.POST.get('status', '')
@@ -1209,6 +1220,7 @@ def owner_dashboard(request):
     waiting_orders = active_orders.filter(status='received', created_at__lt=now - timedelta(minutes=15)).count()
     failed_payments = today_orders.filter(payment_status='failed').count()
     pending_reservations = Reservation.objects.filter(status='new', date__gte=timezone.localdate()).count()
+    new_messages_count = CustomerMessage.objects.filter(status='new').count()
     sold_out_count = Product.objects.exclude(availability_status='available').count()
     sales_orders = Order.objects.exclude(status__in=['cancelled', 'refunded'])
     daily_sales = []
@@ -1264,6 +1276,8 @@ def owner_dashboard(request):
         'pending_reservations': Reservation.objects.filter(
             status='new', date__gte=timezone.localdate(),
         ).order_by('date', 'time')[:6],
+        'new_messages_count': new_messages_count,
+        'new_customer_messages': CustomerMessage.objects.filter(status='new').order_by('-created_at')[:6],
         'sold_out_count': sold_out_count,
         'daily_sales': daily_sales,
         'seven_day_revenue': sum((item['revenue'] for item in daily_sales), Decimal('0.00')),

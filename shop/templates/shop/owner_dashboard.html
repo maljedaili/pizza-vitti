@@ -21,11 +21,12 @@
       <article><span>Achats ouverts</span><strong>{{ open_purchase_count }}</strong></article>
     </section>
 
-    {% if waiting_orders_count or failed_payments_count or pending_reservations_count or sold_out_count %}
+    {% if waiting_orders_count or failed_payments_count or pending_reservations_count or new_messages_count or sold_out_count %}
     <section class="ops-alerts" aria-label="Alertes opérationnelles">
       {% if waiting_orders_count %}<a class="ops-alert urgent" href="{% url 'shop:kitchen_app' %}"><strong>{{ waiting_orders_count }} commande{{ waiting_orders_count|pluralize }} en attente</strong><span>Depuis plus de 15 minutes · ouvrir la cuisine</span></a>{% endif %}
       {% if failed_payments_count %}<a class="ops-alert urgent" href="{% url 'shop:reports_dashboard' %}"><strong>{{ failed_payments_count }} paiement{{ failed_payments_count|pluralize }} échoué{{ failed_payments_count|pluralize }}</strong><span>À vérifier aujourd’hui</span></a>{% endif %}
       {% if pending_reservations_count %}<a class="ops-alert" href="#reservations"><strong>{{ pending_reservations_count }} réservation{{ pending_reservations_count|pluralize }} à confirmer</strong><span>Voir les demandes</span></a>{% endif %}
+      {% if new_messages_count %}<a class="ops-alert" href="#messages-clients"><strong>{{ new_messages_count }} nouveau{{ new_messages_count|pluralize:'x' }} message{{ new_messages_count|pluralize }}</strong><span>Répondre aux clients</span></a>{% endif %}
       {% if sold_out_count %}<a class="ops-alert" href="#disponibilites"><strong>{{ sold_out_count }} produit{{ sold_out_count|pluralize }} indisponible{{ sold_out_count|pluralize }}</strong><span>Gérer la carte</span></a>{% endif %}
     </section>
     {% endif %}
@@ -141,6 +142,24 @@
           <div class="reservation-actions">
             <form method="post">{% csrf_token %}<input type="hidden" name="action" value="update_reservation_status"><input type="hidden" name="reservation_id" value="{{ reservation.id }}"><input type="hidden" name="status" value="confirmed"><button class="button confirm" type="submit">Confirmer</button></form>
             <form method="post">{% csrf_token %}<input type="hidden" name="action" value="update_reservation_status"><input type="hidden" name="reservation_id" value="{{ reservation.id }}"><input type="hidden" name="status" value="refused"><button class="button danger" type="submit">Refuser</button></form>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if new_customer_messages %}
+    <section class="ops-panel customer-message-panel" id="messages-clients">
+      <div class="ops-panel-head"><div><p class="ops-eyebrow">Boîte de réception</p><h2>Nouveaux messages clients</h2></div><span>{{ new_messages_count }} non lu{{ new_messages_count|pluralize }}</span></div>
+      <div class="customer-message-list">
+        {% for customer_message in new_customer_messages %}
+        <article class="customer-message-row">
+          <div class="customer-message-meta"><strong>{{ customer_message.name }}</strong><time datetime="{{ customer_message.created_at|date:'c' }}">{{ customer_message.created_at|date:'d/m · H:i' }}</time><span>{% if customer_message.email %}<a href="mailto:{{ customer_message.email }}">{{ customer_message.email }}</a>{% endif %}{% if customer_message.phone %}<a href="tel:{{ customer_message.phone }}">{{ customer_message.phone }}</a>{% endif %}</span></div>
+          <div class="customer-message-copy">{% if customer_message.subject %}<strong>{{ customer_message.subject }}</strong>{% endif %}<p>{{ customer_message.message }}</p></div>
+          <div class="customer-message-actions">
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="update_customer_message_status"><input type="hidden" name="message_id" value="{{ customer_message.id }}"><input type="hidden" name="status" value="read"><button class="button confirm" type="submit">Marquer comme lu</button></form>
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="update_customer_message_status"><input type="hidden" name="message_id" value="{{ customer_message.id }}"><input type="hidden" name="status" value="archived"><button class="button ghost" type="submit">Archiver</button></form>
           </div>
         </article>
         {% endfor %}

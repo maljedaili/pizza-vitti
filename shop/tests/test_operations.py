@@ -778,6 +778,36 @@ class OperationsAccessTests(TestCase):
         reservation.refresh_from_db()
         self.assertEqual(reservation.status, 'confirmed')
 
+    def test_owner_can_manage_customer_messages_from_the_dashboard(self):
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'owner',
+            'username': 'admin',
+            'password': '1234',
+        })
+        customer_message = CustomerMessage.objects.create(
+            name='Luca Client',
+            email='luca@example.com',
+            phone='0611223344',
+            subject='Question allergènes',
+            message='Avez-vous une pizza sans gluten ?',
+        )
+
+        dashboard = self.client.get(reverse('shop:owner_dashboard'))
+        self.assertContains(dashboard, 'Nouveaux messages clients')
+        self.assertContains(dashboard, customer_message.subject)
+        self.assertContains(dashboard, customer_message.message)
+        self.assertContains(dashboard, f'mailto:{customer_message.email}')
+
+        response = self.client.post(reverse('shop:owner_dashboard'), {
+            'action': 'update_customer_message_status',
+            'message_id': customer_message.id,
+            'status': 'read',
+        })
+
+        self.assertRedirects(response, reverse('shop:owner_dashboard'))
+        customer_message.refresh_from_db()
+        self.assertEqual(customer_message.status, 'read')
+
     @override_settings(
         OWNER_DASHBOARD_PASSWORD='SecureOwnerPass',
         OWNER_DASHBOARD_PASSWORD_HASH='',
