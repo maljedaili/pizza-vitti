@@ -43,8 +43,12 @@
             {% csrf_token %}<input type="hidden" name="action" value="update_product_availability"><input type="hidden" name="product_id" value="{{ product.id }}">
             <div><strong>{{ product.name }}</strong><small>{{ product.category.name|default:'Menu' }}</small></div>
             <select name="availability_status" data-availability-select>{% for value,label in product.AVAILABILITY %}<option value="{{ value }}" {% if product.availability_status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
-            <input type="datetime-local" name="available_again_at" value="{% if product.available_again_at %}{{ product.available_again_at|date:'Y-m-d\TH:i' }}{% endif %}">
-            <button class="button" type="submit">Enregistrer</button>
+            <input type="datetime-local" name="available_again_at" data-availability-date value="{% if product.available_again_at %}{{ product.available_again_at|date:'Y-m-d\TH:i' }}{% endif %}">
+            <div class="availability-actions">
+              <button class="availability-quick available{% if product.availability_status == 'available' %} active{% endif %}" type="button" data-set-availability="available">Disponible</button>
+              <button class="availability-quick sold-out{% if product.availability_status == 'sold_out' %} active{% endif %}" type="button" data-set-availability="sold_out">Épuisé</button>
+              <button class="button availability-save" type="submit">Enregistrer</button>
+            </div>
           </form>
         {% empty %}<p class="ops-empty">Aucun produit.</p>{% endfor %}
         <p class="ops-empty" hidden data-availability-empty>Aucun produit ne correspond à ces filtres.</p>

@@ -669,8 +669,14 @@
 .availability-owner-row strong { color: #fff; }
 .availability-owner-row small { color: #aeb4c8; }
 .availability-owner-row select,.availability-owner-row input { min-width: 0; background: #252a3b; border: 1px solid rgba(255,255,255,.1); color: #fff; border-radius: 8px; }
+.availability-actions { display: flex!important; grid-auto-flow: column; gap: 6px!important; }
+.availability-quick { min-height: 42px; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 9px 11px; background: #252a3b; color: #c8cbda; font-weight: 900; cursor: pointer; }
+.availability-quick.available.active,.availability-quick.available:hover { border-color: #55dda8; background: #214b40; color: #8df0ca; }
+.availability-quick.sold-out.active,.availability-quick.sold-out:hover { border-color: #ff707d; background: #4a2930; color: #ffb0b8; }
+.availability-actions .button { min-height: 42px; padding: 9px 11px; }
+.availability-owner-row button:disabled { cursor: wait; opacity: .62; }
 @media (max-width: 900px) { .availability-owner-row { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 580px) { .availability-owner-row,.availability-toolbar,.owner-order-status { grid-template-columns: 1fr; } .owner-order-status label { display: none; } }
+@media (max-width: 580px) { .availability-owner-row,.availability-toolbar,.owner-order-status { grid-template-columns: 1fr; } .owner-order-status label { display: none; } .availability-actions { display: grid!important; grid-template-columns: 1fr 1fr; } .availability-actions .availability-save { grid-column: 1/-1; } }
 @media (max-width: 460px) { .sales-chart { gap: 5px; } .sales-chart-day { grid-template-rows: 28px 140px 24px; } .sales-chart-value { font-size: .62rem; } }
 @media (max-width: 700px) { .reservation-owner-row { grid-template-columns: 64px 1fr; } .reservation-actions { grid-column: 1/-1; } .reservation-actions form,.reservation-actions .button { flex: 1; width: 100%; } }
 

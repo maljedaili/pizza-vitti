@@ -293,6 +293,38 @@ document.querySelectorAll('[data-availability-manager]').forEach(manager => {
   const status = manager.querySelector('[data-availability-status]');
   const rows = [...manager.querySelectorAll('.availability-owner-row')];
   const empty = manager.querySelector('[data-availability-empty]');
+  rows.forEach(row => {
+    const availabilitySelect = row.querySelector('[data-availability-select]');
+    const availabilityDate = row.querySelector('[data-availability-date]');
+    const submitButton = row.querySelector('.availability-save');
+    const syncScheduledField = () => {
+      const isScheduled = availabilitySelect?.value === 'scheduled';
+      if (availabilityDate) {
+        availabilityDate.hidden = !isScheduled;
+        availabilityDate.required = isScheduled;
+      }
+    };
+    availabilitySelect?.addEventListener('change', syncScheduledField);
+    row.querySelectorAll('[data-set-availability]').forEach(button => {
+      button.addEventListener('click', () => {
+        if (!availabilitySelect || row.dataset.submitting === 'true') return;
+        availabilitySelect.value = button.dataset.setAvailability;
+        syncScheduledField();
+        row.dataset.submitting = 'true';
+        row.querySelectorAll('button').forEach(control => { control.disabled = true; });
+        button.textContent = 'Mise à jour…';
+        row.requestSubmit();
+      });
+    });
+    row.addEventListener('submit', () => {
+      row.dataset.submitting = 'true';
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.textContent = 'Mise à jour…';
+      }
+    });
+    syncScheduledField();
+  });
   const filterProducts = () => {
     const query = (search?.value || '').trim().toLocaleLowerCase('fr');
     const selectedCategory = category?.value || '';

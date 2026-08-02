@@ -689,6 +689,9 @@ class OperationsAccessTests(TestCase):
         self.assertContains(response, '1 réservation à confirmer')
         self.assertContains(response, 'data-availability-search')
         self.assertContains(response, f'data-product-name="{product.name.lower()}"')
+        self.assertContains(response, 'data-set-availability="available"')
+        self.assertContains(response, 'data-set-availability="sold_out"')
+        self.assertContains(response, 'data-availability-date')
         self.assertContains(response, 'Gestion des tables')
         self.assertContains(response, 'Commandes fournisseurs')
 
