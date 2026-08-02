@@ -278,6 +278,16 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(response, f'name="twitter:image" content="{expected_image}"')
         self.assertContains(response, f'property="og:image:alt" content="{self.product.name}"')
 
+    def test_sitemap_contains_localized_pages_groups_and_products(self):
+        response = self.client.get('/sitemap.xml')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '/en/menu/</loc>')
+        self.assertContains(response, '/ar/menu/boissons/</loc>')
+        self.assertContains(response, f'/en/product/{self.product.slug}/</loc>')
+        self.assertContains(response, f'/ja/product/{self.product.slug}/</loc>')
+        self.assertNotContains(response, f'/produit/{self.product.slug}/</loc>')
+
     def test_customer_can_delete_account_and_associated_data(self):
         order = self.create_order(2, 'PV-DELETE-1')
         Favorite.objects.create(user=self.user, product=self.product)
