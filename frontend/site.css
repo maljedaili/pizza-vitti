@@ -644,6 +644,22 @@
 .source-breakdown header { display: flex; justify-content: space-between; gap: 12px; color: #fff; }
 .source-track { overflow: hidden; height: 10px; border-radius: 999px; background: #252a3b; }
 .source-track span { display: block; width: var(--source-width); height: 100%; min-width: 4px; border-radius: inherit; background: linear-gradient(90deg,#55dda8,#8f5cff); }
+.reservation-owner-panel { margin-top: 18px; }
+.reservation-owner-list { display: grid; gap: 10px; margin-top: 16px; }
+.reservation-owner-row { display: grid; grid-template-columns: 76px minmax(0,1fr) auto; gap: 15px; align-items: center; border: 1px solid rgba(255,255,255,.08); border-radius: 8px; padding: 13px; background: #222638; }
+.reservation-date { display: grid; place-items: center; border-right: 1px solid rgba(255,255,255,.08); color: #fff; text-align: center; }
+.reservation-date strong { font-size: 1.75rem; line-height: 1; }
+.reservation-date span { color: #a98aff; font-size: .78rem; font-weight: 950; text-transform: uppercase; }
+.reservation-date time { margin-top: 5px; color: #c8cbda; font-weight: 900; }
+.reservation-customer { display: grid; gap: 4px; min-width: 0; }
+.reservation-customer strong { color: #fff; }
+.reservation-customer span,.reservation-customer small { color: #aeb4c8; overflow-wrap: anywhere; }
+.reservation-customer a { color: #bda5ff; }
+.reservation-actions { display: flex; gap: 8px; }
+.reservation-actions form { margin: 0; }
+.reservation-actions .button { min-height: 42px; padding: 10px 13px; }
+.reservation-actions .confirm { background: #24785d; }
+.reservation-actions .danger { background: #9f2d35; }
 .availability-toolbar { display: grid; grid-template-columns: minmax(220px,1fr) minmax(180px,.7fr) minmax(160px,.55fr); gap: 10px; margin-top: 16px; }
 .availability-toolbar label { display: grid; gap: 6px; color: #aeb4c8; font-size: .8rem; font-weight: 900; }
 .availability-toolbar input,.availability-toolbar select { min-width: 0; border: 1px solid rgba(255,255,255,.1); border-radius: 8px; padding: 11px 12px; background: #252a3b; color: #fff; }
@@ -656,6 +672,7 @@
 @media (max-width: 900px) { .availability-owner-row { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 580px) { .availability-owner-row,.availability-toolbar,.owner-order-status { grid-template-columns: 1fr; } .owner-order-status label { display: none; } }
 @media (max-width: 460px) { .sales-chart { gap: 5px; } .sales-chart-day { grid-template-rows: 28px 140px 24px; } .sales-chart-value { font-size: .62rem; } }
+@media (max-width: 700px) { .reservation-owner-row { grid-template-columns: 64px 1fr; } .reservation-actions { grid-column: 1/-1; } .reservation-actions form,.reservation-actions .button { flex: 1; width: 100%; } }
 
 .public-site .product-badges {
   position: absolute;

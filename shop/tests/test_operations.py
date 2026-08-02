@@ -744,6 +744,37 @@ class OperationsAccessTests(TestCase):
         self.assertEqual(len(response.context['daily_sales']), 7)
         self.assertEqual(response.context['seven_day_revenue'], Decimal('32.00'))
 
+    def test_owner_can_confirm_a_reservation_from_the_dashboard(self):
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'owner',
+            'username': 'admin',
+            'password': '1234',
+        })
+        reservation = Reservation.objects.create(
+            name='Giulia Réservation',
+            email='giulia@example.com',
+            phone='0612345678',
+            date=timezone.localdate() + timedelta(days=1),
+            time='20:00',
+            guests=4,
+            message='Près de la fenêtre',
+        )
+
+        dashboard = self.client.get(reverse('shop:owner_dashboard'))
+        self.assertContains(dashboard, 'Réservations à confirmer')
+        self.assertContains(dashboard, reservation.name)
+        self.assertContains(dashboard, 'Près de la fenêtre')
+
+        response = self.client.post(reverse('shop:owner_dashboard'), {
+            'action': 'update_reservation_status',
+            'reservation_id': reservation.id,
+            'status': 'confirmed',
+        })
+
+        self.assertRedirects(response, reverse('shop:owner_dashboard'))
+        reservation.refresh_from_db()
+        self.assertEqual(reservation.status, 'confirmed')
+
     @override_settings(
         OWNER_DASHBOARD_PASSWORD='SecureOwnerPass',
         OWNER_DASHBOARD_PASSWORD_HASH='',

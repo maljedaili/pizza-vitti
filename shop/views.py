@@ -1127,6 +1127,17 @@ def _safe_date(value, fallback):
 
 @owner_required
 def owner_dashboard(request):
+    if request.method == 'POST' and request.POST.get('action') == 'update_reservation_status':
+        reservation = get_object_or_404(Reservation, id=request.POST.get('reservation_id'))
+        status = request.POST.get('status', '')
+        allowed_statuses = {'confirmed': 'confirmée', 'refused': 'refusée'}
+        if status not in allowed_statuses:
+            messages.error(request, 'Statut de réservation invalide.')
+        else:
+            reservation.status = status
+            reservation.save(update_fields=['status', 'updated_at'])
+            messages.success(request, f'Réservation de {reservation.name} {allowed_statuses[status]}.')
+        return redirect('shop:owner_dashboard')
     if request.method == 'POST' and request.POST.get('action') == 'update_order_status':
         order = get_object_or_404(Order, id=request.POST.get('order_id'))
         status = request.POST.get('status', '')
@@ -1250,6 +1261,9 @@ def owner_dashboard(request):
         'waiting_orders_count': waiting_orders,
         'failed_payments_count': failed_payments,
         'pending_reservations_count': pending_reservations,
+        'pending_reservations': Reservation.objects.filter(
+            status='new', date__gte=timezone.localdate(),
+        ).order_by('date', 'time')[:6],
         'sold_out_count': sold_out_count,
         'daily_sales': daily_sales,
         'seven_day_revenue': sum((item['revenue'] for item in daily_sales), Decimal('0.00')),

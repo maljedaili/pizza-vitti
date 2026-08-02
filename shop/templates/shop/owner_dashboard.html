@@ -25,7 +25,7 @@
     <section class="ops-alerts" aria-label="Alertes opérationnelles">
       {% if waiting_orders_count %}<a class="ops-alert urgent" href="{% url 'shop:kitchen_app' %}"><strong>{{ waiting_orders_count }} commande{{ waiting_orders_count|pluralize }} en attente</strong><span>Depuis plus de 15 minutes · ouvrir la cuisine</span></a>{% endif %}
       {% if failed_payments_count %}<a class="ops-alert urgent" href="{% url 'shop:reports_dashboard' %}"><strong>{{ failed_payments_count }} paiement{{ failed_payments_count|pluralize }} échoué{{ failed_payments_count|pluralize }}</strong><span>À vérifier aujourd’hui</span></a>{% endif %}
-      {% if pending_reservations_count %}<a class="ops-alert" href="/admin/shop/reservation/"><strong>{{ pending_reservations_count }} réservation{{ pending_reservations_count|pluralize }} à confirmer</strong><span>Voir les demandes</span></a>{% endif %}
+      {% if pending_reservations_count %}<a class="ops-alert" href="#reservations"><strong>{{ pending_reservations_count }} réservation{{ pending_reservations_count|pluralize }} à confirmer</strong><span>Voir les demandes</span></a>{% endif %}
       {% if sold_out_count %}<a class="ops-alert" href="#disponibilites"><strong>{{ sold_out_count }} produit{{ sold_out_count|pluralize }} indisponible{{ sold_out_count|pluralize }}</strong><span>Gérer la carte</span></a>{% endif %}
     </section>
     {% endif %}
@@ -125,6 +125,24 @@
         </div>
       </article>
     </section>
+
+    {% if pending_reservations %}
+    <section class="ops-panel reservation-owner-panel" id="reservations">
+      <div class="ops-panel-head"><div><p class="ops-eyebrow">Demandes en attente</p><h2>Réservations à confirmer</h2></div><span>{{ pending_reservations_count }} demande{{ pending_reservations_count|pluralize }}</span></div>
+      <div class="reservation-owner-list">
+        {% for reservation in pending_reservations %}
+        <article class="reservation-owner-row">
+          <div class="reservation-date"><strong>{{ reservation.date|date:'d' }}</strong><span>{{ reservation.date|date:'M' }}</span><time>{{ reservation.time|time:'H:i' }}</time></div>
+          <div class="reservation-customer"><strong>{{ reservation.name }}</strong><span>{{ reservation.guests }} personne{{ reservation.guests|pluralize }}{% if reservation.phone %} · <a href="tel:{{ reservation.phone }}">{{ reservation.phone }}</a>{% endif %}</span>{% if reservation.message %}<small>{{ reservation.message }}</small>{% endif %}</div>
+          <div class="reservation-actions">
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="update_reservation_status"><input type="hidden" name="reservation_id" value="{{ reservation.id }}"><input type="hidden" name="status" value="confirmed"><button class="button confirm" type="submit">Confirmer</button></form>
+            <form method="post">{% csrf_token %}<input type="hidden" name="action" value="update_reservation_status"><input type="hidden" name="reservation_id" value="{{ reservation.id }}"><input type="hidden" name="status" value="refused"><button class="button danger" type="submit">Refuser</button></form>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
 
     <section class="ops-grid two dashboard-analytics">
       <article class="ops-panel">
