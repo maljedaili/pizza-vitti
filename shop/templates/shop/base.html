@@ -14,13 +14,15 @@
   <link rel="canonical" href="{{ SITE_URL }}{{ request.path }}">
   {% for code,label,name,href in LANGUAGES_MENU %}<link rel="alternate" hreflang="{{ code }}" href="{{ SITE_URL }}{{ href }}">{% endfor %}
   <link rel="alternate" hreflang="x-default" href="{{ SITE_URL }}{{ X_DEFAULT_URL }}">
-  <meta property="og:title" content="{{ meta_title|default:T.default_meta_title }}"><meta property="og:type" content="restaurant"><meta property="og:url" content="{{ SITE_URL }}{{ request.path }}">
+  <meta property="og:title" content="{{ meta_title|default:T.default_meta_title }}"><meta property="og:type" content="{{ meta_type|default:'restaurant' }}"><meta property="og:url" content="{{ SITE_URL }}{{ request.path }}">
   <meta property="og:description" content="{{ meta_description|default:T.default_meta_description }}">
-  <meta property="og:image" content="{{ SITE_URL }}{% if meta_image %}{{ meta_image }}{% else %}{% static 'shop/img/hero/menu-pizza-vitti.jpg' %}{% endif %}">
+  <meta property="og:image" content="{% if meta_image_absolute %}{{ meta_image_absolute }}{% else %}{{ SITE_URL }}{% if meta_image %}{{ meta_image }}{% else %}{% static 'shop/img/hero/menu-pizza-vitti.jpg' %}{% endif %}{% endif %}">
+  <meta property="og:image:alt" content="{{ meta_image_alt|default:'Pizza Vitti' }}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ meta_title|default:T.default_meta_title }}">
   <meta name="twitter:description" content="{{ meta_description|default:T.default_meta_description }}">
-  <meta name="twitter:image" content="{{ SITE_URL }}{% if meta_image %}{{ meta_image }}{% else %}{% static 'shop/img/hero/menu-pizza-vitti.jpg' %}{% endif %}">
+  <meta name="twitter:image" content="{% if meta_image_absolute %}{{ meta_image_absolute }}{% else %}{{ SITE_URL }}{% if meta_image %}{{ meta_image }}{% else %}{% static 'shop/img/hero/menu-pizza-vitti.jpg' %}{% endif %}{% endif %}">
+  <meta name="twitter:image:alt" content="{{ meta_image_alt|default:'Pizza Vitti' }}">
   <script type="application/ld+json">{{ structured_data|safe }}</script>
   {% if drinks_structured_data %}<script type="application/ld+json">{{ drinks_structured_data|safe }}</script>{% endif %}
   {% if page_structured_data %}<script type="application/ld+json">{{ page_structured_data|safe }}</script>{% endif %}

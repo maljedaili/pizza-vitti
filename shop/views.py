@@ -704,6 +704,9 @@ def product_detail(request, slug, lang=None):
         'has_age_restricted_products': product.requires_age_verification,
         'meta_title': product.meta_title or f'{translated_name} | Pizza Vitti',
         'meta_description': product.meta_description or translated_description[:155],
+        'meta_type': 'product',
+        'meta_image_absolute': image_url,
+        'meta_image_alt': translated_name,
         'page_structured_data': page_structured_data})
 
 

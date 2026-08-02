@@ -269,6 +269,15 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(response, '"availability": "https://schema.org/InStock"')
         self.assertContains(response, f'http://testserver/en/product/{self.product.slug}/')
 
+    def test_product_sharing_metadata_uses_the_product_photo(self):
+        response = self.client.get(f'/en/product/{self.product.slug}/')
+        expected_image = f'http://testserver{self.product.display_image}'
+
+        self.assertContains(response, 'property="og:type" content="product"')
+        self.assertContains(response, f'property="og:image" content="{expected_image}"')
+        self.assertContains(response, f'name="twitter:image" content="{expected_image}"')
+        self.assertContains(response, f'property="og:image:alt" content="{self.product.name}"')
+
     def test_customer_can_delete_account_and_associated_data(self):
         order = self.create_order(2, 'PV-DELETE-1')
         Favorite.objects.create(user=self.user, product=self.product)
