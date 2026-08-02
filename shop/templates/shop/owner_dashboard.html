@@ -15,6 +15,13 @@
       </div>
     </header>
 
+    <nav class="dashboard-quick-actions" aria-label="Accès rapide au service">
+      <a href="{% url 'shop:kitchen_app' %}"><span aria-hidden="true">▣</span><strong>Cuisine</strong>{% if active_orders_count %}<b>{{ active_orders_count }}</b>{% endif %}</a>
+      <a href="{% url 'shop:floor_plan' %}"><span aria-hidden="true">⌑</span><strong>Tables</strong></a>
+      <a href="#commandes-recentes"><span aria-hidden="true">≡</span><strong>Commandes</strong>{% if orders_count %}<b>{{ orders_count }}</b>{% endif %}</a>
+      <a href="#disponibilites"><span aria-hidden="true">◉</span><strong>Carte</strong>{% if sold_out_count %}<b>{{ sold_out_count }}</b>{% endif %}</a>
+    </nav>
+
     <section class="ops-kpis">
       <article><span>Commandes aujourd’hui</span><strong>{{ orders_count }}</strong><small class="{% if orders_difference > 0 %}positive{% elif orders_difference < 0 %}negative{% endif %}">{% if orders_difference > 0 %}+{% endif %}{{ orders_difference }} par rapport à hier</small></article>
       <article><span>Chiffre d’affaires</span><strong>{{ revenue|floatformat:2 }} €</strong><small class="{% if revenue_difference > 0 %}positive{% elif revenue_difference < 0 %}negative{% endif %}">{% if revenue_difference > 0 %}+{% endif %}{{ revenue_difference|floatformat:2 }} € par rapport à hier</small></article>
@@ -60,7 +67,7 @@
     </section>
 
     <section class="ops-grid two">
-      <article class="ops-panel">
+      <article class="ops-panel" id="commandes-recentes">
         <div class="ops-panel-head">
           <h2>Dernières commandes</h2>
           <a href="{% url 'shop:kitchen_app' %}">Voir cuisine</a>
