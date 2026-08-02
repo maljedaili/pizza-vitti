@@ -278,10 +278,13 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(response, f'name="twitter:image" content="{expected_image}"')
         self.assertContains(response, f'property="og:image:alt" content="{self.product.name}"')
 
+    @override_settings(SITE_URL='https://pizza-vitti.kayen.fr')
     def test_sitemap_contains_localized_pages_groups_and_products(self):
         response = self.client.get('/sitemap.xml')
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'https://pizza-vitti.kayen.fr/en/menu/</loc>')
+        self.assertNotContains(response, 'example.com')
         self.assertContains(response, '/en/menu/</loc>')
         self.assertContains(response, '/ar/menu/boissons/</loc>')
         self.assertContains(response, f'/en/product/{self.product.slug}/</loc>')

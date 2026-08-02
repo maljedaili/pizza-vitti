@@ -1,9 +1,9 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
-from django.contrib.sitemaps.views import sitemap
 from django.urls import path, include
 from shop.sitemaps import ProductSitemap, BlogSitemap, StaticSitemap
+from shop.sitemap_views import configured_sitemap
 from shop import views as shop_views
 
 sitemaps = {'static': StaticSitemap, 'products': ProductSitemap, 'blog': BlogSitemap}
@@ -14,7 +14,7 @@ urlpatterns = [
     path('.well-known/assetlinks.json', shop_views.android_asset_links, name='android_asset_links'),
     path('manifest.webmanifest', shop_views.manifest_webmanifest, name='manifest_webmanifest'),
     path('sw.js', shop_views.service_worker, name='service_worker'),
-    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
+    path('sitemap.xml', configured_sitemap, {'sitemaps': sitemaps}, name='django.contrib.sitemaps.views.sitemap'),
     path('', include('shop.urls')),
 ]
 if settings.DEBUG:
