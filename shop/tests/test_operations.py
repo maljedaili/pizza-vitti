@@ -259,6 +259,16 @@ class CustomerLoyaltyTests(TestCase):
             f'hreflang="x-default" href="http://testserver/fr/product/{self.product.slug}/"',
         )
 
+    def test_product_page_exposes_localized_menu_item_structured_data(self):
+        response = self.client.get(f'/en/product/{self.product.slug}/')
+
+        self.assertContains(response, '"@type": "MenuItem"')
+        self.assertContains(response, '"@type": "BreadcrumbList"')
+        self.assertContains(response, '"price": "12.00"')
+        self.assertContains(response, '"priceCurrency": "EUR"')
+        self.assertContains(response, '"availability": "https://schema.org/InStock"')
+        self.assertContains(response, f'http://testserver/en/product/{self.product.slug}/')
+
     def test_customer_can_delete_account_and_associated_data(self):
         order = self.create_order(2, 'PV-DELETE-1')
         Favorite.objects.create(user=self.user, product=self.product)

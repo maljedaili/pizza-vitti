@@ -25,7 +25,7 @@ from django.views.decorators.http import require_POST
 import stripe
 from .forms import CheckoutForm, ReservationForm
 from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, LoyaltyRedemption, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder, CameraLocation, SecurityCamera, PromoCode, SiteConfiguration
-from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_path, t_for
+from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_path, localized_url, t_for
 
 
 def _password_matches(raw_password, configured_password):
@@ -661,10 +661,50 @@ def product_detail(request, slug, lang=None):
     _apply_menu_translations(supplements, list({item.category for item in supplements if item.category}), lang)
     translated_name = getattr(product, 'translated_name', product.name)
     translated_description = getattr(product, 'translated_description', product.description)
+    translated_category = getattr(product, 'translated_category_name', product.category.name if product.category else 'Menu')
+    product_url = request.build_absolute_uri(
+        reverse('shop:localized_product_detail', args=[lang, product.slug])
+    )
+    image_url = request.build_absolute_uri(product.display_image) if product.display_image else ''
+    availability = (
+        'https://schema.org/InStock' if product.is_orderable
+        else 'https://schema.org/PreOrder' if product.availability_status == 'scheduled'
+        else 'https://schema.org/OutOfStock'
+    )
+    page_structured_data = json.dumps({
+        '@context': 'https://schema.org',
+        '@graph': [
+            {
+                '@type': 'BreadcrumbList',
+                'itemListElement': [
+                    {'@type': 'ListItem', 'position': 1, 'name': 'Pizza Vitti', 'item': request.build_absolute_uri(localized_url('home', lang))},
+                    {'@type': 'ListItem', 'position': 2, 'name': t_for(lang)['menu'], 'item': request.build_absolute_uri(localized_url('menu', lang))},
+                    {'@type': 'ListItem', 'position': 3, 'name': translated_name, 'item': product_url},
+                ],
+            },
+            {
+                '@type': 'MenuItem',
+                'name': translated_name,
+                'description': translated_description,
+                'image': image_url,
+                'url': product_url,
+                'menuAddOn': translated_category,
+                'offers': {
+                    '@type': 'Offer',
+                    'price': str(product.price),
+                    'priceCurrency': 'EUR',
+                    'availability': availability,
+                    'url': product_url,
+                    'seller': {'@type': 'Restaurant', 'name': 'Pizza Vitti'},
+                },
+            },
+        ],
+    }, ensure_ascii=False)
     return render(request, 'shop/product_detail.html', {'product': product, 'supplements': supplements, 'favorite_product_ids': favorite_product_ids,
         'has_age_restricted_products': product.requires_age_verification,
         'meta_title': product.meta_title or f'{translated_name} | Pizza Vitti',
-        'meta_description': product.meta_description or translated_description[:155]})
+        'meta_description': product.meta_description or translated_description[:155],
+        'page_structured_data': page_structured_data})
 
 
 def legacy_boutique_redirect(request):

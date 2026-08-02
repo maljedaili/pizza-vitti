@@ -23,6 +23,7 @@
   <meta name="twitter:image" content="{{ SITE_URL }}{% if meta_image %}{{ meta_image }}{% else %}{% static 'shop/img/hero/menu-pizza-vitti.jpg' %}{% endif %}">
   <script type="application/ld+json">{{ structured_data|safe }}</script>
   {% if drinks_structured_data %}<script type="application/ld+json">{{ drinks_structured_data|safe }}</script>{% endif %}
+  {% if page_structured_data %}<script type="application/ld+json">{{ page_structured_data|safe }}</script>{% endif %}
   <link rel="stylesheet" href="{% static 'shop/style.css' %}">
   <link rel="stylesheet" href="{% static 'shop/dist/site.css' %}">
   <link rel="stylesheet" href="{% static 'shop/tilt.css' %}">
