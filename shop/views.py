@@ -522,7 +522,10 @@ def faq(request):
     return render(request, 'shop/faq.html', {'meta_title': "FAQ | Commandes Pizza Vitti"})
 
 def boutique(request):
-    qs = Product.objects.select_related('category')
+    qs = Product.objects.filter(
+        Q(availability_status='available')
+        | Q(availability_status='scheduled', available_again_at__lte=timezone.now())
+    ).select_related('category')
     query = request.GET.get('q','').strip()
     if query:
         qs = qs.filter(Q(name__icontains=query)|Q(description__icontains=query)|Q(category__name__icontains=query))
@@ -545,7 +548,10 @@ def boutique(request):
 
 def category(request, slug):
     cat = get_object_or_404(Category, slug=slug, is_active=True)
-    qs = cat.products.all()
+    qs = cat.products.filter(
+        Q(availability_status='available')
+        | Q(availability_status='scheduled', available_again_at__lte=timezone.now())
+    )
     paginator = Paginator(qs, 120)
     page_obj = paginator.get_page(request.GET.get('page'))
     lang = get_lang_from_path(request.path)
@@ -567,7 +573,11 @@ def menu_group(request, group, lang=None):
     if group == 'boissons':
         drink_order = {slug: index for index, slug in enumerate(DRINK_CATEGORY_ORDER)}
         categories.sort(key=lambda category: drink_order.get(category.slug, 999))
-    products = list(Product.objects.filter(category__in=categories).select_related('category'))
+    products = list(Product.objects.filter(
+        Q(availability_status='available')
+        | Q(availability_status='scheduled', available_again_at__lte=timezone.now()),
+        category__in=categories,
+    ).select_related('category'))
     _apply_menu_translations(products, categories, lang)
     for product in products:
         product.requires_age_verification = _requires_age_verification(product)

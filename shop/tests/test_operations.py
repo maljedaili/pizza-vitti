@@ -453,14 +453,19 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(arabic_cart, '>حذف</button>')
         self.assertContains(arabic_cart, 'برنامج ولاء Pizza Vitti')
 
-    def test_sold_out_product_stays_visible_but_cannot_be_ordered(self):
+    def test_sold_out_product_is_hidden_from_customer_menus_and_cannot_be_ordered(self):
         self.product.availability_status = 'sold_out'
         self.product.save()
 
         menu = self.client.get('/fr/menu/pizzas/')
-        self.assertContains(menu, self.product.name)
-        self.assertContains(menu, 'Épuisé aujourd’hui')
+        self.assertNotContains(menu, self.product.name)
         self.assertNotContains(menu, f'action="{reverse("shop:add_to_cart", args=[self.product.id])}"')
+
+        full_menu = self.client.get('/fr/menu/')
+        self.assertNotContains(full_menu, self.product.name)
+
+        category_menu = self.client.get(reverse('shop:category', args=[self.category.slug]))
+        self.assertNotContains(category_menu, self.product.name)
 
         response = self.client.post(reverse('shop:add_to_cart', args=[self.product.id]), {'qty': 1})
         self.assertEqual(response.status_code, 302)
