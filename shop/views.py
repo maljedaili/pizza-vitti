@@ -113,8 +113,26 @@ def _menu_category_order(qs):
 
 MENU_GROUPS = [
     {
+        'slug': 'boissons',
+        'title': 'Boissons',
+        'eyebrow': 'Bar',
+        'summary': 'Softs, bières, vins, apéritifs, digestifs, cafés et thés.',
+        'kind': 'is-drink',
+        'image': '/static/shop/img/drinks/shirley-temple-cosmopolitan.jpg',
+        'matches': ('aperitivo', 'digestif', 'birre', 'analcolici', 'caff', 'cafe', 'cappuccino', 'chocolat', 'the', 'vin'),
+    },
+    {
+        'slug': 'antipasti',
+        'title': 'Entrées',
+        'eyebrow': 'À partager',
+        'summary': 'Entrées, antipasti, bruschette et salades pour commencer ou partager.',
+        'kind': 'is-antipasti',
+        'image': 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&w=1200&q=82',
+        'matches': ('entrée', 'entree', 'antipasti', 'bruschetta', 'salade'),
+    },
+    {
         'slug': 'pizzas',
-        'title': 'Nos pizzas',
+        'title': 'Nos Pizza',
         'eyebrow': 'Pizza',
         'summary': 'Toutes les pizzas maison avec les suppléments pour personnaliser votre commande.',
         'kind': 'is-pizza',
@@ -131,15 +149,6 @@ MENU_GROUPS = [
         'matches': ('pasta', 'pâte', 'raviole'),
     },
     {
-        'slug': 'antipasti',
-        'title': 'Entrées & Antipasti',
-        'eyebrow': 'À partager',
-        'summary': 'Entrées, antipasti, bruschette et salades pour commencer ou partager.',
-        'kind': 'is-antipasti',
-        'image': 'https://images.unsplash.com/photo-1546549032-9571cd6b27df?auto=format&fit=crop&w=1200&q=82',
-        'matches': ('entrée', 'entree', 'antipasti', 'bruschetta', 'salade'),
-    },
-    {
         'slug': 'bambino',
         'title': 'Menu Bambino',
         'eyebrow': 'Enfants',
@@ -150,21 +159,12 @@ MENU_GROUPS = [
     },
     {
         'slug': 'douceurs',
-        'title': 'Nos douceurs',
+        'title': 'Desserts',
         'eyebrow': 'Desserts',
         'summary': 'Tiramisu, panna cotta, glaces et desserts italiens.',
         'kind': 'is-dessert',
         'image': '/static/shop/img/hero/menu-tiramisu.jpg',
         'matches': ('douceur', 'dessert', 'glace'),
-    },
-    {
-        'slug': 'boissons',
-        'title': 'Boissons',
-        'eyebrow': 'Bar',
-        'summary': 'Softs, bières, vins, apéritifs, digestifs, cafés et thés.',
-        'kind': 'is-drink',
-        'image': '/static/shop/img/drinks/shirley-temple-cosmopolitan.jpg',
-        'matches': ('aperitivo', 'digestif', 'birre', 'analcolici', 'caff', 'cafe', 'cappuccino', 'chocolat', 'the', 'vin'),
     },
 ]
 

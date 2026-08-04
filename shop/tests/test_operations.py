@@ -532,6 +532,19 @@ class CustomerLoyaltyTests(TestCase):
 
 
 class StorefrontProductionRulesTests(TestCase):
+    def test_home_and_menu_use_the_requested_category_order(self):
+        for name in ('Analcolici', 'Entrées', 'Nos Pizza', 'Nos pâtes', 'Menu Bambino', 'Desserts'):
+            Category.objects.create(name=name)
+
+        expected = ['boissons', 'antipasti', 'pizzas', 'pastas', 'bambino', 'douceurs']
+        expected_titles = ['Boissons', 'Entrées', 'Nos Pizza', 'Nos pâtes', 'Menu Bambino', 'Desserts']
+        home = self.client.get('/fr/')
+        menu = self.client.get('/fr/menu/')
+
+        self.assertEqual([group['slug'] for group in home.context['menu_groups']], expected)
+        self.assertEqual([group['slug'] for group in menu.context['menu_groups']], expected)
+        self.assertEqual([group['title'] for group in home.context['menu_groups']], expected_titles)
+
     def test_camera_section_is_not_routed(self):
         self.assertEqual(self.client.get('/owner/cameras/').status_code, 404)
         self.assertEqual(self.client.get('/owner/cameras/setup/').status_code, 404)
@@ -541,7 +554,7 @@ class StorefrontProductionRulesTests(TestCase):
             reverse('shop:localized_menu_group', args=['fr', 'pizzas'])
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Nos pizzas')
+        self.assertContains(response, 'Nos Pizza')
 
     def test_legacy_menu_urls_redirect_permanently_to_canonical_menu(self):
         response = self.client.get(reverse('shop:boutique'))
