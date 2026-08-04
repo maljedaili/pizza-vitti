@@ -706,6 +706,46 @@ class DefaultAppCredentialsTests(TestCase):
     KITCHEN_PASSWORD='1234',
 )
 class OperationsAccessTests(TestCase):
+    def test_kitchen_can_mark_product_unavailable_and_available_again(self):
+        category = Category.objects.create(name='Pizzas cuisine')
+        product = Product.objects.create(category=category, name='Pizza cuisine', price=Decimal('12.00'))
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'kitchen',
+            'password': '1234',
+        })
+
+        dashboard = self.client.get(reverse('shop:kitchen_app'))
+        self.assertContains(dashboard, 'Produits disponibles')
+        self.assertContains(dashboard, product.name)
+        self.assertContains(dashboard, 'Rendre indisponible')
+
+        response = self.client.post(reverse('shop:kitchen_update_product_availability', args=[product.id]), {
+            'availability_status': 'sold_out',
+        })
+        self.assertRedirects(response, f"{reverse('shop:preparation_dashboard')}#disponibilites")
+        product.refresh_from_db()
+        self.assertFalse(product.is_available)
+        self.assertEqual(product.availability_status, 'sold_out')
+
+        self.client.post(reverse('shop:kitchen_update_product_availability', args=[product.id]), {
+            'availability_status': 'available',
+        })
+        product.refresh_from_db()
+        self.assertTrue(product.is_available)
+        self.assertEqual(product.availability_status, 'available')
+
+    def test_product_availability_control_requires_kitchen_access(self):
+        category = Category.objects.create(name='Desserts cuisine')
+        product = Product.objects.create(category=category, name='Dessert cuisine', price=Decimal('6.00'))
+
+        response = self.client.post(reverse('shop:kitchen_update_product_availability', args=[product.id]), {
+            'availability_status': 'sold_out',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        product.refresh_from_db()
+        self.assertTrue(product.is_available)
+
     def test_kitchen_session_cannot_open_owner_dashboard(self):
         response = self.client.post(reverse('shop:app_login'), {
             'role': 'kitchen',

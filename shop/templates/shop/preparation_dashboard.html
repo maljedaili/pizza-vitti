@@ -6,6 +6,7 @@
     <a class="ops-brand" href="{% url 'shop:kitchen_app' %}"><span>PV</span><strong>Cuisine</strong></a>
     <nav>
       <a class="active" href="{% url 'shop:kitchen_app' %}">Commandes</a>
+      <a href="#disponibilites">Disponibilités{% if unavailable_product_count %} ({{ unavailable_product_count }}){% endif %}</a>
       <a href="{% url 'shop:qr_tables' %}">QR tables</a>
     </nav>
     <div class="ops-sidebar-actions">
@@ -65,6 +66,35 @@
       {% empty %}
         <p class="empty">Aucune commande en attente pour le moment.</p>
       {% endfor %}
+    </section>
+
+    <section class="ops-panel kitchen-availability" id="disponibilites" data-availability-manager>
+      <div class="ops-panel-head">
+        <div>
+          <p class="ops-eyebrow">Carte en direct</p>
+          <h2>Produits disponibles</h2>
+          <p>Choisissez rapidement ce que les clients peuvent commander.</p>
+        </div>
+        {% if unavailable_product_count %}<strong class="kitchen-unavailable-count">{{ unavailable_product_count }} indisponible{{ unavailable_product_count|pluralize }}</strong>{% endif %}
+      </div>
+      <div class="availability-toolbar kitchen-availability-toolbar">
+        <label><span>Rechercher un produit</span><input type="search" placeholder="Pizza, boisson, dessert…" data-availability-search></label>
+        <label><span>Catégorie</span><select data-availability-category><option value="">Toutes les catégories</option>{% regroup availability_products by category.name as product_categories %}{% for category in product_categories %}<option value="{{ category.grouper|lower }}">{{ category.grouper }}</option>{% endfor %}</select></label>
+        <label><span>État</span><select data-availability-status><option value="">Tous</option><option value="available">Disponibles</option><option value="unavailable">Indisponibles</option></select></label>
+      </div>
+      <div class="kitchen-product-list">
+        {% for product in availability_products %}
+          <article class="availability-owner-row kitchen-product-row" data-product-name="{{ product.name|lower }}" data-product-category="{{ product.category.name|default:'menu'|lower }}" data-product-status="{{ product.availability_status }}">
+            <div><strong>{{ product.name }}</strong><span>{{ product.category.name|default:'Menu' }}</span></div>
+            <span class="kitchen-product-state {% if product.is_available %}is-available{% else %}is-unavailable{% endif %}">{% if product.is_available %}Disponible{% else %}Indisponible{% endif %}</span>
+            <form method="post" action="{% url 'shop:kitchen_update_product_availability' product.id %}">
+              {% csrf_token %}<input type="hidden" name="availability_status" value="{% if product.is_available %}sold_out{% else %}available{% endif %}">
+              <button class="button {% if product.is_available %}danger{% endif %}" type="submit">{% if product.is_available %}Rendre indisponible{% else %}Remettre disponible{% endif %}</button>
+            </form>
+          </article>
+        {% empty %}<p class="ops-empty">Aucun produit dans la carte.</p>{% endfor %}
+        <p class="ops-empty" hidden data-availability-empty>Aucun produit ne correspond à la recherche.</p>
+      </div>
     </section>
   </div>
 </section>

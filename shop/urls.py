@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin-tables/qr/', views.qr_tables, name='qr_tables'),
     path('kitchen/', views.preparation_dashboard, name='kitchen_app'),
     path('preparation/', views.preparation_dashboard, name='preparation_dashboard'),
+    path('preparation/produit/<int:product_id>/disponibilite/', views.kitchen_update_product_availability, name='kitchen_update_product_availability'),
     path('preparation/<str:order_number>/status/', views.update_order_status, name='update_order_status'),
     path('owner/login/', views.owner_login, name='owner_login'),
     path('owner/logout/', views.owner_logout, name='owner_logout'),

@@ -1757,11 +1757,31 @@ def preparation_dashboard(request):
         })
     return render(request, 'shop/preparation_dashboard.html', {
         'orders': orders,
+        'availability_products': Product.objects.select_related('category').order_by('category__name', 'name'),
+        'unavailable_product_count': Product.objects.filter(is_available=False).count(),
         'latest_order_key': latest_order.order_number if latest_order else '',
         'now': timezone.now(),
         'kitchen_app': True,
         'meta_title': 'Préparation commandes | Pizza Vitti',
     })
+
+@kitchen_required
+@require_POST
+def kitchen_update_product_availability(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    availability_status = request.POST.get('availability_status')
+    if availability_status not in {'available', 'sold_out'}:
+        messages.error(request, 'Disponibilité invalide.')
+        return redirect('shop:preparation_dashboard')
+    product.availability_status = availability_status
+    product.available_again_at = None
+    product.save(update_fields=['availability_status', 'available_again_at', 'is_available', 'updated_at'])
+    if availability_status == 'available':
+        messages.success(request, f'{product.name} est de nouveau disponible.')
+    else:
+        messages.success(request, f'{product.name} est maintenant indisponible.')
+    return redirect(f"{reverse('shop:preparation_dashboard')}#disponibilites")
+
 
 @kitchen_required
 @require_POST
