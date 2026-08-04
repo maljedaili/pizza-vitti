@@ -1,18 +1,18 @@
 {% extends 'shop/base.html' %}
 
 {% block content %}
-<section class="checkout checkout-pickup">
+<section class="checkout checkout-pickup{% if table_number %} checkout-table{% endif %}">
   <form method="post" class="card checkout-form" data-checkout-form>
     {% csrf_token %}
     <input type="hidden" name="checkout_token" value="{{ checkout_token }}">
     <ol class="checkout-steps" aria-label="{{ T.order_steps }}">
       <li class="complete"><span>✓</span> {{ T.cart_step }}</li>
-      <li class="active"><span>2</span> {{ T.details_step }}</li>
+      <li class="active"><span>2</span> {% if table_number %}{{ T.table }} {{ table_number }}{% else %}{{ T.details_step }}{% endif %}</li>
       <li><span>3</span> {{ T.confirmation_step }}</li>
     </ol>
-    <p class="eyebrow">{{ T.order }}</p>
-    <h1>{{ T.finalize }}</h1>
-    <p>{{ T.pickup_text }} · Pizza Vitti, {{ site_config.address }}.</p>
+    <p class="eyebrow">{% if table_number %}{{ T.table_order }}{% else %}{{ T.order }}{% endif %}</p>
+    <h1>{% if table_number %}{{ T.table }} {{ table_number }}{% else %}{{ T.finalize }}{% endif %}</h1>
+    <p>{% if table_number %}{{ T.table_order }} · {{ T.table }} {{ table_number }}{% else %}{{ T.pickup_text }} · Pizza Vitti, {{ site_config.address }}.{% endif %}</p>
 
     {% if form.non_field_errors %}
       <div class="form-errors" role="alert">{{ form.non_field_errors }}</div>
@@ -25,7 +25,7 @@
       </div>
     {% endif %}
 
-    <div class="form-grid">
+    {% if not table_number %}<div class="form-grid">
       {% for field in form %}
         <div class="{% if field.name == 'notes' or field.name == 'accepted_terms' %}wide{% endif %} field-wrap">
           <label for="{{ field.id_for_label }}">{{ field.label }}</label>
@@ -34,14 +34,14 @@
           {% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}
         </div>
       {% endfor %}
-    </div>
+    </div>{% endif %}
 
-    <div class="pickup-assurance">
+    {% if not table_number %}<div class="pickup-assurance">
       <strong>{% if restaurant_status.is_open %}{{ T.restaurant_open }}{% else %}{{ T.restaurant_closed }}{% endif %} · {{ T.pickup }}</strong>
       <span>{{ T.availability_below }} · {{ T.delivery_text }}</span>
-    </div>
+    </div>{% endif %}
     {% if slots_available %}
-      <button class="button checkout-submit" data-submit-once data-sending-text="{{ T.sending }}">{{ T.finalize }} · {{ total }} €</button>
+      <button class="button checkout-submit" data-submit-once data-sending-text="{{ T.sending }}">{% if table_number %}{{ T.order }}{% else %}{{ T.finalize }}{% endif %} · {{ total }} €</button>
     {% else %}
       <div class="form-errors" role="alert">{{ T.no_slots }} {{ T.call_us }} <a href="tel:+33556421449">05 56 42 14 49</a>.</div>
       <button class="button checkout-submit" disabled>{{ T.no_slots }}</button>

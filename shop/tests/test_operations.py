@@ -400,6 +400,37 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(checkout, 'autocomplete="email"')
         self.assertContains(checkout, 'autocomplete="tel"')
 
+    def test_table_qr_checkout_requires_no_customer_information(self):
+        self.client.get(reverse('shop:table_menu', args=['12']))
+        session = self.client.session
+        session['cart'] = {str(self.product.id): 2}
+        session.save()
+
+        checkout = self.client.get('/fr/commande/')
+
+        self.assertContains(checkout, 'Table 12')
+        self.assertEqual(list(checkout.context['form'].fields), [])
+        self.assertNotContains(checkout, 'id="id_name"')
+        self.assertNotContains(checkout, 'id="id_email"')
+        self.assertNotContains(checkout, 'id="id_phone"')
+        self.assertNotContains(checkout, 'id="id_collection_slot"')
+        self.assertNotContains(checkout, 'id="id_payment_method"')
+        self.assertNotContains(checkout, 'id="id_accepted_terms"')
+
+        response = self.client.post('/fr/commande/', {
+            'checkout_token': self.client.session['checkout_token'],
+        })
+
+        order = Order.objects.get(table_number='12')
+        self.assertRedirects(response, order.get_absolute_url())
+        self.assertEqual(order.customer_name, 'Table 12')
+        self.assertEqual(order.email, '')
+        self.assertEqual(order.phone, '')
+        self.assertEqual(order.order_type, 'dine_in')
+        self.assertIsNone(order.collection_date)
+        self.assertIsNone(order.collection_time)
+        self.assertEqual(order.payment_status, 'cash')
+
     def test_order_controls_follow_the_selected_language(self):
         session = self.client.session
         session['cart'] = {str(self.product.id): 1}

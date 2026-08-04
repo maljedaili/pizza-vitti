@@ -49,7 +49,16 @@ class CheckoutForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
+        table_order = kwargs.pop('table_order', False)
         super().__init__(*args, **kwargs)
+        if table_order:
+            for field_name in (
+                'name', 'email', 'phone', 'collection_slot', 'notes',
+                'promo_code', 'payment_method', 'accepted_terms',
+            ):
+                self.fields.pop(field_name)
+            self.has_available_slots = True
+            return
         self.fields['name'].widget.attrs.update({
             'autocomplete': 'name',
             'autocapitalize': 'words',

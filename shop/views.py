@@ -823,7 +823,7 @@ def checkout(request):
     checkout_name = request.user.get_full_name().strip() if request.user.is_authenticated else ''
     checkout_email = request.user.email if request.user.is_authenticated else ''
     initial = {'name': checkout_name, 'email': checkout_email}
-    form = CheckoutForm(request.POST or None, initial=initial)
+    form = CheckoutForm(request.POST or None, initial=initial, table_order=bool(table_number))
     checkout_labels = {
         'name': checkout_copy['name'], 'email': checkout_copy['email'],
         'phone': checkout_copy['phone'],
@@ -832,13 +832,15 @@ def checkout(request):
         'accepted_terms': checkout_copy['order_terms'],
     }
     for field_name, label in checkout_labels.items():
-        form.fields[field_name].label = label
-    if not form.has_available_slots:
+        if field_name in form.fields:
+            form.fields[field_name].label = label
+    if not table_number and not form.has_available_slots:
         form.fields['collection_slot'].choices = [('', checkout_copy['no_slots'])]
-    form.fields['payment_method'].choices = [
-        (value, checkout_copy['card_payment'] if value == 'stripe' else checkout_copy['pay_pickup'])
-        for value, _label in form.fields['payment_method'].choices
-    ]
+    if 'payment_method' in form.fields:
+        form.fields['payment_method'].choices = [
+            (value, checkout_copy['card_payment'] if value == 'stripe' else checkout_copy['pay_pickup'])
+            for value, _label in form.fields['payment_method'].choices
+        ]
     discount = Decimal('0.00')
     promo = None
     if request.method == 'POST':
@@ -846,7 +848,7 @@ def checkout(request):
         session_token = request.session.get('checkout_token', '')
         if not submitted_token or submitted_token != session_token:
             form.add_error(None, 'Cette commande a déjà été envoyée ou la page a expiré. Vérifiez votre panier.')
-        promo_code = request.POST.get('promo_code', '').strip().upper()
+        promo_code = '' if table_number else request.POST.get('promo_code', '').strip().upper()
         if promo_code:
             promo = PromoCode.objects.filter(code__iexact=promo_code, is_active=True).first()
             if promo:
@@ -855,9 +857,22 @@ def checkout(request):
                 form.add_error('promo_code', 'Ce code promotionnel n’est pas valide.')
     final_total = max(Decimal('0.00'), total - discount)
     if request.method == 'POST' and form.is_valid():
-        payment_method = form.cleaned_data['payment_method']
+        payment_method = 'cash' if table_number else form.cleaned_data['payment_method']
         order_type = 'dine_in' if table_number else 'pickup'
-        collection_date, collection_time = form.cleaned_data['collection_slot']
+        if table_number:
+            collection_date, collection_time = None, None
+            customer_name = f'Table {table_number}'
+            customer_email = ''
+            customer_phone = ''
+            accepted_terms = False
+            order_notes = ''
+        else:
+            collection_date, collection_time = form.cleaned_data['collection_slot']
+            customer_name = form.cleaned_data['name'].strip()
+            customer_email = form.cleaned_data['email'].strip()
+            customer_phone = form.cleaned_data['phone'].strip()
+            accepted_terms = form.cleaned_data['accepted_terms']
+            order_notes = form.cleaned_data['notes'].strip()
         loyalty_reward = loyalty['reward'] if reward_count else None
         selected_reward = ''
         if loyalty_reward:
@@ -870,18 +885,18 @@ def checkout(request):
                 order_number='PV-' + uuid4().hex[:8].upper(),
                 user=request.user if request.user.is_authenticated else None,
                 customer_type='particulier',
-                customer_name=form.cleaned_data['name'].strip(),
-                email=form.cleaned_data['email'].strip(),
-                phone=form.cleaned_data['phone'].strip(),
+                customer_name=customer_name,
+                email=customer_email,
+                phone=customer_phone,
                 table_number=table_number,
                 address='',
                 order_type=order_type,
                 collection_date=collection_date,
                 collection_time=collection_time,
-                accepted_terms=form.cleaned_data['accepted_terms'],
+                accepted_terms=accepted_terms,
                 selected_reward=selected_reward,
                 promo_code=promo.code if promo else '',
-                notes=(form.cleaned_data['notes'].strip() + (f'\nOffre fidélité: {loyalty_note}' if loyalty_note else '')).strip(),
+                notes=(order_notes + (f'\nOffre fidélité: {loyalty_note}' if loyalty_note else '')).strip(),
                 total=final_total,
                 payment_status='pending' if payment_method == 'stripe' else 'cash',
             )
