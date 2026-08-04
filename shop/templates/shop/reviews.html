@@ -4,7 +4,7 @@
 <section class="page-title reveal">
   <p class="eyebrow">{{ T.reviews }}</p>
   <h1>{{ T.reviews_title }} · Pizza Vitti</h1>
-  <p>{{ T.reviews_text }} <a href="https://www.google.com/search?q=pizza+vitti+-+ornano" target="_blank" rel="noopener" title="{{ T.view_google_profile }}">{{ T.see_google }} ↗</a></p>
+  <p>{{ T.reviews_text }} <a href="{{ GOOGLE_REVIEW_URL }}" target="_blank" rel="noopener" title="{{ T.view_google_profile }}">{{ T.see_google }} ↗</a></p>
 </section>
 {% if reviews %}
   <section class="testimonials reveal">
@@ -19,6 +19,6 @@
     {% endfor %}
   </section>
 {% else %}
-  <section class="empty authentic-empty"><a href="https://www.google.com/search?q=pizza+vitti+-+ornano" target="_blank" rel="noopener">{{ T.see_google }} · Pizza Vitti ↗</a></section>
+  <section class="empty authentic-empty"><a href="{{ GOOGLE_REVIEW_URL }}" target="_blank" rel="noopener">{{ T.see_google }} · Pizza Vitti ↗</a></section>
 {% endif %}
 {% endblock %}

@@ -298,9 +298,5 @@ class Command(BaseCommand):
         for best_name in ['La Regina','La Quattro fromaggi','La Parma et Burrata','La Calzone']:
             Product.objects.filter(name=best_name).update(is_best_seller=True)
         Product.objects.filter(name='La Parma et Burrata').update(is_pizza_of_month=True)
-        Review.objects.update_or_create(name='Marie', defaults={'rating':5,'source':'Google','comment':'Très bonne pizza.','is_published':True})
-        Review.objects.update_or_create(name='Ahmed', defaults={'rating':5,'source':'Google','comment':'Service rapide.','is_published':True})
-        Review.objects.update_or_create(name='Camille', defaults={'rating':5,'source':'Google','comment':'Accueil chaleureux et vraie ambiance italienne.','is_published':True})
-
         call_command('translate_menu')
         self.stdout.write(self.style.SUCCESS(f'Pizza Vitti complete menu created: {len(MENU)} categories + growth features + 9-language translations.'))

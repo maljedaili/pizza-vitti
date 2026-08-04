@@ -1,6 +1,7 @@
 from decimal import Decimal
 from datetime import date, datetime, timedelta
 from functools import wraps
+from io import StringIO
 import json
 import requests
 from urllib.parse import quote
@@ -11,6 +12,8 @@ from django.contrib.auth import authenticate, logout
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
+from django.core.management import call_command
+from django.core.management.base import CommandError
 from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.db import transaction
@@ -1127,6 +1130,15 @@ def _safe_date(value, fallback):
 
 @owner_required
 def owner_dashboard(request):
+    if request.method == 'POST' and request.POST.get('action') == 'sync_google_reviews':
+        output = StringIO()
+        try:
+            call_command('sync_google_reviews', stdout=output)
+        except CommandError as exc:
+            messages.error(request, f'Import Google impossible : {exc}')
+        else:
+            messages.success(request, output.getvalue().strip() or 'Avis Google synchronisés.')
+        return redirect('shop:owner_dashboard')
     if request.method == 'POST' and request.POST.get('action') == 'update_customer_message_status':
         customer_message = get_object_or_404(CustomerMessage, id=request.POST.get('message_id'))
         status = request.POST.get('status', '')
@@ -1247,6 +1259,15 @@ def owner_dashboard(request):
         }
         for item in order_source_rows
     ]
+    google_review_settings = [
+        settings.GOOGLE_BUSINESS_ACCOUNT_ID,
+        settings.GOOGLE_BUSINESS_LOCATION_ID,
+        settings.GOOGLE_BUSINESS_CLIENT_ID,
+        settings.GOOGLE_BUSINESS_CLIENT_SECRET,
+        settings.GOOGLE_BUSINESS_REFRESH_TOKEN,
+    ]
+    google_reviews = Review.objects.filter(source__iexact='Google').exclude(google_review_id__isnull=True)
+    latest_google_review = google_reviews.order_by('-google_updated_at').first()
     most_ordered = (
         OrderItem.objects.filter(order__created_at__gte=today_start)
         .values('name')
@@ -1282,6 +1303,9 @@ def owner_dashboard(request):
         'daily_sales': daily_sales,
         'seven_day_revenue': sum((item['revenue'] for item in daily_sales), Decimal('0.00')),
         'order_sources': order_sources,
+        'google_reviews_ready': all(google_review_settings),
+        'google_reviews_count': google_reviews.count(),
+        'latest_google_review_sync': latest_google_review.google_updated_at if latest_google_review else None,
         'dashboard_now': timezone.localtime(),
         'loyalty_reward': _active_loyalty_reward(),
         'loyalty_reward_types': LoyaltyReward.REWARD_TYPES,

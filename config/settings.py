@@ -14,7 +14,7 @@ if not DEBUG and SECRET_KEY == 'dev-secret-change-me':
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,pizza-vitti.onrender.com,pizza-vitti.kayen.fr,pizza-vitti.kayan.fr').split(',')]
 SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
 WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', '')
-GOOGLE_REVIEW_URL = os.getenv('GOOGLE_REVIEW_URL', 'https://www.google.com/search?q=Pizza+Vitti+Bordeaux+avis')
+GOOGLE_REVIEW_URL = os.getenv('GOOGLE_REVIEW_URL', 'https://g.page/r/CZWvQ5cTiET3EAE/review')
 GOOGLE_BUSINESS_ACCOUNT_ID = os.getenv('GOOGLE_BUSINESS_ACCOUNT_ID', '')
 GOOGLE_BUSINESS_LOCATION_ID = os.getenv('GOOGLE_BUSINESS_LOCATION_ID', '')
 GOOGLE_BUSINESS_CLIENT_ID = os.getenv('GOOGLE_BUSINESS_CLIENT_ID', '')

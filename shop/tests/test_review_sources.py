@@ -19,7 +19,7 @@ class SyncReviewSourcesCommandTests(TestCase):
         review.refresh_from_db()
         self.assertEqual(
             review.source_url,
-            'https://www.google.com/search?q=pizza+vitti+-+ornano',
+            'https://g.page/r/CZWvQ5cTiET3EAE/review',
         )
         response = self.client.get(reverse('shop:reviews'))
         self.assertContains(response, 'Client Google')
@@ -36,3 +36,8 @@ class SyncReviewSourcesCommandTests(TestCase):
 
         review.refresh_from_db()
         self.assertEqual(review.source_url, '')
+
+    def test_reviews_page_uses_the_verified_write_review_link(self):
+        response = self.client.get('/fr/avis/')
+
+        self.assertContains(response, 'https://g.page/r/CZWvQ5cTiET3EAE/review')

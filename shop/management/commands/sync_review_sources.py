@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from shop.models import Review
 
 
-GOOGLE_REVIEWS_URL = 'https://www.google.com/search?q=pizza+vitti+-+ornano'
+GOOGLE_REVIEWS_URL = 'https://g.page/r/CZWvQ5cTiET3EAE/review'
 
 
 class Command(BaseCommand):
