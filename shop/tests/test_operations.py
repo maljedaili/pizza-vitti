@@ -2,6 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
+from django.core import mail
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -532,6 +533,41 @@ class StorefrontProductionRulesTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'en dehors des horaires')
         self.assertFalse(Reservation.objects.filter(email='nina@example.com').exists())
+
+    @override_settings(
+        EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+        RESERVATION_NOTIFICATION_EMAIL='pizzavitti@yahoo.fr',
+        SITE_URL='https://pizza-vitti.kayen.fr',
+    )
+    def test_reservation_is_emailed_directly_to_restaurant(self):
+        day = timezone.localdate() + timedelta(days=7)
+        OpeningPeriod.objects.get_or_create(
+            weekday=day.weekday(),
+            opens_at='11:30',
+            closes_at='14:30',
+        )
+
+        response = self.client.post(reverse('shop:booking'), {
+            'name': 'Nina Rossi',
+            'email': 'nina@example.com',
+            'phone': '0556421449',
+            'guests': 3,
+            'date': day.isoformat(),
+            'time': '12:30',
+            'message': 'Table près de la fenêtre',
+            'website': '',
+        })
+
+        reservation = Reservation.objects.get(email='nina@example.com')
+        self.assertRedirects(response, reverse('shop:booking'))
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, ['pizzavitti@yahoo.fr'])
+        self.assertIn('Nina Rossi', mail.outbox[0].body)
+        self.assertIn('3', mail.outbox[0].body)
+        self.assertIn(
+            f'/admin/shop/reservation/{reservation.pk}/change/',
+            mail.outbox[0].body,
+        )
 
     def test_payment_success_url_does_not_mark_order_paid_without_verification(self):
         order = Order.objects.create(

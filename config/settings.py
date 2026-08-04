@@ -53,6 +53,10 @@ ANDROID_CERT_SHA256_FINGERPRINTS = [
     if fingerprint.strip()
 ]
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'Pizza Vitti <no-reply@pizza-vitti.fr>')
+RESERVATION_NOTIFICATION_EMAIL = os.getenv(
+    'RESERVATION_NOTIFICATION_EMAIL',
+    'pizzavitti@yahoo.fr',
+)
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', '')
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))

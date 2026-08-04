@@ -1931,7 +1931,33 @@ def booking(request):
     for field_name, label in booking_labels.items():
         form.fields[field_name].label = label
     if request.method == 'POST' and form.is_valid():
-        form.save()
+        reservation = form.save()
+        admin_url = (
+            f"{settings.SITE_URL.rstrip('/')}/admin/shop/reservation/"
+            f"{reservation.pk}/change/"
+        )
+        send_mail(
+            subject=(
+                f'Nouvelle réservation Pizza Vitti — '
+                f'{reservation.date:%d/%m/%Y} à {reservation.time:%H:%M}'
+            ),
+            message='\n'.join([
+                'Une nouvelle réservation vient d’être enregistrée.',
+                '',
+                f'Nom : {reservation.name}',
+                f'E-mail : {reservation.email}',
+                f'Téléphone : {reservation.phone or "Non renseigné"}',
+                f'Personnes : {reservation.guests}',
+                f'Date : {reservation.date:%d/%m/%Y}',
+                f'Heure : {reservation.time:%H:%M}',
+                f'Message : {reservation.message or "Aucun message"}',
+                '',
+                f'Ouvrir la réservation : {admin_url}',
+            ]),
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.RESERVATION_NOTIFICATION_EMAIL],
+            fail_silently=True,
+        )
         messages.success(
             request,
             'Votre demande a bien été envoyée. La réservation sera confirmée par Pizza Vitti par e-mail ou téléphone.',
