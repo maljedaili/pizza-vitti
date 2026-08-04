@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta
 from functools import wraps
 from io import StringIO
 import json
+import logging
 import requests
 from urllib.parse import quote
 from uuid import uuid4
@@ -14,7 +15,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives, send_mail
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q, Case, When, IntegerField, Sum, Count, Prefetch
@@ -29,6 +30,9 @@ import stripe
 from .forms import CheckoutForm, ReservationForm
 from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, LoyaltyRedemption, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder, CameraLocation, SecurityCamera, PromoCode, SiteConfiguration
 from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_path, localized_url, t_for
+
+
+logger = logging.getLogger(__name__)
 
 
 def _password_matches(raw_password, configured_password):
@@ -1919,6 +1923,82 @@ def bot_reply(request):
 
 
 
+def _send_reservation_emails(reservation):
+    admin_url = (
+        f"{settings.SITE_URL.rstrip('/')}/admin/shop/reservation/"
+        f"{reservation.pk}/change/"
+    )
+    restaurant_body = '\n'.join([
+        'Une nouvelle réservation a été reçue.',
+        '',
+        'Nom :',
+        reservation.name,
+        '',
+        'Téléphone :',
+        reservation.phone or 'Non renseigné',
+        '',
+        'Email :',
+        reservation.email,
+        '',
+        'Date :',
+        f'{reservation.date:%d/%m/%Y}',
+        '',
+        'Heure :',
+        f'{reservation.time:%H:%M}',
+        '',
+        'Nombre de personnes :',
+        str(reservation.guests),
+        '',
+        'Message :',
+        reservation.message or 'Aucun message',
+        '',
+        'Référence :',
+        str(reservation.pk),
+        '',
+        f'Ouvrir la réservation : {admin_url}',
+    ])
+    try:
+        EmailMultiAlternatives(
+            subject='Nouvelle réservation - Pizza Vitti',
+            body=restaurant_body,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[settings.RESERVATION_EMAIL],
+        ).send()
+    except Exception:
+        logger.exception('Reservation saved but restaurant email notification failed.')
+
+    if reservation.email:
+        customer_body = '\n'.join([
+            f'Bonjour {reservation.name},',
+            '',
+            'Merci pour votre réservation chez Pizza Vitti.',
+            '',
+            'Nous avons bien reçu votre demande.',
+            '',
+            'Date :',
+            f'{reservation.date:%d/%m/%Y}',
+            '',
+            'Heure :',
+            f'{reservation.time:%H:%M}',
+            '',
+            'Nombre de personnes :',
+            str(reservation.guests),
+            '',
+            'Nous avons hâte de vous accueillir.',
+            '',
+            'Pizza Vitti',
+        ])
+        try:
+            EmailMultiAlternatives(
+                subject='Votre réservation chez Pizza Vitti',
+                body=customer_body,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[reservation.email],
+            ).send()
+        except Exception:
+            logger.exception('Reservation saved but customer confirmation email failed.')
+
+
 def booking(request):
     form = ReservationForm(request.POST or None)
     booking_copy = t_for(get_lang_from_path(request.path))
@@ -1932,32 +2012,7 @@ def booking(request):
         form.fields[field_name].label = label
     if request.method == 'POST' and form.is_valid():
         reservation = form.save()
-        admin_url = (
-            f"{settings.SITE_URL.rstrip('/')}/admin/shop/reservation/"
-            f"{reservation.pk}/change/"
-        )
-        send_mail(
-            subject=(
-                f'Nouvelle réservation Pizza Vitti — '
-                f'{reservation.date:%d/%m/%Y} à {reservation.time:%H:%M}'
-            ),
-            message='\n'.join([
-                'Une nouvelle réservation vient d’être enregistrée.',
-                '',
-                f'Nom : {reservation.name}',
-                f'E-mail : {reservation.email}',
-                f'Téléphone : {reservation.phone or "Non renseigné"}',
-                f'Personnes : {reservation.guests}',
-                f'Date : {reservation.date:%d/%m/%Y}',
-                f'Heure : {reservation.time:%H:%M}',
-                f'Message : {reservation.message or "Aucun message"}',
-                '',
-                f'Ouvrir la réservation : {admin_url}',
-            ]),
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[settings.RESERVATION_NOTIFICATION_EMAIL],
-            fail_silently=True,
-        )
+        _send_reservation_emails(reservation)
         messages.success(
             request,
             'Votre demande a bien été envoyée. La réservation sera confirmée par Pizza Vitti par e-mail ou téléphone.',

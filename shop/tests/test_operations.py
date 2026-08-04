@@ -536,7 +536,7 @@ class StorefrontProductionRulesTests(TestCase):
 
     @override_settings(
         EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
-        RESERVATION_NOTIFICATION_EMAIL='pizzavitti@yahoo.fr',
+        RESERVATION_EMAIL='pizzavitti@yahoo.fr',
         SITE_URL='https://pizza-vitti.kayen.fr',
     )
     def test_reservation_is_emailed_directly_to_restaurant(self):
@@ -560,7 +560,7 @@ class StorefrontProductionRulesTests(TestCase):
 
         reservation = Reservation.objects.get(email='nina@example.com')
         self.assertRedirects(response, reverse('shop:booking'))
-        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 2)
         self.assertEqual(mail.outbox[0].to, ['pizzavitti@yahoo.fr'])
         self.assertIn('Nina Rossi', mail.outbox[0].body)
         self.assertIn('3', mail.outbox[0].body)
@@ -568,6 +568,38 @@ class StorefrontProductionRulesTests(TestCase):
             f'/admin/shop/reservation/{reservation.pk}/change/',
             mail.outbox[0].body,
         )
+        self.assertEqual(mail.outbox[1].to, ['nina@example.com'])
+        self.assertEqual(
+            mail.outbox[1].subject,
+            'Votre réservation chez Pizza Vitti',
+        )
+        self.assertIn('12:30', mail.outbox[1].body)
+        self.assertEqual(Reservation.objects.filter(email='nina@example.com').count(), 1)
+
+    @patch('shop.views.EmailMultiAlternatives.send', side_effect=RuntimeError('SMTP unavailable'))
+    def test_reservation_succeeds_when_email_delivery_fails(self, mocked_send):
+        day = timezone.localdate() + timedelta(days=7)
+        OpeningPeriod.objects.get_or_create(
+            weekday=day.weekday(),
+            opens_at='11:30',
+            closes_at='14:30',
+        )
+
+        with self.assertLogs('shop.views', level='ERROR'):
+            response = self.client.post(reverse('shop:booking'), {
+                'name': 'Mario Bianchi',
+                'email': 'mario@example.com',
+                'phone': '0556000000',
+                'guests': 2,
+                'date': day.isoformat(),
+                'time': '12:30',
+                'message': '',
+                'website': '',
+            })
+
+        self.assertRedirects(response, reverse('shop:booking'))
+        self.assertEqual(Reservation.objects.filter(email='mario@example.com').count(), 1)
+        self.assertEqual(mocked_send.call_count, 2)
 
     def test_payment_success_url_does_not_mark_order_paid_without_verification(self):
         order = Order.objects.create(
