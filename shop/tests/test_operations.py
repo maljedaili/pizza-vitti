@@ -350,7 +350,9 @@ class CustomerLoyaltyTests(TestCase):
     def test_public_navigation_is_reduced_and_home_prioritizes_ordering(self):
         response = self.client.get('/fr/')
         self.assertContains(response, 'Commander à emporter')
-        self.assertContains(response, 'Qu’est-ce qui vous ferait plaisir')
+        self.assertNotContains(response, 'Menu en ligne')
+        self.assertNotContains(response, 'Qu’est-ce qui vous ferait plaisir')
+        self.assertContains(response, 'class="category-photo-grid"')
         self.assertContains(response, 'pizza-vitti-hero.mp4')
         self.assertContains(response, 'pizza-vitti-hero-mobile.mp4')
         self.assertContains(response, 'data-hero-video')
