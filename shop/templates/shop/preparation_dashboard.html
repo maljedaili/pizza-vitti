@@ -52,6 +52,12 @@
               <li><span>{{ item.quantity }} × {{ item.name }}</span><strong>{{ item.line_total }} €</strong></li>
             {% endfor %}
           </ul>
+          {% if order.selected_reward %}
+            <div class="prep-loyalty-gift" role="alert">
+              <span aria-hidden="true">🎁</span>
+              <div><strong>Cadeau fidélité à préparer</strong><b>{{ order.selected_reward }}</b></div>
+            </div>
+          {% endif %}
           {% if order.notes %}<p class="prep-note">{{ order.notes|linebreaksbr }}</p>{% endif %}
           <div class="prep-customer-actions">
             {% if order.whatsapp_received_url %}<a class="button ghost" target="_blank" rel="noopener" href="{{ order.whatsapp_received_url }}">WhatsApp reçu</a>{% endif %}

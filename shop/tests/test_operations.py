@@ -729,6 +729,26 @@ class DefaultAppCredentialsTests(TestCase):
     KITCHEN_PASSWORD='1234',
 )
 class OperationsAccessTests(TestCase):
+    def test_kitchen_ticket_highlights_loyalty_gift(self):
+        Order.objects.create(
+            order_number='PV-GIFT-KITCHEN',
+            customer_name='Client fidèle',
+            email='fidele@example.com',
+            total=Decimal('25.00'),
+            status='received',
+            selected_reward='Dessert offert',
+        )
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'kitchen',
+            'password': '1234',
+        })
+
+        response = self.client.get(reverse('shop:kitchen_app'))
+
+        self.assertContains(response, 'class="prep-loyalty-gift"')
+        self.assertContains(response, 'Cadeau fidélité à préparer')
+        self.assertContains(response, 'Dessert offert')
+
     def test_kitchen_can_mark_product_unavailable_and_available_again(self):
         category = Category.objects.create(name='Pizzas cuisine')
         product = Product.objects.create(category=category, name='Pizza cuisine', price=Decimal('12.00'))
