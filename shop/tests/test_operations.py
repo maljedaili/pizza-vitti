@@ -669,9 +669,11 @@ class StorefrontProductionRulesTests(TestCase):
         response = self.client.get(reverse('shop:cart'))
         self.assertContains(response, 'name="robots" content="noindex,nofollow"')
 
-    def test_loyalty_program_is_hidden_while_personal_play_account_is_used(self):
+    def test_home_promotes_loyalty_while_disabled_checkout_features_stay_hidden(self):
         home = self.client.get('/fr/')
-        self.assertNotContains(home, 'Carte fidélité digitale')
+        self.assertContains(home, 'class="home-loyalty-gift reveal"')
+        self.assertContains(home, 'Fidélité · 5 pizzas = 1 cadeau')
+        self.assertContains(home, '🍕 × 5')
 
         cart = self.client.get(reverse('shop:cart'))
         self.assertNotContains(cart, 'Offre fidélité')

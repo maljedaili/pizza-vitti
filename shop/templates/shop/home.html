@@ -57,6 +57,25 @@
   </div>
 </section>
 
+<section class="home-loyalty-gift reveal" aria-label="{{ T.loyalty_title }}">
+  <div class="home-loyalty-icon" aria-hidden="true">🎁</div>
+  <div class="home-loyalty-copy">
+    <p class="eyebrow">{{ T.loyalty_eyebrow }}</p>
+    <h2>{{ T.loyalty_title }}</h2>
+    {% if LOYALTY_ENABLED %}<p>{{ T.loyalty_text }}</p>{% endif %}
+  </div>
+  <div class="home-loyalty-equation" aria-hidden="true"><span>🍕 × 5</span><b>=</b><span>🎁</span></div>
+  <div class="home-loyalty-action">
+    {% if LOYALTY_ENABLED and request.user.is_authenticated %}
+      <a class="button" href="{% url 'shop:customer_dashboard' %}">{{ T.loyalty_view }}</a>
+    {% elif LOYALTY_ENABLED %}
+      <a class="button" href="{% url 'account_signup' %}">{{ T.loyalty_create }}</a>
+    {% else %}
+      <a class="button" href="{{ url_menu }}">{{ T.order_now }}</a>
+    {% endif %}
+  </div>
+</section>
+
 {% if site_config.uber_eats_url or site_config.deliveroo_url or site_config.just_eat_url %}
 <section class="home-delivery-note reveal">
   <div>
@@ -77,25 +96,6 @@
   <article><span>02</span><strong>{{ T.pay_online }}</strong><p>{{ T.pay_online_text }}</p></article>
   <article><span>03</span><strong>{{ T.pickup }}</strong><p>{{ T.pickup_text }}</p></article>
 </section>
-
-{% if LOYALTY_ENABLED %}
-<section class="loyalty-signup-band reveal">
-  <div class="loyalty-signup-copy">
-    <p class="eyebrow">{{ T.loyalty_eyebrow }}</p>
-    <h2>{{ T.loyalty_title }}</h2>
-    <p>{{ T.loyalty_text }}</p>
-    <div class="hero-actions">
-      {% if request.user.is_authenticated %}
-        <a class="button" href="{% url 'shop:customer_dashboard' %}">{{ T.loyalty_view }}</a>
-      {% else %}
-        <a class="button" href="{% url 'account_signup' %}">{{ T.loyalty_create }}</a>
-        <a class="button ghost" href="{% url 'account_login' %}">{{ T.sign_in }}</a>
-      {% endif %}
-    </div>
-  </div>
-  <div class="loyalty-signup-photo" role="img" aria-label="{{ T.pizza_photo }}"></div>
-</section>
-{% endif %}
 
 {% if reviews %}
 <section class="home-section home-reviews">

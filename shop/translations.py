@@ -52,7 +52,7 @@ for _language, _copy in ACCOUNT_TRANSLATIONS.items():
 PUBLIC_PAGE_DEFAULTS = {
     'menu_prompt': 'Qu’est-ce qui vous ferait plaisir\u00a0?',
     'loyalty_eyebrow': 'Carte fidélité digitale',
-    'loyalty_title': '5 pizzas achetées, un cadeau débloqué.',
+    'loyalty_title': 'Fidélité · 5 pizzas = 1 cadeau',
     'loyalty_text': 'Créez votre compte avant de commander. Chaque pizza achetée fait avancer automatiquement votre carte fidélité.',
     'loyalty_view': 'Voir ma fidélité',
     'loyalty_create': 'Créer ma carte',
