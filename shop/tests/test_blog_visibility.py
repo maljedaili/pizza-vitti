@@ -27,6 +27,7 @@ class BlogVisibilityTests(TestCase):
 
         self.assertContains(response, site.instagram_url)
         self.assertContains(response, '@pizzavitti.bordeaux')
+        self.assertContains(response, 'instagram.com/reel/DFihIQ-N4ld/embed/')
         self.assertNotContains(response, 'facebook.com')
 
     def test_blog_interface_is_translated(self):

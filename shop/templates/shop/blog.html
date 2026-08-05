@@ -8,14 +8,25 @@
 </section>
 
 <section class="blog-social-hub reveal" aria-label="{{ T.social_networks }} Pizza Vitti">
-  <div>
+  <div class="blog-social-copy">
     <p class="eyebrow">Instagram</p>
     <h2>{{ T.instagram_follow }}</h2>
     <p>{{ T.instagram_text }}</p>
+    <div class="blog-social-actions">
+      {% if INSTAGRAM_URL %}{% include 'shop/_instagram_link.html' %}{% endif %}
+    </div>
   </div>
-  <div class="blog-social-actions">
-    {% if INSTAGRAM_URL %}{% include 'shop/_instagram_link.html' %}{% endif %}
-  </div>
+  {% if INSTAGRAM_URL %}
+    <div class="blog-instagram-reel">
+      <iframe
+        src="https://www.instagram.com/reel/DFihIQ-N4ld/embed/"
+        title="{{ T.instagram_follow }}"
+        loading="lazy"
+        allowtransparency="true"
+        allowfullscreen>
+      </iframe>
+    </div>
+  {% endif %}
 </section>
 
 <section class="blog-layout reveal">
