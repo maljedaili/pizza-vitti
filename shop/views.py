@@ -5,7 +5,7 @@ from io import StringIO
 import json
 import logging
 import requests
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 from uuid import uuid4
 from django.conf import settings
 from django.contrib import messages
@@ -33,6 +33,16 @@ from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_pa
 
 
 logger = logging.getLogger(__name__)
+
+PUBLIC_SITE_URL = 'https://pizza-vitti.kayen.fr'
+
+
+def _public_site_url():
+    configured_url = settings.SITE_URL.rstrip('/')
+    hostname = (urlsplit(configured_url).hostname or '').lower()
+    if hostname in {'localhost', '127.0.0.1', '::1'}:
+        return PUBLIC_SITE_URL
+    return configured_url or PUBLIC_SITE_URL
 
 
 def _password_matches(raw_password, configured_password):
@@ -415,7 +425,7 @@ def _format_order_lines(order):
 def _send_order_email(order, subject, intro):
     if not order.email:
         return False
-    order_url = settings.SITE_URL.rstrip('/') + order.get_absolute_url()
+    order_url = _public_site_url() + order.get_absolute_url()
     location_line = f'Table: {order.table_number}' if order.table_number else 'Type: retrait / sur place selon votre commande'
     body = (
         f'Bonjour {order.customer_name},\n\n'
@@ -468,7 +478,7 @@ def _whatsapp_customer_url(order, kind):
     phone = _whatsapp_number(order.phone)
     if not phone:
         return ''
-    order_url = settings.SITE_URL.rstrip('/') + order.get_absolute_url()
+    order_url = _public_site_url() + order.get_absolute_url()
     if kind == 'ready':
         message = (
             f'Bonjour {order.customer_name}, votre commande Pizza Vitti {order.order_number} est prête. '
@@ -961,11 +971,11 @@ def create_checkout_session(request, order_id):
         payment_method_types=['card'],
         line_items=[{'price_data': {'currency': 'eur', 'product_data': {'name': f'Commande {order.order_number}'}, 'unit_amount': int(order.total * 100)}, 'quantity': 1}],
         success_url=(
-            settings.SITE_URL
+            _public_site_url()
             + reverse('shop:payment_success', args=[order.order_number])
             + '?session_id={CHECKOUT_SESSION_ID}'
         ),
-        cancel_url=settings.SITE_URL + reverse('shop:invoice', args=[order.order_number]),
+        cancel_url=_public_site_url() + reverse('shop:invoice', args=[order.order_number]),
     )
     order.stripe_session_id = session.id
     order.save(update_fields=['stripe_session_id'])
@@ -1970,7 +1980,7 @@ def bot_reply(request):
 
 def _send_reservation_emails(reservation):
     admin_url = (
-        f"{settings.SITE_URL.rstrip('/')}/admin/shop/reservation/"
+        f"{_public_site_url()}/admin/shop/reservation/"
         f"{reservation.pk}/change/"
     )
     restaurant_body = '\n'.join([
@@ -2217,7 +2227,7 @@ def toggle_favorite(request, product_id):
     return redirect(_safe_next_url(request, product.get_absolute_url()))
 
 def robots_txt(request):
-    sitemap_url = settings.SITE_URL.rstrip('/') + '/sitemap.xml'
+    sitemap_url = _public_site_url() + '/sitemap.xml'
     content = (
         "User-agent: *\n"
         "Allow: /\n"

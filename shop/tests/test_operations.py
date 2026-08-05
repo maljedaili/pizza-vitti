@@ -770,6 +770,28 @@ class DefaultAppCredentialsTests(TestCase):
     KITCHEN_PASSWORD='1234',
 )
 class OperationsAccessTests(TestCase):
+    @override_settings(SITE_URL='http://localhost:8000')
+    def test_customer_whatsapp_message_never_contains_localhost(self):
+        order = Order.objects.create(
+            order_number='PV-PUBLIC-LINK',
+            customer_name='Thomas',
+            email='thomas@example.com',
+            phone='0612345678',
+            total=Decimal('20.00'),
+            status='received',
+        )
+        self.client.post(reverse('shop:app_login'), {
+            'role': 'kitchen',
+            'password': '1234',
+        })
+
+        response = self.client.get(reverse('shop:kitchen_app'))
+        whatsapp_url = response.context['orders'][0].whatsapp_received_url
+
+        self.assertIn('pizza-vitti.kayen.fr/facture/PV-PUBLIC-LINK/', whatsapp_url)
+        self.assertNotIn('localhost', whatsapp_url)
+        self.assertNotIn('127.0.0.1', whatsapp_url)
+
     def test_kitchen_ticket_highlights_loyalty_gift(self):
         Order.objects.create(
             order_number='PV-GIFT-KITCHEN',
