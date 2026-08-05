@@ -25,6 +25,13 @@ STAR_VALUES = {
 class Command(BaseCommand):
     help = 'Synchronise verified Google Business Profile reviews with the website.'
 
+    def _google_error(self, response):
+        try:
+            message = response.json().get('error', {}).get('message', '')
+        except (TypeError, ValueError):
+            message = ''
+        return f'HTTP {response.status_code}' + (f': {message}' if message else '')
+
     def _configuration(self):
         values = {
             'account': settings.GOOGLE_BUSINESS_ACCOUNT_ID,
@@ -57,7 +64,10 @@ class Command(BaseCommand):
             try:
                 response.raise_for_status()
             except requests.RequestException as exc:
-                raise CommandError('Google Business Profile account discovery failed.') from exc
+                raise CommandError(
+                    'Google Business Profile account discovery failed. '
+                    f'{self._google_error(response)}'
+                ) from exc
 
         accounts = response.json().get('accounts', [])
         if not accounts:
