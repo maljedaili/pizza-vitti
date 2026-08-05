@@ -19,7 +19,10 @@
   {% if LOYALTY_ENABLED %}
   <article class="card loyalty-card">
     <p class="eyebrow">Carte fidélité digitale</p>
-    <h2>{{ loyalty.pizzas_required }} pizzas = cadeau</h2>
+    <div class="loyalty-card-heading">
+      <h2>{{ loyalty.pizzas_required }} pizzas = cadeau</h2>
+      <strong>{{ loyalty.progress }} / {{ loyalty.pizzas_required }}</strong>
+    </div>
     <div class="loyalty-meter" data-loyalty-progress="{{ loyalty.progress_percent }}"></div>
     <div class="loyalty-pizzas" aria-label="Progression fidélité">
       {% for step in loyalty_steps %}
@@ -33,6 +36,7 @@
       <p>Encore {{ loyalty.remaining }} pizza(s) pour atteindre le prochain cadeau.</p>
     {% endif %}
     <small>{{ loyalty.redeemed_rewards }} cadeau(x) déjà attribué(s).</small>
+    <a class="button loyalty-start-order" href="{{ url_menu }}">{% if loyalty.pizza_count %}Continuer ma progression{% else %}Commander ma première pizza{% endif %}</a>
   </article>
   {% endif %}
 

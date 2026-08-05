@@ -152,10 +152,14 @@ class CustomerLoyaltyTests(TestCase):
             'password1': 'VittiSecure742!',
             'password2': 'VittiSecure742!',
         })
-        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('shop:customer_dashboard'))
         user = get_user_model().objects.get(email='nina@example.com')
         self.assertEqual(user.first_name, 'Nina')
         self.assertEqual(user.last_name, 'Rossi')
+
+        dashboard = self.client.get(reverse('shop:customer_dashboard'))
+        self.assertContains(dashboard, '0 / 5')
+        self.assertContains(dashboard, 'Commander ma première pizza')
 
     def test_public_home_links_to_the_android_testing_application(self):
         response = self.client.get('/fr/')
