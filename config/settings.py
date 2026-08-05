@@ -26,7 +26,7 @@ OPENAI_TIMEOUT_SECONDS = int(os.getenv('OPENAI_TIMEOUT_SECONDS', '25'))
 INSTAGRAM_URL = os.getenv('INSTAGRAM_URL', 'https://www.instagram.com/')
 FACEBOOK_URL = os.getenv('FACEBOOK_URL', 'https://www.facebook.com/')
 GOOGLE_PLAY_URL = os.getenv('GOOGLE_PLAY_URL', '')
-LOYALTY_ENABLED = os.getenv('LOYALTY_ENABLED', 'False') == 'True'
+LOYALTY_ENABLED = os.getenv('LOYALTY_ENABLED', 'True') == 'True'
 KITCHEN_PASSWORD = os.getenv('KITCHEN_PASSWORD', '123')
 OWNER_DASHBOARD_USERNAME = os.getenv('OWNER_DASHBOARD_USERNAME', 'admin')
 OWNER_DASHBOARD_PASSWORD = os.getenv('OWNER_DASHBOARD_PASSWORD', '')

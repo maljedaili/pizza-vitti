@@ -219,7 +219,7 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(english, 'aria-label="Open menu"')
         self.assertContains(english, 'aria-label="Accepted payments: Visa, Mastercard and CB"')
         self.assertContains(english, 'aria-label="Follow Pizza Vitti on Instagram"')
-        self.assertContains(english, 'aria-label="Pizza Vitti Italian pizza"')
+        self.assertContains(english, 'aria-label="Buy 5 pizzas and unlock a reward."')
         self.assertNotContains(english, 'aria-label="Ouvrir le menu"')
         self.assertContains(english_gallery, 'alt="Pizza Vitti photo"')
         self.assertContains(arabic, 'aria-label="فتح القائمة"')
@@ -669,14 +669,15 @@ class StorefrontProductionRulesTests(TestCase):
         response = self.client.get(reverse('shop:cart'))
         self.assertContains(response, 'name="robots" content="noindex,nofollow"')
 
-    def test_home_promotes_loyalty_while_disabled_checkout_features_stay_hidden(self):
+    def test_loyalty_program_is_active_on_home_and_cart(self):
         home = self.client.get('/fr/')
         self.assertContains(home, 'class="home-loyalty-gift reveal"')
         self.assertContains(home, 'Fidélité · 5 pizzas = 1 cadeau')
         self.assertContains(home, '🍕 × 5')
 
         cart = self.client.get(reverse('shop:cart'))
-        self.assertNotContains(cart, 'Offre fidélité')
+        self.assertContains(cart, 'Fidélité Pizza Vitti')
+        self.assertContains(cart, 'Créer ma carte fidélité')
 
 
 @override_settings(
