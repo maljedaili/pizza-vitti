@@ -10,6 +10,8 @@ from shop.models import Review
 TOKEN_URL = 'https://oauth2.googleapis.com/token'
 ACCOUNTS_URL = 'https://mybusinessaccountmanagement.googleapis.com/v1/accounts'
 LOCATIONS_URL = 'https://mybusinessbusinessinformation.googleapis.com/v1/{account}/locations'
+LEGACY_ACCOUNTS_URL = 'https://mybusiness.googleapis.com/v4/accounts'
+LEGACY_LOCATIONS_URL = 'https://mybusiness.googleapis.com/v4/{account}/locations'
 REVIEWS_URL = 'https://mybusiness.googleapis.com/v4/accounts/{account}/locations/{location}/reviews'
 STAR_VALUES = {
     'ONE': 1,
@@ -47,11 +49,15 @@ class Command(BaseCommand):
                 config['location'].split('/')[-1],
             )
 
+        response = requests.get(ACCOUNTS_URL, headers=headers, timeout=30)
         try:
-            response = requests.get(ACCOUNTS_URL, headers=headers, timeout=30)
             response.raise_for_status()
-        except requests.RequestException as exc:
-            raise CommandError('Google Business Profile account discovery failed.') from exc
+        except requests.RequestException:
+            response = requests.get(LEGACY_ACCOUNTS_URL, headers=headers, timeout=30)
+            try:
+                response.raise_for_status()
+            except requests.RequestException as exc:
+                raise CommandError('Google Business Profile account discovery failed.') from exc
 
         accounts = response.json().get('accounts', [])
         if not accounts:
@@ -62,16 +68,25 @@ class Command(BaseCommand):
             account_name = account.get('name', '')
             if not account_name:
                 continue
+            response = requests.get(
+                LOCATIONS_URL.format(account=account_name),
+                headers=headers,
+                params={'readMask': 'name,title,storeCode', 'pageSize': 100},
+                timeout=30,
+            )
             try:
-                response = requests.get(
-                    LOCATIONS_URL.format(account=account_name),
-                    headers=headers,
-                    params={'readMask': 'name,title,storeCode', 'pageSize': 100},
-                    timeout=30,
-                )
                 response.raise_for_status()
             except requests.RequestException:
-                continue
+                response = requests.get(
+                    LEGACY_LOCATIONS_URL.format(account=account_name),
+                    headers=headers,
+                    params={'pageSize': 100},
+                    timeout=30,
+                )
+                try:
+                    response.raise_for_status()
+                except requests.RequestException:
+                    continue
             for location in response.json().get('locations', []):
                 location_name = location.get('name', '')
                 if location_name:
