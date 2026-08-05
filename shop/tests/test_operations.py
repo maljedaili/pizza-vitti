@@ -43,7 +43,7 @@ class AndroidAppVerificationTests(TestCase):
     def test_service_worker_refreshes_the_storefront_cache(self):
         response = self.client.get(reverse('service_worker'))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "pizza-vitti-app-v8")
+        self.assertContains(response, "pizza-vitti-app-v9")
         self.assertEqual(
             response['Cache-Control'],
             'no-cache, no-store, must-revalidate',

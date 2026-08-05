@@ -2281,7 +2281,7 @@ def manifest_webmanifest(request):
 
 def service_worker(request):
     content = """
-const CACHE_NAME = 'pizza-vitti-app-v8';
+const CACHE_NAME = 'pizza-vitti-app-v9';
 const STATIC_ASSETS = [
   '/static/shop/style.css',
   '/static/shop/app.js',
