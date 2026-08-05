@@ -151,7 +151,10 @@ class Command(BaseCommand):
             try:
                 response.raise_for_status()
             except requests.RequestException as exc:
-                raise CommandError('Google Business Profile review download failed.') from exc
+                raise CommandError(
+                    'Google Business Profile review download failed. '
+                    f'{self._google_error(response)}'
+                ) from exc
 
             payload = response.json()
             for item in payload.get('reviews', []):
