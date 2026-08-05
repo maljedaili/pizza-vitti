@@ -1,5 +1,7 @@
+import re
 from datetime import timedelta
 from decimal import Decimal
+from urllib.parse import urlparse
 from unittest.mock import patch
 
 from django.core import mail
@@ -160,6 +162,39 @@ class CustomerLoyaltyTests(TestCase):
         dashboard = self.client.get(reverse('shop:customer_dashboard'))
         self.assertContains(dashboard, '0 / 5')
         self.assertContains(dashboard, 'Commander ma première pizza')
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_customer_can_securely_reset_password_and_keep_account(self):
+        user = get_user_model().objects.create_user(
+            username='reset@example.com',
+            email='reset@example.com',
+            password='OldSecurePassword123!',
+        )
+
+        requested = self.client.post(
+            reverse('account_reset_password'),
+            {'email': user.email},
+            follow=True,
+        )
+
+        self.assertContains(requested, 'Consultez votre email')
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Pizza Vitti', mail.outbox[0].subject)
+        reset_url = re.search(r'https?://\S+/accounts/password/reset/key/\S+/', mail.outbox[0].body).group(0)
+        reset_path = urlparse(reset_url).path
+
+        choose_password = self.client.get(reset_path, follow=True)
+        self.assertContains(choose_password, 'Choisir un nouveau mot de passe')
+        form_path = choose_password.request['PATH_INFO']
+        changed = self.client.post(form_path, {
+            'password1': 'NewSecurePassword456!',
+            'password2': 'NewSecurePassword456!',
+        }, follow=True)
+
+        self.assertContains(changed, 'Mot de passe modifié')
+        self.assertTrue(
+            get_user_model().objects.get(email=user.email).check_password('NewSecurePassword456!')
+        )
 
     def test_public_home_links_to_the_android_testing_application(self):
         response = self.client.get('/fr/')
