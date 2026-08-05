@@ -982,7 +982,7 @@ def create_checkout_session(request, order_id):
     return redirect(session.url)
 
 def payment_success(request, order_number):
-    order = get_object_or_404(Order, order_number=order_number)
+    order = get_object_or_404(Order, order_number__iexact=order_number)
     session_id = request.GET.get('session_id', '')
     if session_id and session_id == order.stripe_session_id and settings.STRIPE_SECRET_KEY:
         stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -1020,7 +1020,10 @@ def stripe_webhook(request):
     return HttpResponse(status=200)
 
 def invoice(request, order_number):
-    order = get_object_or_404(Order.objects.prefetch_related('items'), order_number=order_number)
+    order = get_object_or_404(
+        Order.objects.prefetch_related('items'),
+        order_number__iexact=order_number,
+    )
     status_order = ['received', 'preparing', 'ready', 'delivered']
     order.progress_step = status_order.index(order.status) + 1 if order.status in status_order else 0
     return render(request, 'shop/invoice.html', {'order': order})
@@ -1830,7 +1833,7 @@ def track_order(request):
 
 @require_POST
 def report_order_issue(request, order_number):
-    order = get_object_or_404(Order, order_number=order_number)
+    order = get_object_or_404(Order, order_number__iexact=order_number)
     issue = request.POST.get('issue')
     if issue in ['not_received','refused']:
         order.status = issue

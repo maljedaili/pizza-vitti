@@ -770,6 +770,22 @@ class DefaultAppCredentialsTests(TestCase):
     KITCHEN_PASSWORD='1234',
 )
 class OperationsAccessTests(TestCase):
+    def test_invoice_order_number_is_case_insensitive(self):
+        order = Order.objects.create(
+            order_number='PV-71E83664',
+            customer_name='Thomas',
+            email='thomas@example.com',
+            phone='0612345678',
+            total=Decimal('20.00'),
+            status='received',
+        )
+
+        response = self.client.get('/facture/pv-71e83664/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['order'], order)
+        self.assertContains(response, 'PV-71E83664')
+
     @override_settings(SITE_URL='http://localhost:8000')
     def test_customer_whatsapp_message_never_contains_localhost(self):
         order = Order.objects.create(
