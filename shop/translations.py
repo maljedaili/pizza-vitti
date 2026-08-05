@@ -35,15 +35,15 @@ TRANSLATIONS = {
 }
 
 ACCOUNT_TRANSLATIONS = {
-    'fr': {'my_account': 'Mon compte', 'sign_in': 'Connexion'},
-    'en': {'my_account': 'My account', 'sign_in': 'Sign in'},
-    'es': {'my_account': 'Mi cuenta', 'sign_in': 'Iniciar sesión'},
-    'it': {'my_account': 'Il mio account', 'sign_in': 'Accedi'},
-    'pt': {'my_account': 'A minha conta', 'sign_in': 'Entrar'},
-    'nl': {'my_account': 'Mijn account', 'sign_in': 'Inloggen'},
-    'zh': {'my_account': '我的账户', 'sign_in': '登录'},
-    'ja': {'my_account': 'マイアカウント', 'sign_in': 'ログイン'},
-    'ar': {'my_account': 'حسابي', 'sign_in': 'تسجيل الدخول'},
+    'fr': {'my_account': 'Mon compte', 'sign_in': 'Se connecter', 'create_account': 'Créer un compte'},
+    'en': {'my_account': 'My account', 'sign_in': 'Sign in', 'create_account': 'Create an account'},
+    'es': {'my_account': 'Mi cuenta', 'sign_in': 'Iniciar sesión', 'create_account': 'Crear una cuenta'},
+    'it': {'my_account': 'Il mio account', 'sign_in': 'Accedi', 'create_account': 'Crea un account'},
+    'pt': {'my_account': 'A minha conta', 'sign_in': 'Entrar', 'create_account': 'Criar uma conta'},
+    'nl': {'my_account': 'Mijn account', 'sign_in': 'Inloggen', 'create_account': 'Account maken'},
+    'zh': {'my_account': '我的账户', 'sign_in': '登录', 'create_account': '创建账户'},
+    'ja': {'my_account': 'マイアカウント', 'sign_in': 'ログイン', 'create_account': 'アカウント作成'},
+    'ar': {'my_account': 'حسابي', 'sign_in': 'تسجيل الدخول', 'create_account': 'إنشاء حساب'},
 }
 
 for _language, _copy in ACCOUNT_TRANSLATIONS.items():

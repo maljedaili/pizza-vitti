@@ -69,7 +69,8 @@
     {% if LOYALTY_ENABLED and request.user.is_authenticated %}
       <a class="button" href="{% url 'shop:customer_dashboard' %}">{{ T.loyalty_view }}</a>
     {% elif LOYALTY_ENABLED %}
-      <a class="button" href="{% url 'account_signup' %}">{{ T.loyalty_create }}</a>
+      <a class="button" href="{% url 'account_signup' %}">{{ T.create_account }}</a>
+      <a class="button ghost" href="{% url 'account_login' %}">{{ T.sign_in }}</a>
     {% else %}
       <a class="button" href="{{ url_menu }}">{{ T.order_now }}</a>
     {% endif %}

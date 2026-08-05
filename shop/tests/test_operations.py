@@ -674,6 +674,8 @@ class StorefrontProductionRulesTests(TestCase):
         self.assertContains(home, 'class="home-loyalty-gift reveal"')
         self.assertContains(home, 'Fidélité · 5 pizzas = 1 cadeau')
         self.assertContains(home, '🍕 × 5')
+        self.assertContains(home, f'href="{reverse("account_signup")}">Créer un compte</a>')
+        self.assertContains(home, f'href="{reverse("account_login")}">Se connecter</a>')
 
         cart = self.client.get(reverse('shop:cart'))
         self.assertContains(cart, 'Fidélité Pizza Vitti')
