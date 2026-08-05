@@ -8,6 +8,8 @@ from shop.models import Review
 
 
 TOKEN_URL = 'https://oauth2.googleapis.com/token'
+ACCOUNTS_URL = 'https://mybusinessaccountmanagement.googleapis.com/v1/accounts'
+LOCATIONS_URL = 'https://mybusinessbusinessinformation.googleapis.com/v1/{account}/locations'
 REVIEWS_URL = 'https://mybusiness.googleapis.com/v4/accounts/{account}/locations/{location}/reviews'
 STAR_VALUES = {
     'ONE': 1,
@@ -29,11 +31,63 @@ class Command(BaseCommand):
             'client_secret': settings.GOOGLE_BUSINESS_CLIENT_SECRET,
             'refresh_token': settings.GOOGLE_BUSINESS_REFRESH_TOKEN,
         }
-        missing = [name for name, value in values.items() if not value]
+        missing = [
+            name for name in ('client_id', 'client_secret', 'refresh_token')
+            if not values[name]
+        ]
         if missing:
             names = ', '.join(f'GOOGLE_BUSINESS_{name.upper()}' for name in missing)
             raise CommandError(f'Missing configuration: {names}')
         return values
+
+    def _resource_ids(self, config, headers):
+        if config['account'] and config['location']:
+            return (
+                config['account'].split('/')[-1],
+                config['location'].split('/')[-1],
+            )
+
+        try:
+            response = requests.get(ACCOUNTS_URL, headers=headers, timeout=30)
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            raise CommandError('Google Business Profile account discovery failed.') from exc
+
+        accounts = response.json().get('accounts', [])
+        if not accounts:
+            raise CommandError('No Google Business Profile account is available for this login.')
+
+        candidates = []
+        for account in accounts:
+            account_name = account.get('name', '')
+            if not account_name:
+                continue
+            try:
+                response = requests.get(
+                    LOCATIONS_URL.format(account=account_name),
+                    headers=headers,
+                    params={'readMask': 'name,title,storeCode', 'pageSize': 100},
+                    timeout=30,
+                )
+                response.raise_for_status()
+            except requests.RequestException:
+                continue
+            for location in response.json().get('locations', []):
+                location_name = location.get('name', '')
+                if location_name:
+                    candidates.append((account_name, location_name, location.get('title', '')))
+
+        pizza_vitti = [row for row in candidates if 'pizza vitti' in row[2].lower()]
+        matches = pizza_vitti or candidates
+        if len(matches) != 1:
+            raise CommandError(
+                'Unable to identify one Pizza Vitti location automatically. '
+                'Set GOOGLE_BUSINESS_ACCOUNT_ID and GOOGLE_BUSINESS_LOCATION_ID in Render.'
+            )
+
+        account_name, location_name, title = matches[0]
+        self.stdout.write(f'Google location detected: {title or location_name}.')
+        return account_name.split('/')[-1], location_name.split('/')[-1]
 
     def _access_token(self, config):
         response = requests.post(
@@ -58,8 +112,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         config = self._configuration()
         token = self._access_token(config)
-        url = REVIEWS_URL.format(account=config['account'], location=config['location'])
         headers = {'Authorization': f'Bearer {token}'}
+        account_id, location_id = self._resource_ids(config, headers)
+        url = REVIEWS_URL.format(account=account_id, location=location_id)
         page_token = None
         created = updated = 0
 

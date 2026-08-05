@@ -1302,8 +1302,6 @@ def owner_dashboard(request):
         for item in order_source_rows
     ]
     google_review_settings = [
-        settings.GOOGLE_BUSINESS_ACCOUNT_ID,
-        settings.GOOGLE_BUSINESS_LOCATION_ID,
         settings.GOOGLE_BUSINESS_CLIENT_ID,
         settings.GOOGLE_BUSINESS_CLIENT_SECRET,
         settings.GOOGLE_BUSINESS_REFRESH_TOKEN,
