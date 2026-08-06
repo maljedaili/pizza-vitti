@@ -2,7 +2,7 @@
 {% block content %}
 {% include 'shop/_breadcrumbs.html' %}
 <article class="card prose blog-detail">
-  <p class="eyebrow">{{ T.blog }} · {{ post.created_at|date:'d F Y' }}</p>
+  <p class="eyebrow">{{ T.blog }} · {{ post.created_at|date:'d F Y' }} · {{ reading_time }} min</p>
   <h1>{{ post.title }}</h1>
   {% if post.display_image %}<img class="blog-detail-img" src="{{ post.display_image }}" alt="{{ post.title }}" width="1200" height="800" fetchpriority="high" decoding="async">{% endif %}
   <p class="lead">{{ post.excerpt }}</p>
@@ -34,4 +34,42 @@
 
   <p><a class="button ghost" href="{{ url_blog }}">← {{ T.blog }}</a></p>
 </article>
+
+{% if related_products %}
+<section class="home-section reveal" aria-labelledby="article-products-title">
+  <div class="home-section-heading">
+    <div>
+      <p class="eyebrow">{{ T.menu }} Pizza Vitti</p>
+      <h2 id="article-products-title">{{ T.featured }}</h2>
+    </div>
+    <a class="text-link" href="{{ url_menu }}">{{ T.see_menu }} →</a>
+  </div>
+  <div class="grid">
+    {% for product in related_products %}{% include 'shop/product_card.html' %}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if related_posts %}
+<section class="home-section reveal" aria-labelledby="related-articles-title">
+  <div class="home-section-heading">
+    <div>
+      <p class="eyebrow">Pizza Vitti Bordeaux</p>
+      <h2 id="related-articles-title">{{ T.blog_news }}</h2>
+    </div>
+    <a class="text-link" href="{{ url_blog }}">{{ T.blog }} →</a>
+  </div>
+  <div class="blog-grid">
+    {% for related_post in related_posts %}
+      <article class="card">
+        {% if related_post.display_image %}<img src="{{ related_post.display_image }}" alt="{{ related_post.title }}" width="1200" height="800" loading="lazy" decoding="async">{% endif %}
+        <p class="eyebrow">{{ related_post.created_at|date:'d F Y' }}</p>
+        <h3><a href="{% url 'shop:blog_detail' related_post.slug %}">{{ related_post.title }}</a></h3>
+        <p>{{ related_post.excerpt }}</p>
+        <a class="text-link" href="{% url 'shop:blog_detail' related_post.slug %}">{{ T.read }} →</a>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
 {% endblock %}

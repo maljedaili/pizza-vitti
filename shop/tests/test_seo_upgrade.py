@@ -2,7 +2,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 
-from shop.models import Category, LocalSEOPage, Product, ProductTranslation
+from shop.models import BlogPost, Category, LocalSEOPage, Product, ProductTranslation
 from shop.seo import absolute_public_url
 
 
@@ -132,3 +132,25 @@ class SEOUpgradeTests(TestCase):
         self.assertContains(response, f'/fr/product/{related.slug}/')
         self.assertContains(response, 'href="/fr/menu/"')
         self.assertContains(response, 'href="/fr/reserver/"')
+
+    def test_blog_article_has_reading_time_and_related_content(self):
+        post = BlogPost.objects.create(
+            title='Choisir sa pizza', slug='choisir-sa-pizza', excerpt='Conseils utiles.',
+            body=' '.join(['pizza'] * 410), is_published=True,
+        )
+        related_post = BlogPost.objects.create(
+            title='Pizza à Bordeaux', slug='pizza-a-bordeaux-blog',
+            excerpt='Une autre lecture.', body='Article.', is_published=True,
+        )
+        category = Category.objects.create(name='Nos Pizzas blog', slug='pizzas-blog')
+        product = Product.objects.create(
+            category=category, name='Pizza du blog', slug='pizza-du-blog',
+            description='Une pizza liée à cet article.', price='12.00', is_best_seller=True,
+        )
+
+        response = self.client.get(f'/blog/{post.slug}/')
+
+        self.assertContains(response, '2 min')
+        self.assertContains(response, '"timeRequired": "PT2M"')
+        self.assertContains(response, f'/blog/{related_post.slug}/')
+        self.assertContains(response, f'/fr/product/{product.slug}/')

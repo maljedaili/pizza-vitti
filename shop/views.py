@@ -1887,6 +1887,17 @@ def blog(request):
 def blog_detail(request, slug):
     post = get_object_or_404(BlogPost, slug=slug, is_published=True)
     lang = get_lang_from_path(request.path)
+    reading_time = max(1, round(len(post.body.split()) / 200))
+    related_posts = BlogPost.objects.filter(is_published=True).exclude(pk=post.pk)[:3]
+    related_products = list(Product.objects.filter(
+        is_available=True,
+        professional_only=False,
+    ).select_related('category').order_by('-is_best_seller', '-is_featured', 'name')[:4])
+    _apply_menu_translations(
+        related_products,
+        list({product.category for product in related_products if product.category}),
+        lang,
+    )
     post_url = request.build_absolute_uri()
     image_url = request.build_absolute_uri(post.display_image) if post.display_image else ''
     page_structured_data = json.dumps({
@@ -1907,6 +1918,7 @@ def blog_detail(request, slug):
                 'image': image_url,
                 'datePublished': post.created_at.isoformat(),
                 'dateModified': post.updated_at.isoformat(),
+                'timeRequired': f'PT{reading_time}M',
                 'mainEntityOfPage': post_url,
                 'author': {'@type': 'Organization', 'name': 'Pizza Vitti'},
                 'publisher': {
@@ -1919,6 +1931,9 @@ def blog_detail(request, slug):
     }, ensure_ascii=False)
     return render(request, 'shop/blog_detail.html', {
         'post': post,
+        'reading_time': reading_time,
+        'related_posts': related_posts,
+        'related_products': related_products,
         'meta_title': post.meta_title or post.title,
         'meta_description': post.meta_description or post.excerpt,
         'meta_image_absolute': image_url,
