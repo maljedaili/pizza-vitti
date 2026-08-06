@@ -194,3 +194,15 @@ class SEOUpgradeTests(TestCase):
         self.assertContains(response, 'aria-controls="primary-navigation"')
         self.assertContains(response, 'id="primary-navigation"')
         self.assertContains(response, 'aria-describedby="age-gate-description age-gate-warning"')
+
+    def test_public_responses_include_privacy_and_security_headers(self):
+        response = self.client.get('/fr/')
+
+        self.assertEqual(
+            response.headers['Permissions-Policy'],
+            'camera=(), microphone=(), geolocation=(), browsing-topics=()',
+        )
+        self.assertEqual(response.headers['X-Permitted-Cross-Domain-Policies'], 'none')
+        self.assertEqual(response.headers['X-Content-Type-Options'], 'nosniff')
+        self.assertEqual(response.headers['Referrer-Policy'], 'strict-origin-when-cross-origin')
+        self.assertEqual(response.headers['X-Frame-Options'], 'DENY')

@@ -11,7 +11,11 @@ SECRET_KEY = os.getenv('SECRET_KEY', 'dev-secret-change-me')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 if not DEBUG and SECRET_KEY == 'dev-secret-change-me':
     raise ImproperlyConfigured('SECRET_KEY doit être défini en production.')
-ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,pizza-vitti.onrender.com,pizza-vitti.kayen.fr,pizza-vitti.kayan.fr').split(',')]
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,pizza-vitti.onrender.com,pizza-vitti.kayen.fr,pizza-vitti.kayan.fr').split(',')
+    if host.strip()
+]
 PRIMARY_DOMAIN = os.getenv('PRIMARY_DOMAIN', 'pizza-vitti.kayen.fr').strip().lower()
 PRIMARY_SCHEME = os.getenv('PRIMARY_SCHEME', 'https').strip().lower()
 REDIRECT_ALTERNATE_DOMAINS = os.getenv('REDIRECT_ALTERNATE_DOMAINS', 'False').lower() == 'true'
@@ -104,6 +108,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware', 'whitenoise.middleware.WhiteNoiseMiddleware',
     'shop.middleware.PrimaryDomainMiddleware',
+    'shop.middleware.PublicSecurityHeadersMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware', 'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware', 'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware', 'allauth.account.middleware.AccountMiddleware',
@@ -181,6 +186,16 @@ STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+CSRF_TRUSTED_ORIGINS = [
+    f'{PRIMARY_SCHEME}://{PRIMARY_DOMAIN}',
+    *[
+        origin.strip().rstrip('/')
+        for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',')
+        if origin.strip()
+    ],
+]
 SECURE_SSL_REDIRECT = not DEBUG
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
@@ -190,3 +205,8 @@ SECURE_HSTS_PRELOAD = not DEBUG
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
+PERMISSIONS_POLICY = os.getenv(
+    'PERMISSIONS_POLICY',
+    'camera=(), microphone=(), geolocation=(), browsing-topics=()',
+)
