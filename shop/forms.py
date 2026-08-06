@@ -6,7 +6,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from .hours import collection_slots, is_valid_service_time
-from .models import Reservation
+from .models import CustomerMessage, Reservation
 
 
 class CustomerSignupForm(SignupForm):
@@ -29,6 +29,35 @@ class CustomerSignupForm(SignupForm):
         user.last_name = self.cleaned_data['last_name'].strip()
         user.save(update_fields=['first_name', 'last_name'])
         return user
+
+
+class ContactForm(forms.ModelForm):
+    website = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={'tabindex': '-1', 'autocomplete': 'off'}),
+    )
+
+    class Meta:
+        model = CustomerMessage
+        fields = ('name', 'email', 'phone', 'subject', 'message')
+        widgets = {
+            'name': forms.TextInput(attrs={'autocomplete': 'name'}),
+            'email': forms.EmailInput(attrs={'autocomplete': 'email', 'inputmode': 'email'}),
+            'phone': forms.TextInput(attrs={'autocomplete': 'tel', 'inputmode': 'tel'}),
+            'message': forms.Textarea(attrs={'rows': 5}),
+        }
+
+    def clean_website(self):
+        value = self.cleaned_data.get('website', '')
+        if value:
+            raise forms.ValidationError('Soumission invalide.')
+        return value
+
+    def clean_message(self):
+        value = self.cleaned_data['message'].strip()
+        if len(value) < 10:
+            raise forms.ValidationError('Écrivez un message d’au moins 10 caractères.')
+        return value
 
 
 class CheckoutForm(forms.Form):

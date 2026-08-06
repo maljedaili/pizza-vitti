@@ -17,6 +17,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.core.mail import EmailMultiAlternatives, send_mail
 from django.core.paginator import Paginator
+from django.core.validators import validate_email
 from django.db import transaction
 from django.db.models import Q, Case, When, IntegerField, Sum, Count, Prefetch
 from django.http import JsonResponse, HttpResponse, HttpResponseNotFound, HttpResponsePermanentRedirect
@@ -27,7 +28,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import stripe
-from .forms import CheckoutForm, ReservationForm
+from .forms import CheckoutForm, ContactForm, ReservationForm
 from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, LoyaltyRedemption, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder, CameraLocation, SecurityCamera, PromoCode, SiteConfiguration, LocalSEOPage
 from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_path, localized_url, t_for
 from .seo import absolute_public_url
@@ -2064,13 +2065,21 @@ MENU ACTUEL DU SITE :
         return ''
 
 def contact(request):
-    if request.method == 'POST':
-        CustomerMessage.objects.create(name=request.POST.get('name',''), email=request.POST.get('email',''), phone=request.POST.get('phone',''), subject=request.POST.get('subject',''), message=request.POST.get('message',''))
-        messages.success(request, 'Votre message a bien été envoyé à Pizza Vitti.')
-        return redirect('shop:contact')
     lang = get_lang_from_path(request.path)
     copy = t_for(lang)
+    form = ContactForm(request.POST or None)
+    labels = {
+        'name': copy['name'], 'email': copy['email'], 'phone': copy['phone'],
+        'subject': copy['subject'], 'message': copy['message'],
+    }
+    for field_name, label in labels.items():
+        form.fields[field_name].label = label
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Votre message a bien été envoyé à Pizza Vitti.')
+        return redirect(localized_url('contact', lang))
     return render(request, 'shop/contact.html', {
+        'form': form,
         'meta_title': f"{copy['contact_title']} · Pizza Vitti Bordeaux",
         'meta_description': f"{copy['contact_title']} · Pizza Vitti, {SiteConfiguration.load().address}.",
         'breadcrumbs': [{'label': copy['home'], 'url': localized_url('home', lang)}, {'label': copy['contact'], 'url': ''}],
@@ -2257,7 +2266,15 @@ def gallery(request):
 @require_POST
 def newsletter(request):
     email = request.POST.get('email','').strip().lower()
-    if email:
+    honeypot = request.POST.get('website', '').strip()
+    try:
+        validate_email(email)
+    except ValidationError:
+        messages.error(request, 'Saisissez une adresse e-mail valide.')
+    else:
+        if honeypot:
+            messages.error(request, 'Soumission invalide.')
+            return redirect(_safe_next_url(request, localized_url('home', 'fr')))
         NewsletterSubscriber.objects.get_or_create(email=email, defaults={'is_active': True})
         messages.success(request, 'Merci, votre inscription à la newsletter est enregistrée.')
     return redirect(_safe_next_url(request, localized_url('home', 'fr')))

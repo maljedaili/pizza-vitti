@@ -2,7 +2,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase, override_settings
 
-from shop.models import BlogPost, Category, LocalSEOPage, Product, ProductTranslation
+from shop.models import BlogPost, Category, CustomerMessage, LocalSEOPage, NewsletterSubscriber, Product, ProductTranslation
 from shop.seo import absolute_public_url
 
 
@@ -233,3 +233,26 @@ class SEOUpgradeTests(TestCase):
             html=True,
         )
         self.assertContains(response, 'preload="none"')
+
+    def test_contact_rejects_invalid_and_honeypot_submissions(self):
+        invalid = self.client.post('/fr/contact/', {
+            'name': 'Robot', 'email': 'not-an-email', 'message': 'court',
+        })
+        honeypot = self.client.post('/fr/contact/', {
+            'name': 'Robot', 'email': 'robot@example.com',
+            'message': 'Ceci est un message suffisamment long.', 'website': 'spam.example',
+        })
+
+        self.assertEqual(invalid.status_code, 200)
+        self.assertEqual(honeypot.status_code, 200)
+        self.assertEqual(CustomerMessage.objects.count(), 0)
+
+    def test_newsletter_validates_email_and_rejects_honeypot(self):
+        self.client.post('/newsletter/', {'email': 'not-an-email'})
+        self.client.post('/newsletter/', {
+            'email': 'robot@example.com', 'website': 'spam.example',
+        })
+        self.assertEqual(NewsletterSubscriber.objects.count(), 0)
+
+        self.client.post('/newsletter/', {'email': 'client@example.com'})
+        self.assertTrue(NewsletterSubscriber.objects.filter(email='client@example.com').exists())
