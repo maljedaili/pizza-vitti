@@ -22,7 +22,7 @@
         <a href="{% url 'account_signup' %}">Création de compte</a>
       </div>
 
-      <span class="social-provider-mark" aria-hidden="true">G</span>
+      <span class="social-provider-mark">{% include "account/_google_logo.html" %}<span class="visually-hidden">Google</span></span>
       {% if process == "connect" %}
         <p class="eyebrow">Compte Google</p>
         <h2>Associer Google</h2>
@@ -38,7 +38,7 @@
         {% if redirect_field_value %}
           <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
         {% endif %}
-        <button class="auth-submit" type="submit">Continuer avec Google</button>
+        <button class="auth-submit google-action-button" type="submit">{% include "account/_google_logo.html" %}<span>Continuer avec Google</span></button>
       </form>
 
       <p class="social-privacy-note"><span aria-hidden="true">🔒</span> Connexion sécurisée. Votre mot de passe Google n’est jamais transmis à Pizza Vitti.</p>
