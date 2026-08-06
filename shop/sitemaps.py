@@ -2,6 +2,7 @@ from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 from .models import Product, ProductTranslation, BlogPost, LocalSEOPage
 from .translations import LANGUAGE_OPTIONS, localized_url
+from .translation_quality import is_complete_product_translation
 
 PUBLIC_PAGE_KEYS = ('home', 'menu', 'booking', 'reviews', 'gallery', 'blog', 'contact')
 MENU_GROUP_SLUGS = ('pizzas', 'pastas', 'antipasti', 'bambino', 'douceurs', 'boissons')
@@ -30,10 +31,11 @@ class ProductSitemap(Sitemap):
             professional_only=False,
         ).only('id', 'slug', 'updated_at')
         complete_by_product = {}
-        for product_id, language in ProductTranslation.objects.filter(
+        for translation in ProductTranslation.objects.filter(
             product__in=products,
-        ).exclude(name='').exclude(description='').values_list('product_id', 'language'):
-            complete_by_product.setdefault(product_id, set()).add(language)
+        ).select_related('product'):
+            if is_complete_product_translation(translation):
+                complete_by_product.setdefault(translation.product_id, set()).add(translation.language)
         return [
             (product, code)
             for product in products

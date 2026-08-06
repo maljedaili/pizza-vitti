@@ -93,6 +93,23 @@ class SEOUpgradeTests(TestCase):
         self.assertNotContains(response, f'/es/product/{product.slug}/</loc>')
         self.assertNotContains(response, f'/ar/product/{product.slug}/</loc>')
 
+    def test_french_clone_translation_is_noindex_and_excluded_from_sitemap(self):
+        category = Category.objects.create(name='Pizzas clone SEO', slug='pizzas-clone-seo')
+        product = Product.objects.create(
+            category=category, name='Pizza clone', slug='pizza-clone',
+            description='Description française répétée.', price='12.00',
+        )
+        ProductTranslation.objects.create(
+            product=product, language='en', name=product.name,
+            description=product.description,
+        )
+
+        page_response = self.client.get(f'/en/product/{product.slug}/')
+        sitemap_response = self.client.get('/sitemap.xml')
+
+        self.assertContains(page_response, 'content="noindex,follow"')
+        self.assertNotContains(sitemap_response, f'/en/product/{product.slug}/</loc>')
+
     def test_public_page_metadata_is_localized_and_unique(self):
         english_reviews = self.client.get('/en/reviews/')
         arabic_reviews = self.client.get('/ar/avis/')

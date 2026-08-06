@@ -7,6 +7,7 @@ from django.db.models import Case, When, IntegerField
 from django.urls import reverse
 from .translations import HOME_SLUGS, LANGUAGE_OPTIONS, PAGE_SLUGS, get_lang_from_path, t_for, localized_url, lang_home
 from .seo import absolute_public_url, public_origin
+from .translation_quality import is_complete_product_translation
 
 def _menu_category_order(qs):
     return qs.annotate(
@@ -76,11 +77,14 @@ def site_settings(request):
         )
     if resolver_name == 'localized_product_detail':
         product_slug = request.resolver_match.kwargs.get('slug')
-        translated_codes = set(
-            ProductTranslation.objects.filter(
-                product__slug=product_slug,
-            ).exclude(name='').exclude(description='').values_list('language', flat=True)
-        )
+        translations = ProductTranslation.objects.filter(
+            product__slug=product_slug,
+        ).select_related('product')
+        translated_codes = {
+            translation.language
+            for translation in translations
+            if is_complete_product_translation(translation)
+        }
         available_language_codes = {'fr', *translated_codes}
     for code, label, name, default_href in LANGUAGE_OPTIONS:
         if available_language_codes is not None and code not in available_language_codes:
