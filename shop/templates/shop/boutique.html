@@ -43,5 +43,42 @@
 {% else %}
   <div class="grid">{% for product in page_obj %}{% include 'shop/product_card.html' %}{% empty %}<p class="empty">{{ T.empty_menu }}</p>{% endfor %}</div>
 {% endif %}
+{% if menu_group %}
+<section class="home-section reveal" aria-labelledby="menu-next-title">
+  <div class="home-section-heading">
+    <div>
+      <p class="eyebrow">Pizza Vitti Bordeaux</p>
+      <h2 id="menu-next-title">{{ T.find_us }}</h2>
+      <p>{{ menu_group.summary }}</p>
+    </div>
+    <div class="blog-social-actions">
+      <a class="button" href="{{ url_booking }}">{{ T.book_table }}</a>
+      <a class="button ghost" href="{{ url_contact }}">{{ T.contact }}</a>
+    </div>
+  </div>
+  {% if local_pages %}
+    <nav class="pills" aria-label="Pizza Vitti Bordeaux">
+      {% for local_page in local_pages %}<a href="{% url 'shop:local_seo_page' local_page.slug %}">{{ local_page.title }}</a>{% endfor %}
+    </nav>
+  {% endif %}
+</section>
+{% endif %}
+{% if menu_group and related_posts %}
+<section class="home-section reveal" aria-labelledby="menu-blog-title">
+  <div class="home-section-heading">
+    <div><p class="eyebrow">{{ T.blog }}</p><h2 id="menu-blog-title">{{ T.blog_news }}</h2></div>
+    <a class="text-link" href="{{ url_blog }}">{{ T.blog }} →</a>
+  </div>
+  <div class="blog-grid">
+    {% for post in related_posts %}
+      <article class="card">
+        <h3><a href="{% url 'shop:blog_detail' post.slug %}">{{ post.title }}</a></h3>
+        <p>{{ post.excerpt }}</p>
+        <a class="text-link" href="{% url 'shop:blog_detail' post.slug %}">{{ T.read }} →</a>
+      </article>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
 {% if has_age_restricted_products %}{% include 'shop/_age_gate.html' %}{% endif %}
 {% endblock %}

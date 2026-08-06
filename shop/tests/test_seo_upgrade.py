@@ -154,3 +154,28 @@ class SEOUpgradeTests(TestCase):
         self.assertContains(response, '"timeRequired": "PT2M"')
         self.assertContains(response, f'/blog/{related_post.slug}/')
         self.assertContains(response, f'/fr/product/{product.slug}/')
+
+    def test_menu_group_has_menu_schema_and_contextual_links(self):
+        category = Category.objects.create(name='Nos Pizzas catégorie SEO', slug='pizzas-categorie-seo')
+        product = Product.objects.create(
+            category=category, name='Pizza catégorie', slug='pizza-categorie',
+            description='Pizza de la catégorie.', price='11.00',
+        )
+        local_page = LocalSEOPage.objects.create(
+            title='Pizza locale Bordeaux', slug='pizza-locale-bordeaux',
+            introduction='Introduction.', body='Contenu.',
+            meta_title='Pizza locale Bordeaux', meta_description='Pizza locale à Bordeaux.',
+            is_published=True,
+        )
+        post = BlogPost.objects.create(
+            title='Actualité pizza', slug='actualite-pizza', excerpt='Actualité.',
+            body='Contenu.', is_published=True,
+        )
+
+        response = self.client.get('/fr/menu/pizzas/')
+
+        self.assertContains(response, '"@type": "Menu"')
+        self.assertContains(response, f'/fr/product/{product.slug}/')
+        self.assertContains(response, f'/fr/{local_page.slug}/')
+        self.assertContains(response, f'/blog/{post.slug}/')
+        self.assertContains(response, 'href="/fr/reserver/"')

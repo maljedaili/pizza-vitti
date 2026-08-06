@@ -630,50 +630,53 @@ def menu_group(request, group, lang=None):
     menu_url = request.build_absolute_uri(localized_url('menu', lang))
     page_structured_data = json.dumps({
         '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        'itemListElement': [
-            {'@type': 'ListItem', 'position': 1, 'name': 'Pizza Vitti', 'item': request.build_absolute_uri(localized_url('home', lang))},
-            {'@type': 'ListItem', 'position': 2, 'name': t_for(lang)['menu'], 'item': menu_url},
-            {'@type': 'ListItem', 'position': 3, 'name': menu_group_data['title'], 'item': page_url},
+        '@graph': [
+            {
+                '@type': 'BreadcrumbList',
+                'itemListElement': [
+                    {'@type': 'ListItem', 'position': 1, 'name': 'Pizza Vitti', 'item': request.build_absolute_uri(localized_url('home', lang))},
+                    {'@type': 'ListItem', 'position': 2, 'name': t_for(lang)['menu'], 'item': menu_url},
+                    {'@type': 'ListItem', 'position': 3, 'name': menu_group_data['title'], 'item': page_url},
+                ],
+            },
+            {
+                '@type': 'Menu',
+                'name': menu_group_data['title'],
+                'description': menu_group_data['summary'],
+                'url': page_url,
+                'hasMenuSection': [
+                    {
+                        '@type': 'MenuSection',
+                        'name': getattr(section['category'], 'translated_name', section['category'].name),
+                        'hasMenuItem': [
+                            {
+                                '@type': 'MenuItem',
+                                'name': getattr(product, 'translated_name', product.name),
+                                'url': request.build_absolute_uri(reverse('shop:localized_product_detail', args=[lang, product.slug])),
+                                'offers': {
+                                    '@type': 'Offer',
+                                    'price': str(product.price),
+                                    'priceCurrency': 'EUR',
+                                    'availability': 'https://schema.org/InStock',
+                                },
+                            }
+                            for product in section['products']
+                        ],
+                    }
+                    for section in sections
+                ],
+            },
         ],
     }, ensure_ascii=False)
-    drinks_structured_data = ''
-    if group == 'boissons':
-        drinks_structured_data = json.dumps({
-            '@context': 'https://schema.org',
-            '@graph': [{
-                    '@type': 'Menu',
-                    'name': copy[1],
-                    'description': copy[2],
-                    'url': page_url,
-                    'hasMenuSection': [
-                        {
-                            '@type': 'MenuSection',
-                            'name': getattr(section['category'], 'translated_name', section['category'].name),
-                            'hasMenuItem': [
-                                {
-                                    '@type': 'MenuItem',
-                                    'name': getattr(product, 'translated_name', product.name),
-                                    'description': getattr(product, 'translated_description', product.description),
-                                    'offers': {
-                                        '@type': 'Offer',
-                                        'price': str(product.price),
-                                        'priceCurrency': 'EUR',
-                                        'availability': 'https://schema.org/InStock',
-                                    },
-                                }
-                                for product in section['products']
-                            ],
-                        }
-                        for section in sections
-                    ],
-            }],
-        }, ensure_ascii=False)
+    related_posts = BlogPost.objects.filter(is_published=True)[:3]
+    local_pages = LocalSEOPage.objects.filter(is_published=True)[:4] if lang == 'fr' else []
     return render(request, 'shop/boutique.html', {
         'menu_group': menu_group_data,
         'menu_groups': _menu_groups(lang),
         'group_sections': sections,
         'group_products': products,
+        'related_posts': related_posts,
+        'local_pages': local_pages,
         'favorite_product_ids': favorite_product_ids,
         'meta_title': f"{menu_group_data['title']} | Pizza Vitti Bordeaux",
         'meta_description': menu_group_data['summary'],
@@ -691,7 +694,6 @@ def menu_group(request, group, lang=None):
             {'label': t_for(lang)['menu'], 'url': localized_url('menu', lang)},
             {'label': menu_group_data['title'], 'url': ''},
         ],
-        'drinks_structured_data': drinks_structured_data,
         'has_age_restricted_products': any(product.requires_age_verification for product in products),
     })
 
