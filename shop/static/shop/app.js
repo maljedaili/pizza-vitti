@@ -1,14 +1,20 @@
+const navToggle = document.querySelector('[data-nav]');
+const closeNavigation = ({ restoreFocus = false } = {}) => {
+  if (!document.body.classList.contains('nav-open')) return;
+  document.body.classList.remove('nav-open');
+  navToggle?.setAttribute('aria-expanded', 'false');
+  navToggle?.setAttribute('aria-label', navToggle.dataset.openLabel || 'Ouvrir le menu');
+  if (restoreFocus) navToggle?.focus();
+};
 document.addEventListener('click', e => {
   if (e.target.matches('[data-nav]')) {
     const isOpen = document.body.classList.toggle('nav-open');
     e.target.setAttribute('aria-expanded', String(isOpen));
-    e.target.setAttribute('aria-label', isOpen ? 'Fermer le menu' : 'Ouvrir le menu');
+    e.target.setAttribute('aria-label', isOpen ? e.target.dataset.closeLabel : e.target.dataset.openLabel);
+    if (isOpen) document.querySelector('#primary-navigation a')?.focus();
   }
   if (e.target.closest('.site-header nav a') && document.body.classList.contains('nav-open')) {
-    document.body.classList.remove('nav-open');
-    const navToggle = document.querySelector('[data-nav]');
-    navToggle?.setAttribute('aria-expanded', 'false');
-    navToggle?.setAttribute('aria-label', 'Ouvrir le menu');
+    closeNavigation();
   }
   const botToggle = e.target.closest('[data-bot-toggle]');
   if (botToggle) {
@@ -16,6 +22,9 @@ document.addEventListener('click', e => {
     const isOpen = bot.classList.toggle('open');
     botToggle.setAttribute('aria-expanded', String(isOpen));
   }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && document.body.classList.contains('nav-open')) closeNavigation({restoreFocus: true});
 });
 const observer = new IntersectionObserver(entries => entries.forEach(entry => {
   if (entry.isIntersecting) entry.target.classList.add('show');

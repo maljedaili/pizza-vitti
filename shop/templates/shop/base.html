@@ -43,9 +43,9 @@
 <a class="skip-link" href="#main-content">{{ T.skip_to_content|default:'Aller au contenu' }}</a>
 <header class="site-header">
   <a class="logo" href="{% if kitchen_app %}{% url 'shop:app_home' %}{% else %}{{ url_home }}{% endif %}"><img src="{% static 'shop/img/logo-vitti-header.png' %}" alt="Logo Pizza Vitti" width="72" height="72"><span class="logo-text">{% if kitchen_app %}Pizza Vitti · Équipe{% else %}Pizza Vitti{% endif %}</span></a>
-  <button class="nav-toggle" type="button" data-nav aria-label="{{ T.open_navigation }}" aria-expanded="false">☰</button>
+  <button class="nav-toggle" type="button" data-nav aria-controls="primary-navigation" aria-label="{{ T.open_navigation }}" data-open-label="{{ T.open_navigation }}" data-close-label="{{ T.close }}" aria-expanded="false">☰</button>
   {% if kitchen_app %}
-  <nav>
+  <nav id="primary-navigation" aria-label="{{ T.menu }}">
     <a href="{% url 'shop:app_home' %}">Accueil app</a>
     {% if request.session.owner_access or request.user.is_staff %}
       <a href="{% url 'shop:owner_dashboard' %}">Propriétaire</a>
@@ -66,7 +66,7 @@
     <button class="button ghost" type="button" data-install-app>Installer</button>
   </nav>
   {% else %}
-  <nav>
+  <nav id="primary-navigation" aria-label="{{ T.menu }}">
     <a href="{{ url_menu }}">{{ T.menu }}</a><a href="{{ url_booking }}">{{ T.booking }}</a><a href="{{ url_reviews }}">{{ T.reviews }}</a>{% if show_blog %}<a href="{{ url_blog }}">{{ T.blog }}</a>{% endif %}<a href="{{ url_contact }}">{{ T.contact }}</a>{% if request.user.is_authenticated %}<a href="{% url 'shop:customer_dashboard' %}">{{ T.my_account }}</a>{% else %}<a href="{% url 'account_login' %}">{{ T.sign_in }}</a>{% endif %}<a class="cart-link" href="{{ url_cart }}">{{ T.cart }} ({{ cart_count }})</a> {% if request.user.is_staff %}<a href="{% url 'shop:preparation_dashboard' %}">Préparation</a><a href="{% url 'shop:qr_tables' %}">QR tables</a><a class="admin-link" href="/admin/">{{ T.admin }}</a>{% endif %}
   </nav>
   {% endif %}

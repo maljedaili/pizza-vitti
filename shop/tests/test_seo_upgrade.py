@@ -179,3 +179,18 @@ class SEOUpgradeTests(TestCase):
         self.assertContains(response, f'/fr/{local_page.slug}/')
         self.assertContains(response, f'/blog/{post.slug}/')
         self.assertContains(response, 'href="/fr/reserver/"')
+
+    def test_public_navigation_and_age_dialog_have_accessible_relationships(self):
+        category, _ = Category.objects.get_or_create(
+            slug='carte-des-vins-rouges', defaults={'name': 'Carte des vins – rouges'},
+        )
+        Product.objects.create(
+            category=category, name='Vin accessibilité', slug='vin-accessibilite',
+            description='Vin.', price='7.00',
+        )
+
+        response = self.client.get('/fr/menu/boissons/')
+
+        self.assertContains(response, 'aria-controls="primary-navigation"')
+        self.assertContains(response, 'id="primary-navigation"')
+        self.assertContains(response, 'aria-describedby="age-gate-description age-gate-warning"')

@@ -45,6 +45,7 @@ if (publicSite) {
   const ageGate = document.querySelector("[data-age-gate]");
   const restrictedForms = [...document.querySelectorAll("form[data-age-restricted]")];
   let pendingRestrictedForm = null;
+  let ageGateReturnFocus = null;
   const ageIsConfirmed = () => window.localStorage.getItem("pizzaVittiAge18") === "yes";
   const markAgeConfirmed = (form) => {
     if (!form.querySelector('input[name="age_confirmed"]')) {
@@ -64,6 +65,7 @@ if (publicSite) {
       }
       event.preventDefault();
       pendingRestrictedForm = form;
+      ageGateReturnFocus = document.activeElement;
       if (ageGate) {
         ageGate.hidden = false;
         document.body.style.overflow = "hidden";
@@ -78,12 +80,36 @@ if (publicSite) {
     document.body.style.overflow = "";
     const form = pendingRestrictedForm;
     pendingRestrictedForm = null;
+    ageGateReturnFocus = null;
     form?.requestSubmit();
   });
-  ageGate?.querySelector("[data-age-decline]")?.addEventListener("click", () => {
+  const closeAgeGate = () => {
     ageGate.hidden = true;
     document.body.style.overflow = "";
     pendingRestrictedForm = null;
+    ageGateReturnFocus?.focus();
+    ageGateReturnFocus = null;
+  };
+  ageGate?.querySelector("[data-age-decline]")?.addEventListener("click", closeAgeGate);
+  ageGate?.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeAgeGate();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = [...ageGate.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+      .filter((element) => !element.disabled && !element.hidden);
+    if (!focusable.length) return;
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   });
 
   document.querySelectorAll("[data-hero-motion]").forEach((hero) => {

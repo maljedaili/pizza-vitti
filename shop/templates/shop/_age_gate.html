@@ -1,13 +1,13 @@
 <div class="age-gate" data-age-gate hidden>
-  <section role="dialog" aria-modal="true" aria-labelledby="age-gate-title">
+  <section role="dialog" aria-modal="true" aria-labelledby="age-gate-title" aria-describedby="age-gate-description age-gate-warning" tabindex="-1">
     <span class="age-gate-badge" aria-hidden="true">18+</span>
     <p class="eyebrow">{{ T.alcohol_sale }}</p>
     <h2 id="age-gate-title">{{ T.age_question }}</h2>
-    <p>{{ T.age_explanation }}</p>
+    <p id="age-gate-description">{{ T.age_explanation }}</p>
     <div class="age-gate-actions">
       <button type="button" data-age-confirm>{{ T.age_confirm }}</button>
       <button type="button" class="ghost" data-age-decline>{{ T.age_decline }}</button>
     </div>
-    <small>{{ T.alcohol_warning }}</small>
+    <small id="age-gate-warning">{{ T.alcohol_warning }}</small>
   </section>
 </div>
