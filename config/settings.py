@@ -172,12 +172,23 @@ ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_FORMS = {'signup': 'shop.forms.CustomerSignupForm'}
+GOOGLE_OAUTH_CLIENT_ID = os.getenv('GOOGLE_OAUTH_CLIENT_ID', '').strip()
+GOOGLE_OAUTH_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH_CLIENT_SECRET', '').strip()
+
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'SCOPE': ['profile', 'email'],
         'AUTH_PARAMS': {'access_type': 'online'},
     }
 }
+if GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET:
+    # Keep production OAuth configuration outside the ephemeral Render database.
+    # django-allauth can then resolve the Google app even after a redeploy/restart.
+    SOCIALACCOUNT_PROVIDERS['google']['APPS'] = [{
+        'client_id': GOOGLE_OAUTH_CLIENT_ID,
+        'secret': GOOGLE_OAUTH_CLIENT_SECRET,
+        'key': '',
+    }]
 
 STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
 STRIPE_PUBLIC_KEY = os.getenv('STRIPE_PUBLIC_KEY', '')
