@@ -2,7 +2,7 @@ import json
 
 from django.conf import settings
 from .hours import restaurant_status, weekly_hours
-from .models import BlogPost, Category, Product, SiteConfiguration
+from .models import BlogPost, Category, Product, ProductTranslation, SiteConfiguration
 from django.db.models import Case, When, IntegerField
 from django.urls import reverse
 from .translations import HOME_SLUGS, LANGUAGE_OPTIONS, PAGE_SLUGS, get_lang_from_path, t_for, localized_url, lang_home
@@ -66,6 +66,7 @@ def site_settings(request):
     site = SiteConfiguration.load()
     resolver_name = request.resolver_match.url_name if request.resolver_match else ''
     language_menu = []
+    available_language_codes = None
     localized_page_key = None
     if resolver_name == 'localized_page':
         current_slug = request.resolver_match.kwargs.get('page')
@@ -73,7 +74,17 @@ def site_settings(request):
             (key for key, slugs in PAGE_SLUGS.items() if slugs.get(lang) == current_slug),
             None,
         )
+    if resolver_name == 'localized_product_detail':
+        product_slug = request.resolver_match.kwargs.get('slug')
+        translated_codes = set(
+            ProductTranslation.objects.filter(
+                product__slug=product_slug,
+            ).exclude(name='').exclude(description='').values_list('language', flat=True)
+        )
+        available_language_codes = {'fr', *translated_codes}
     for code, label, name, default_href in LANGUAGE_OPTIONS:
+        if available_language_codes is not None and code not in available_language_codes:
+            continue
         href = default_href
         if resolver_name == 'localized_menu_group':
             group = request.resolver_match.kwargs.get('group')
@@ -169,6 +180,12 @@ def site_settings(request):
         resolver_name == 'localized_page'
         and request.resolver_match.kwargs.get('page') == HOME_SLUGS.get(lang)
     )
+    translation_incomplete = (
+        resolver_name == 'localized_product_detail'
+        and lang != 'fr'
+        and available_language_codes is not None
+        and lang not in available_language_codes
+    )
     return {
         'site_config': site,
         'restaurant_status': status,
@@ -177,10 +194,11 @@ def site_settings(request):
         'show_blog': True,
         'show_app_promo': resolver_name in {'home', 'localized_home_short', 'customer_dashboard'} or is_localized_home,
         'show_review_prompt': resolver_name in {'reviews', 'invoice'},
-        'meta_robots': 'noindex,nofollow' if (
+        'meta_robots': 'noindex,follow' if translation_incomplete else 'noindex,nofollow' if (
             resolver_name in private_page_names
             or any(segment in request.path for segment in ('/panier/', '/commande/', '/checkout/', '/cart/'))
         ) else '',
+        'translation_incomplete': translation_incomplete,
         'SITE_URL': configured_site_url,
         'CANONICAL_URL': absolute_public_url(request.path, request),
         'WHATSAPP_NUMBER': settings.WHATSAPP_NUMBER,

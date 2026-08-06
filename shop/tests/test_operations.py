@@ -288,7 +288,8 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(english_menu, 'href="/ar/menu/"')
         self.assertNotContains(english_menu, 'href="/es/inicio"')
         self.assertContains(english_reviews, 'href="/it/recensioni/"')
-        self.assertContains(english_product, f'href="/ar/product/{self.product.slug}/"')
+        self.assertContains(english_product, f'href="/fr/product/{self.product.slug}/"')
+        self.assertNotContains(english_product, f'href="/ar/product/{self.product.slug}/"')
 
     def test_hreflang_links_match_the_current_page_and_include_default(self):
         menu = self.client.get('/en/menu/')
@@ -296,10 +297,8 @@ class CustomerLoyaltyTests(TestCase):
 
         self.assertContains(menu, 'hreflang="es" href="http://testserver/es/menu/"')
         self.assertContains(menu, 'hreflang="x-default" href="http://testserver/fr/menu/"')
-        self.assertContains(
-            product,
-            f'hreflang="ar" href="http://testserver/ar/product/{self.product.slug}/"',
-        )
+        self.assertContains(product, '<meta name="robots" content="noindex,follow">', html=True)
+        self.assertNotContains(product, 'hreflang="ar"')
         self.assertContains(
             product,
             f'hreflang="x-default" href="http://testserver/fr/product/{self.product.slug}/"',

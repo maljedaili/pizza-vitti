@@ -2,10 +2,10 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import (
     BlogPost, CameraLocation, Category, CustomerMessage, DiningTable,
-    ExceptionalClosure, GalleryImage, GiftCard, LoyaltyRedemption, LoyaltyReward,
+    ExceptionalClosure, Favorite, GalleryImage, GiftCard, LoyaltyRedemption, LoyaltyReward,
     LocalSEOPage, NewsletterSubscriber, OpeningPeriod, Order, OrderItem, Product, PromoCode,
     PurchaseOrder, PurchaseOrderItem, Reservation, Review, SecurityCamera,
-    SiteConfiguration, StaffMember, StaffShift,
+    SiteConfiguration, StaffMember, StaffShift, ProductTranslation, CategoryTranslation,
 )
 
 admin.site.site_header = "Pizza Vitti — Administration"
@@ -43,6 +43,30 @@ class ProductAdmin(admin.ModelAdmin):
         ('Publication', {'fields': ('availability_status','available_again_at','is_featured','is_best_seller','is_pizza_of_month')}),
         ('SEO', {'fields': ('meta_title','meta_description')}),
     )
+
+
+@admin.register(ProductTranslation)
+class ProductTranslationAdmin(admin.ModelAdmin):
+    list_display = ('product', 'language', 'translation_status', 'updated_at')
+    list_filter = ('language',)
+    search_fields = ('product__name', 'name', 'description')
+    autocomplete_fields = ('product',)
+
+    @admin.display(description='SEO prêt', boolean=True)
+    def translation_status(self, obj):
+        return bool(obj.name.strip() and obj.description.strip())
+
+
+@admin.register(CategoryTranslation)
+class CategoryTranslationAdmin(admin.ModelAdmin):
+    list_display = ('category', 'language', 'translation_status', 'updated_at')
+    list_filter = ('language',)
+    search_fields = ('category__name', 'name', 'description')
+    autocomplete_fields = ('category',)
+
+    @admin.display(description='SEO prêt', boolean=True)
+    def translation_status(self, obj):
+        return bool(obj.name.strip() and obj.description.strip())
 
 @admin.register(BlogPost)
 class BlogPostAdmin(admin.ModelAdmin):
@@ -253,20 +277,6 @@ class SecurityCameraAdmin(admin.ModelAdmin):
     list_filter = ('location','supports_audio','supports_talk','is_active')
     list_editable = ('supports_audio','supports_talk','is_active')
     search_fields = ('name','stream_name','brand','model_name','location__name')
-
-from .models import ProductTranslation, CategoryTranslation, Favorite
-
-@admin.register(ProductTranslation)
-class ProductTranslationAdmin(admin.ModelAdmin):
-    list_display = ('product', 'language', 'name')
-    list_filter = ('language',)
-    search_fields = ('product__name', 'name', 'description')
-
-@admin.register(CategoryTranslation)
-class CategoryTranslationAdmin(admin.ModelAdmin):
-    list_display = ('category', 'language', 'name')
-    list_filter = ('language',)
-    search_fields = ('category__name', 'name', 'description')
 
 @admin.register(Favorite)
 class FavoriteAdmin(admin.ModelAdmin):
