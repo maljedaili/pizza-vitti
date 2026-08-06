@@ -35,12 +35,9 @@
   <link rel="stylesheet" href="{% static 'shop/tilt.css' %}">
   <script defer src="{% static 'shop/app.js' %}"></script>
   <script defer src="{% static 'shop/dist/site.js' %}"></script>
-  {% if GA4_MEASUREMENT_ID %}<script async src="https://www.googletagmanager.com/gtag/js?id={{ GA4_MEASUREMENT_ID }}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','{{ GA4_MEASUREMENT_ID|escapejs }}');</script>{% endif %}
-  {% if GOOGLE_TAG_MANAGER_ID %}<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f)})(window,document,'script','dataLayer','{{ GOOGLE_TAG_MANAGER_ID|escapejs }}');</script>{% endif %}
-  {% if MICROSOFT_CLARITY_ID %}<script>(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src='https://www.clarity.ms/tag/'+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,'clarity','script','{{ MICROSOFT_CLARITY_ID|escapejs }}');</script>{% endif %}
+  <script defer src="{% static 'shop/cookie-consent.js' %}"></script>
 </head>
-<body class="lang-{{ current_lang }}{% if kitchen_app %} kitchen-app{% else %} public-site{% endif %}">
-{% if GOOGLE_TAG_MANAGER_ID %}<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_ID }}" height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe></noscript>{% endif %}
+<body class="lang-{{ current_lang }}{% if kitchen_app %} kitchen-app{% else %} public-site{% endif %}" data-ga4-id="{{ GA4_MEASUREMENT_ID|escape }}" data-gtm-id="{{ GOOGLE_TAG_MANAGER_ID|escape }}" data-clarity-id="{{ MICROSOFT_CLARITY_ID|escape }}">
 <a class="skip-link" href="#main-content">{{ T.skip_to_content|default:'Aller au contenu' }}</a>
 <header class="site-header">
   <a class="logo" href="{% if kitchen_app %}{% url 'shop:app_home' %}{% else %}{{ url_home }}{% endif %}"><img src="{% static 'shop/img/logo-vitti-header.png' %}" alt="Logo Pizza Vitti" width="72" height="72"><span class="logo-text">{% if kitchen_app %}Pizza Vitti · Équipe{% else %}Pizza Vitti{% endif %}</span></a>
@@ -167,7 +164,8 @@
       <small>Visa · Mastercard · CB</small>
     </div>
   </div>
-  <p class="credit">{{ T.created }} <a href="https://kayen.fr" target="_blank" rel="noopener">Kayen.fr</a></p>
+  <p class="credit">{{ T.created }} <a href="https://kayen.fr" target="_blank" rel="noopener">Kayen.fr</a> · <button class="cookie-manage-link" type="button" data-cookie-manage>Gérer mes cookies</button></p>
 </footer>
+{% include 'shop/_cookie_consent.html' %}
 {% endif %}
 </body></html>

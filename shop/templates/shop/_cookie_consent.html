@@ -1,0 +1,36 @@
+{% load static %}
+<div class="cookie-consent" data-cookie-consent hidden>
+  <div class="cookie-consent-backdrop" aria-hidden="true"></div>
+  <section class="cookie-consent-dialog" role="dialog" aria-modal="true" aria-labelledby="cookie-consent-title" aria-describedby="cookie-consent-description">
+    <button class="cookie-consent-skip" type="button" data-cookie-reject>Continuer sans accepter</button>
+    <div class="cookie-consent-heading">
+      <img src="{% static 'shop/img/logo-vitti-header.png' %}" alt="" width="58" height="58">
+      <div>
+        <p class="eyebrow">Pizza Vitti</p>
+        <h2 id="cookie-consent-title">Votre vie privée est notre priorité</h2>
+      </div>
+    </div>
+    <div id="cookie-consent-description" class="cookie-consent-copy">
+      <p>Pizza Vitti utilise des technologies essentielles au fonctionnement et à la sécurité du site. Avec votre accord, nous utilisons aussi des outils de mesure d’audience pour améliorer votre expérience.</p>
+      <p>Vous pouvez tout accepter, continuer sans les outils optionnels, ou personnaliser votre choix. Vous pourrez le modifier à tout moment depuis le bas de la page.</p>
+    </div>
+
+    <div class="cookie-consent-settings" data-cookie-settings hidden>
+      <label class="cookie-choice locked">
+        <span><strong>Cookies nécessaires</strong><small>Connexion, panier, sécurité et préférences indispensables.</small></span>
+        <input type="checkbox" checked disabled aria-label="Cookies nécessaires toujours actifs">
+      </label>
+      <label class="cookie-choice">
+        <span><strong>Mesure d’audience</strong><small>Google Analytics, Google Tag Manager et Microsoft Clarity, lorsqu’ils sont configurés.</small></span>
+        <input type="checkbox" data-cookie-analytics aria-label="Autoriser la mesure d’audience">
+      </label>
+    </div>
+
+    <p class="cookie-consent-policy">Pour en savoir plus, consultez notre <a href="{% url 'shop:privacy_policy' %}">politique de confidentialité</a>.</p>
+    <div class="cookie-consent-actions">
+      <button class="button ghost" type="button" data-cookie-customize>Paramétrer</button>
+      <button class="button ghost" type="button" data-cookie-save hidden>Enregistrer mes choix</button>
+      <button class="button" type="button" data-cookie-accept>Tout accepter</button>
+    </div>
+  </section>
+</div>

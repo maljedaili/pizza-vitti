@@ -40,7 +40,16 @@ class SEOUpgradeTests(TestCase):
         response = self.client.get('/fr/')
         self.assertContains(response, 'name="google-site-verification" content="google-code"')
         self.assertContains(response, 'name="msvalidate.01" content="bing-code"')
-        self.assertContains(response, 'googletagmanager.com/gtag/js?id=G-TEST')
+        self.assertContains(response, 'data-ga4-id="G-TEST"')
+        self.assertContains(response, 'shop/cookie-consent.js')
+        self.assertNotContains(response, 'googletagmanager.com/gtag/js?id=G-TEST')
+
+    def test_cookie_consent_offers_reject_customize_and_accept(self):
+        response = self.client.get('/fr/')
+        self.assertContains(response, 'data-cookie-reject')
+        self.assertContains(response, 'data-cookie-customize')
+        self.assertContains(response, 'data-cookie-accept')
+        self.assertContains(response, 'data-cookie-manage')
 
     def test_robots_excludes_private_routes(self):
         response = self.client.get('/robots.txt')
