@@ -696,7 +696,7 @@ def menu_group(request, group, lang=None):
     })
 
 def product_detail(request, slug, lang=None):
-    product = get_object_or_404(Product, slug=slug)
+    product = get_object_or_404(Product.objects.select_related('category'), slug=slug)
     lang = lang if lang in TRANSLATIONS else get_lang_from_path(request.path)
     _apply_menu_translations([product], [product.category] if product.category else [], lang)
     product.requires_age_verification = _requires_age_verification(product)
@@ -708,6 +708,18 @@ def product_detail(request, slug, lang=None):
         category__name__icontains='suppl',
     ).select_related('category')) if product.category and 'pizza' in _category_key(product.category) and 'suppl' not in _category_key(product.category) else []
     _apply_menu_translations(supplements, list({item.category for item in supplements if item.category}), lang)
+    related_products = list(Product.objects.filter(
+        category=product.category,
+        is_available=True,
+        professional_only=False,
+    ).exclude(pk=product.pk).select_related('category').order_by(
+        '-is_best_seller', '-is_featured', 'name'
+    )[:4]) if product.category else []
+    _apply_menu_translations(
+        related_products,
+        [product.category] if product.category else [],
+        lang,
+    )
     translated_name = getattr(product, 'translated_name', product.name)
     translated_description = getattr(product, 'translated_description', product.description)
     translated_category = getattr(product, 'translated_category_name', product.category.name if product.category else 'Menu')
@@ -749,7 +761,7 @@ def product_detail(request, slug, lang=None):
             },
         ],
     }, ensure_ascii=False)
-    return render(request, 'shop/product_detail.html', {'product': product, 'supplements': supplements, 'favorite_product_ids': favorite_product_ids,
+    return render(request, 'shop/product_detail.html', {'product': product, 'supplements': supplements, 'related_products': related_products, 'favorite_product_ids': favorite_product_ids,
         'breadcrumbs': [
             {'label': t_for(lang)['home'], 'url': localized_url('home', lang)},
             {'label': t_for(lang)['menu'], 'url': localized_url('menu', lang)},

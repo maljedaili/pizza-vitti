@@ -115,3 +115,20 @@ class SEOUpgradeTests(TestCase):
                 self.assertContains(response, 'aria-label="Breadcrumb"')
                 self.assertContains(response, '"@type": "BreadcrumbList"')
                 self.assertContains(response, f'"item": "http://testserver{path}"')
+
+    def test_product_page_links_to_related_products_menu_and_booking(self):
+        category = Category.objects.create(name='Nos Pizzas liées', slug='pizzas-liees')
+        product = Product.objects.create(
+            category=category, name='Pizza principale', slug='pizza-principale',
+            description='Description principale.', price='13.00',
+        )
+        related = Product.objects.create(
+            category=category, name='Pizza associée', slug='pizza-associee',
+            description='Description associée.', price='14.00',
+        )
+
+        response = self.client.get(f'/fr/product/{product.slug}/')
+
+        self.assertContains(response, f'/fr/product/{related.slug}/')
+        self.assertContains(response, 'href="/fr/menu/"')
+        self.assertContains(response, 'href="/fr/reserver/"')

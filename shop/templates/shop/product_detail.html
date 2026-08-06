@@ -46,5 +46,24 @@
     {% endif %}
   </div>
 </section>
+<section class="product-discovery reveal" aria-labelledby="product-discovery-title">
+  <div class="home-section-heading">
+    <div>
+      <p class="eyebrow">Pizza Vitti Bordeaux</p>
+      <h2 id="product-discovery-title">{{ T.find_also }}</h2>
+    </div>
+    <div class="blog-social-actions">
+      <a class="button ghost" href="{{ url_menu }}">{{ T.see_menu }}</a>
+      <a class="button ghost" href="{{ url_booking }}">{{ T.book_table }}</a>
+    </div>
+  </div>
+  {% if related_products %}
+    <div class="grid">
+      {% for related_product in related_products %}
+        {% with product=related_product %}{% include 'shop/product_card.html' %}{% endwith %}
+      {% endfor %}
+    </div>
+  {% endif %}
+</section>
 {% if has_age_restricted_products %}{% include 'shop/_age_gate.html' %}{% endif %}
 {% endblock %}
