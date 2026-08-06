@@ -75,3 +75,20 @@ class SEOUpgradeTests(TestCase):
         self.assertNotContains(response, 'content="noindex,follow"')
         self.assertContains(response, f'hreflang="fr" href="http://testserver/fr/product/{product.slug}/"')
         self.assertContains(response, f'hreflang="en" href="http://testserver/en/product/{product.slug}/"')
+
+    @override_settings(SITE_URL='https://pizza-vitti.kayen.fr')
+    def test_sitemap_excludes_incomplete_product_translations(self):
+        category = Category.objects.create(name='Pizzas sitemap SEO', slug='pizzas-sitemap-seo')
+        product = Product.objects.create(
+            category=category, name='Pizza sitemap', slug='pizza-sitemap',
+            description='Description française.', price='12.00',
+        )
+        ProductTranslation.objects.create(
+            product=product, language='en', name='Sitemap pizza',
+            description='Complete English description.',
+        )
+        response = self.client.get('/sitemap.xml')
+        self.assertContains(response, f'/fr/product/{product.slug}/</loc>')
+        self.assertContains(response, f'/en/product/{product.slug}/</loc>')
+        self.assertNotContains(response, f'/es/product/{product.slug}/</loc>')
+        self.assertNotContains(response, f'/ar/product/{product.slug}/</loc>')

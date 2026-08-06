@@ -344,8 +344,9 @@ class CustomerLoyaltyTests(TestCase):
         self.assertNotContains(response, 'example.com')
         self.assertContains(response, '/en/menu/</loc>')
         self.assertContains(response, '/ar/menu/boissons/</loc>')
-        self.assertContains(response, f'/en/product/{self.product.slug}/</loc>')
-        self.assertContains(response, f'/ja/product/{self.product.slug}/</loc>')
+        self.assertContains(response, f'/fr/product/{self.product.slug}/</loc>')
+        self.assertNotContains(response, f'/en/product/{self.product.slug}/</loc>')
+        self.assertNotContains(response, f'/ja/product/{self.product.slug}/</loc>')
         self.assertNotContains(response, f'/produit/{self.product.slug}/</loc>')
 
     def test_customer_can_delete_account_and_associated_data(self):

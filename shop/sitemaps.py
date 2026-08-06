@@ -1,6 +1,6 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
-from .models import Product, BlogPost, LocalSEOPage
+from .models import Product, ProductTranslation, BlogPost, LocalSEOPage
 from .translations import LANGUAGE_OPTIONS, localized_url
 
 PUBLIC_PAGE_KEYS = ('home', 'menu', 'booking', 'reviews', 'gallery', 'blog', 'contact')
@@ -25,11 +25,17 @@ class ProductSitemap(Sitemap):
     changefreq = 'daily'
     priority = 0.9
     def items(self):
-        products = Product.objects.filter(is_available=True).only('slug', 'updated_at')
+        products = Product.objects.filter(is_available=True).only('id', 'slug', 'updated_at')
+        complete_by_product = {}
+        for product_id, language in ProductTranslation.objects.filter(
+            product__in=products,
+        ).exclude(name='').exclude(description='').values_list('product_id', 'language'):
+            complete_by_product.setdefault(product_id, set()).add(language)
         return [
             (product, code)
             for product in products
             for code, _label, _name, _href in LANGUAGE_OPTIONS
+            if code == 'fr' or code in complete_by_product.get(product.id, set())
         ]
     def location(self, item):
         product, language = item
