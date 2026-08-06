@@ -4,6 +4,8 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ meta_title|default:T.default_meta_title }}</title>
   <meta name="description" content="{{ meta_description|default:T.default_meta_description }}">
+  {% if GOOGLE_SITE_VERIFICATION %}<meta name="google-site-verification" content="{{ GOOGLE_SITE_VERIFICATION }}">{% endif %}
+  {% if BING_SITE_VERIFICATION %}<meta name="msvalidate.01" content="{{ BING_SITE_VERIFICATION }}">{% endif %}
   {% if meta_robots %}<meta name="robots" content="{{ meta_robots }}">{% endif %}
   <meta name="theme-color" content="{% if kitchen_app %}#171923{% else %}#321b4f{% endif %}">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -11,10 +13,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="{% static 'shop/img/pwa/icon-192.png' %}">
-  <link rel="canonical" href="{{ SITE_URL }}{{ request.path }}">
+  {% if not meta_robots or 'noindex' not in meta_robots %}<link rel="canonical" href="{{ CANONICAL_URL }}">{% endif %}
   {% for code,label,name,href in LANGUAGES_MENU %}<link rel="alternate" hreflang="{{ code }}" href="{{ SITE_URL }}{{ href }}">{% endfor %}
   <link rel="alternate" hreflang="x-default" href="{{ SITE_URL }}{{ X_DEFAULT_URL }}">
-  <meta property="og:title" content="{{ meta_title|default:T.default_meta_title }}"><meta property="og:type" content="{{ meta_type|default:'restaurant' }}"><meta property="og:url" content="{{ SITE_URL }}{{ request.path }}">
+  <meta property="og:title" content="{{ meta_title|default:T.default_meta_title }}"><meta property="og:type" content="{{ meta_type|default:'restaurant' }}"><meta property="og:url" content="{{ CANONICAL_URL }}">
   <meta property="og:description" content="{{ meta_description|default:T.default_meta_description }}">
   <meta property="og:image" content="{% if meta_image_absolute %}{{ meta_image_absolute }}{% else %}{{ SITE_URL }}{% if meta_image %}{{ meta_image }}{% else %}{% static 'shop/img/hero/menu-pizza-vitti.jpg' %}{% endif %}{% endif %}">
   <meta property="og:image:alt" content="{{ meta_image_alt|default:'Pizza Vitti' }}">
@@ -31,8 +33,13 @@
   <link rel="stylesheet" href="{% static 'shop/tilt.css' %}">
   <script defer src="{% static 'shop/app.js' %}"></script>
   <script defer src="{% static 'shop/dist/site.js' %}"></script>
+  {% if GA4_MEASUREMENT_ID %}<script async src="https://www.googletagmanager.com/gtag/js?id={{ GA4_MEASUREMENT_ID }}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','{{ GA4_MEASUREMENT_ID|escapejs }}');</script>{% endif %}
+  {% if GOOGLE_TAG_MANAGER_ID %}<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f)})(window,document,'script','dataLayer','{{ GOOGLE_TAG_MANAGER_ID|escapejs }}');</script>{% endif %}
+  {% if MICROSOFT_CLARITY_ID %}<script>(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src='https://www.clarity.ms/tag/'+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y)})(window,document,'clarity','script','{{ MICROSOFT_CLARITY_ID|escapejs }}');</script>{% endif %}
 </head>
 <body class="lang-{{ current_lang }}{% if kitchen_app %} kitchen-app{% else %} public-site{% endif %}">
+{% if GOOGLE_TAG_MANAGER_ID %}<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_ID }}" height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe></noscript>{% endif %}
+<a class="skip-link" href="#main-content">{{ T.skip_to_content|default:'Aller au contenu' }}</a>
 <header class="site-header">
   <a class="logo" href="{% if kitchen_app %}{% url 'shop:app_home' %}{% else %}{{ url_home }}{% endif %}"><img src="{% static 'shop/img/logo-vitti-header.png' %}" alt="Logo Pizza Vitti"><span class="logo-text">{% if kitchen_app %}Pizza Vitti · Équipe{% else %}Pizza Vitti{% endif %}</span></a>
   <button class="nav-toggle" type="button" data-nav aria-label="{{ T.open_navigation }}" aria-expanded="false">☰</button>
@@ -65,7 +72,7 @@
 </header>
 {% if not kitchen_app %}<div class="language-switch" data-lang><button type="button" class="language-current" data-lang-toggle>{{ current_lang|upper }} ▾</button><div class="language-menu" aria-label="{{ T.language }}">{% for code,label,name,href in LANGUAGES_MENU %}<a href="{{ href }}">{{ label }} — {{ name }}</a>{% endfor %}</div></div>{% endif %}
 {% if messages %}<section class="messages">{% for message in messages %}<div class="message {{ message.tags }}">{{ message }}</div>{% endfor %}</section>{% endif %}
-<main>{% block content %}{% endblock %}</main>
+<main id="main-content">{% block content %}{% endblock %}</main>
 {% if cart_count and not kitchen_app %}
 <aside class="order-preview open" data-order-preview>
   <button type="button" class="order-preview-toggle" data-order-preview-toggle>

@@ -6,6 +6,7 @@ from .models import BlogPost, Category, Product, SiteConfiguration
 from django.db.models import Case, When, IntegerField
 from django.urls import reverse
 from .translations import HOME_SLUGS, LANGUAGE_OPTIONS, PAGE_SLUGS, get_lang_from_path, t_for, localized_url, lang_home
+from .seo import absolute_public_url, public_origin
 
 def _menu_category_order(qs):
     return qs.annotate(
@@ -61,10 +62,7 @@ def site_settings(request):
         row['label'] = T['weekdays'][row['weekday']]
         if not row['periods']:
             row['display'] = T['closed']
-    configured_site_url = settings.SITE_URL.rstrip('/')
-    host = request.get_host().split(':')[0]
-    if configured_site_url.startswith('http://localhost') and host not in ['localhost', '127.0.0.1']:
-        configured_site_url = f"{request.scheme}://{request.get_host()}"
+    configured_site_url = public_origin(request)
     site = SiteConfiguration.load()
     resolver_name = request.resolver_match.url_name if request.resolver_match else ''
     language_menu = []
@@ -95,7 +93,10 @@ def site_settings(request):
         'customer_orders', 'customer_favorites', 'account_deletion', 'app_home',
         'app_login', 'owner_dashboard', 'kitchen_app', 'staff_portal',
     }
-    same_as = [url for url in (site.instagram_url, site.facebook_url) if url]
+    same_as = [url for url in (
+        site.google_business_profile_url, site.instagram_url, site.facebook_url,
+        site.tiktok_url, site.youtube_url,
+    ) if url]
     schema_weekdays = {
         0: 'https://schema.org/Monday',
         1: 'https://schema.org/Tuesday',
@@ -107,7 +108,7 @@ def site_settings(request):
     }
     structured_data = {
         '@context': 'https://schema.org',
-        '@type': 'Restaurant',
+        '@type': ['Restaurant', 'LocalBusiness'],
         '@id': configured_site_url + '/#restaurant',
         'name': site.restaurant_name,
         'alternateName': 'Pizza Vitti - Ornano',
@@ -117,27 +118,27 @@ def site_settings(request):
             configured_site_url + '/static/shop/img/hero/pizza-vitti-deliveroo.jpg',
         ],
         'logo': configured_site_url + '/static/shop/img/logo-vitti-header.png',
-        'servesCuisine': ['Italian', 'Pizza'],
+        'servesCuisine': [value.strip() for value in site.cuisine_types.split(',') if value.strip()],
         'address': {
             '@type': 'PostalAddress',
-            'streetAddress': '236 rue d’Ornano',
-            'addressLocality': 'Bordeaux',
-            'postalCode': '33000',
-            'addressCountry': 'FR',
+            'streetAddress': site.street_address,
+            'addressLocality': site.city,
+            'postalCode': site.postal_code,
+            'addressCountry': site.country_code,
         },
         'geo': {
             '@type': 'GeoCoordinates',
-            'latitude': 44.8324494,
-            'longitude': -0.5944067,
+            'latitude': float(site.latitude),
+            'longitude': float(site.longitude),
         },
         'telephone': site.telephone,
         'url': configured_site_url,
         'hasMap': site.google_maps_url,
         'hasMenu': configured_site_url + localized_url('menu', lang),
         'acceptsReservations': True,
-        'priceRange': '€€',
+        'priceRange': site.price_range,
         'currenciesAccepted': 'EUR',
-        'paymentAccepted': 'Cash, Visa, Mastercard, CB, Contactless',
+        'paymentAccepted': site.accepted_payments,
         'areaServed': {'@type': 'City', 'name': 'Bordeaux'},
         'potentialAction': [
             {
@@ -162,6 +163,8 @@ def site_settings(request):
     }
     if same_as:
         structured_data['sameAs'] = same_as
+    partner_urls = [site.uber_eats_url, site.deliveroo_url, site.just_eat_url]
+    structured_data['sameAs'] = list(dict.fromkeys(structured_data.get('sameAs', []) + [url for url in partner_urls if url]))
     is_localized_home = (
         resolver_name == 'localized_page'
         and request.resolver_match.kwargs.get('page') == HOME_SLUGS.get(lang)
@@ -179,6 +182,7 @@ def site_settings(request):
             or any(segment in request.path for segment in ('/panier/', '/commande/', '/checkout/', '/cart/'))
         ) else '',
         'SITE_URL': configured_site_url,
+        'CANONICAL_URL': absolute_public_url(request.path, request),
         'WHATSAPP_NUMBER': settings.WHATSAPP_NUMBER,
         'GOOGLE_REVIEW_URL': site.google_review_url or settings.GOOGLE_REVIEW_URL,
         'INSTAGRAM_URL': site.instagram_url,
@@ -190,6 +194,11 @@ def site_settings(request):
         'T': T,
         'LANGUAGES_MENU': language_menu,
         'X_DEFAULT_URL': language_menu[0][3] if language_menu else localized_url('home', 'fr'),
+        'GOOGLE_SITE_VERIFICATION': settings.GOOGLE_SITE_VERIFICATION,
+        'BING_SITE_VERIFICATION': settings.BING_SITE_VERIFICATION,
+        'GA4_MEASUREMENT_ID': settings.GA4_MEASUREMENT_ID,
+        'GOOGLE_TAG_MANAGER_ID': settings.GOOGLE_TAG_MANAGER_ID,
+        'MICROSOFT_CLARITY_ID': settings.MICROSOFT_CLARITY_ID,
         'lang_home': lang_home(lang),
         'url_home': localized_url('home', lang),
         'url_menu': localized_url('menu', lang),

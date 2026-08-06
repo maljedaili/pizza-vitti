@@ -12,7 +12,27 @@ DEBUG = os.getenv('DEBUG', 'True') == 'True'
 if not DEBUG and SECRET_KEY == 'dev-secret-change-me':
     raise ImproperlyConfigured('SECRET_KEY doit être défini en production.')
 ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,pizza-vitti.onrender.com,pizza-vitti.kayen.fr,pizza-vitti.kayan.fr').split(',')]
-SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
+PRIMARY_DOMAIN = os.getenv('PRIMARY_DOMAIN', 'pizza-vitti.kayen.fr').strip().lower()
+PRIMARY_SCHEME = os.getenv('PRIMARY_SCHEME', 'https').strip().lower()
+REDIRECT_ALTERNATE_DOMAINS = os.getenv('REDIRECT_ALTERNATE_DOMAINS', 'False').lower() == 'true'
+ALTERNATE_DOMAINS = [
+    value.strip().lower()
+    for value in os.getenv('ALTERNATE_DOMAINS', '').split(',')
+    if value.strip()
+]
+# SITE_URL remains supported for local development and backwards compatibility.
+SITE_URL = os.getenv(
+    'SITE_URL',
+    f'{PRIMARY_SCHEME}://{PRIMARY_DOMAIN}' if not DEBUG else 'http://localhost:8000',
+).rstrip('/')
+PUBLIC_SITE_URL = f'{PRIMARY_SCHEME}://{PRIMARY_DOMAIN}'
+GOOGLE_SITE_VERIFICATION = os.getenv('GOOGLE_SITE_VERIFICATION', '')
+BING_SITE_VERIFICATION = os.getenv('BING_SITE_VERIFICATION', '')
+GA4_MEASUREMENT_ID = os.getenv('GA4_MEASUREMENT_ID', '')
+GOOGLE_TAG_MANAGER_ID = os.getenv('GOOGLE_TAG_MANAGER_ID', '')
+MICROSOFT_CLARITY_ID = os.getenv('MICROSOFT_CLARITY_ID', '')
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'development').lower()
+ALLOW_DEMO_DATA = os.getenv('ALLOW_DEMO_DATA', 'False').lower() == 'true'
 WHATSAPP_NUMBER = os.getenv('WHATSAPP_NUMBER', '')
 GOOGLE_REVIEW_URL = os.getenv('GOOGLE_REVIEW_URL', 'https://g.page/r/CZWvQ5cTiET3EAE/review')
 GOOGLE_BUSINESS_ACCOUNT_ID = os.getenv(
@@ -83,6 +103,7 @@ INSTALLED_APPS = [
 ]
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware', 'whitenoise.middleware.WhiteNoiseMiddleware',
+    'shop.middleware.PrimaryDomainMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware', 'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware', 'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware', 'allauth.account.middleware.AccountMiddleware',
@@ -116,6 +137,13 @@ USE_I18N = True
 USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': (
+        'whitenoise.storage.CompressedStaticFilesStorage'
+        if DEBUG else 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    )},
+}
 STATICFILES_DIRS = []
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -161,3 +189,4 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD = not DEBUG
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'

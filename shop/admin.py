@@ -3,7 +3,7 @@ from django.utils.html import format_html
 from .models import (
     BlogPost, CameraLocation, Category, CustomerMessage, DiningTable,
     ExceptionalClosure, GalleryImage, GiftCard, LoyaltyRedemption, LoyaltyReward,
-    NewsletterSubscriber, OpeningPeriod, Order, OrderItem, Product, PromoCode,
+    LocalSEOPage, NewsletterSubscriber, OpeningPeriod, Order, OrderItem, Product, PromoCode,
     PurchaseOrder, PurchaseOrderItem, Reservation, Review, SecurityCamera,
     SiteConfiguration, StaffMember, StaffShift,
 )
@@ -89,7 +89,8 @@ class ReservationAdmin(admin.ModelAdmin):
 @admin.register(SiteConfiguration)
 class SiteConfigurationAdmin(admin.ModelAdmin):
     fieldsets = (
-        ('Identité', {'fields': ('restaurant_name','hero_title','hero_description','address','telephone','public_email')}),
+        ('Identité', {'fields': ('restaurant_name','hero_title','hero_description','address','street_address','postal_code','city','country_code','telephone','public_email')}),
+        ('SEO local', {'fields': ('latitude','longitude','price_range','cuisine_types','accepted_payments')}),
         ('Photos des catégories principales', {
             'description': 'Ces photos sont utilisées sur l’accueil et en bannière de chaque page du menu.',
             'fields': (
@@ -97,7 +98,7 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
                 'bambino_banner_image', 'desserts_banner_image', 'drinks_banner_image',
             ),
         }),
-        ('Liens', {'fields': ('google_maps_url','google_review_url','instagram_url','facebook_url','uber_eats_url','deliveroo_url','just_eat_url','google_play_url')}),
+        ('Liens', {'fields': ('google_maps_url','google_review_url','google_business_profile_url','instagram_url','facebook_url','tiktok_url','youtube_url','uber_eats_url','deliveroo_url','just_eat_url','google_play_url')}),
         ('Informations légales vérifiées', {'fields': ('legal_company_name','legal_form','legal_capital','legal_registration','legal_vat_number','legal_director','legal_host','legal_mediator')}),
     )
 
@@ -106,6 +107,20 @@ class SiteConfigurationAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(LocalSEOPage)
+class LocalSEOPageAdmin(admin.ModelAdmin):
+    list_display = ('title', 'slug', 'is_published', 'updated_at')
+    list_filter = ('is_published',)
+    list_editable = ('is_published',)
+    search_fields = ('title', 'introduction', 'body')
+    prepopulated_fields = {'slug': ('title',)}
+    fieldsets = (
+        ('Page', {'fields': ('title', 'slug', 'introduction', 'body', 'is_published')}),
+        ('SEO', {'fields': ('meta_title', 'meta_description')}),
+        ('FAQ', {'fields': ('faq_question', 'faq_answer')}),
+    )
 
 
 @admin.register(OpeningPeriod)

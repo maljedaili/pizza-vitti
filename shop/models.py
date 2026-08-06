@@ -286,6 +286,15 @@ class SiteConfiguration(TimeStampedModel):
         ),
     )
     address = models.CharField(max_length=240, default="236 rue d’Ornano, 33000 Bordeaux")
+    street_address = models.CharField(max_length=180, default="236 rue d’Ornano")
+    postal_code = models.CharField(max_length=20, default='33000')
+    city = models.CharField(max_length=100, default='Bordeaux')
+    country_code = models.CharField(max_length=2, default='FR')
+    latitude = models.DecimalField(max_digits=10, decimal_places=7, default=Decimal('44.8324494'))
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, default=Decimal('-0.5944067'))
+    price_range = models.CharField(max_length=20, default='€€')
+    cuisine_types = models.CharField(max_length=180, default='Italian, Pizza')
+    accepted_payments = models.CharField(max_length=240, default='Cash, Visa, Mastercard, CB, Contactless')
     telephone = models.CharField(max_length=40, default='05 56 42 14 49')
     public_email = models.EmailField(blank=True)
     drinks_banner_image = models.ImageField(
@@ -313,11 +322,14 @@ class SiteConfiguration(TimeStampedModel):
         default="https://maps.google.com/?q=Pizza+Vitti+236+Rue+d'Ornano+33000+Bordeaux",
     )
     google_review_url = models.URLField(blank=True)
+    google_business_profile_url = models.URLField(blank=True)
     instagram_url = models.URLField(blank=True)
     facebook_url = models.URLField(blank=True)
     uber_eats_url = models.URLField(blank=True)
     deliveroo_url = models.URLField(blank=True)
     just_eat_url = models.URLField(blank=True)
+    tiktok_url = models.URLField(blank=True)
+    youtube_url = models.URLField(blank=True)
     google_play_url = models.URLField(blank=True)
     legal_company_name = models.CharField(max_length=180, blank=True)
     legal_form = models.CharField(max_length=120, blank=True)
@@ -349,6 +361,26 @@ class SiteConfiguration(TimeStampedModel):
 
     def __str__(self):
         return self.restaurant_name
+
+
+class LocalSEOPage(TimeStampedModel):
+    title = models.CharField(max_length=180)
+    slug = models.SlugField(max_length=200, unique=True)
+    introduction = models.TextField()
+    body = models.TextField()
+    meta_title = models.CharField(max_length=70)
+    meta_description = models.CharField(max_length=160)
+    faq_question = models.CharField(max_length=240, blank=True)
+    faq_answer = models.TextField(blank=True)
+    is_published = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['title']
+        verbose_name = 'Page SEO locale'
+        verbose_name_plural = 'Pages SEO locales'
+
+    def __str__(self):
+        return self.title
 
 
 class OpeningPeriod(TimeStampedModel):

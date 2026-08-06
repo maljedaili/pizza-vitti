@@ -78,3 +78,7 @@
 .kitchen-app .availability-owner-row[hidden]{display:none!important}
 .public-site .loyalty-card-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.public-site .loyalty-card-heading h2{margin:0}.public-site .loyalty-card-heading>strong{display:grid;place-items:center;min-width:76px;min-height:48px;border-radius:999px;padding:8px 14px;background:var(--pv-night);color:#fff;font-size:1.1rem}.public-site .loyalty-start-order{display:flex;width:max-content;margin-top:18px}@media(max-width:520px){.public-site .loyalty-card-heading{align-items:flex-start}.public-site .loyalty-start-order{width:100%;justify-content:center}}
 .public-site .auth-reset-status{text-align:center}.public-site .auth-status-icon{width:64px;height:64px;display:grid;place-items:center;margin:0 auto;border-radius:50%;background:#f3e9ff;color:var(--pv-night);font-size:1.8rem;font-weight:950}.public-site .auth-status-icon.success{background:#e5f6e9;color:#28733a}.public-site .auth-security-note{border:1px solid var(--pv-line);border-radius:10px;padding:13px;background:#fff8e8;color:var(--pv-muted);font-size:.88rem;line-height:1.5}.public-site .auth-reset-status .auth-submit{display:flex;justify-content:center;text-decoration:none}
+/* Keyboard users can bypass the repeated navigation. */
+.skip-link{position:fixed;top:-100px;left:1rem;z-index:10000;background:#fff;color:#24113c;padding:.75rem 1rem;border-radius:.5rem;font-weight:800}
+.skip-link:focus{top:1rem}
+:focus-visible{outline:3px solid #f2bd3b;outline-offset:3px}

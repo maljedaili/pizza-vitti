@@ -2,11 +2,11 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
-from shop.sitemaps import ProductSitemap, BlogSitemap, StaticSitemap
+from shop.sitemaps import ProductSitemap, BlogSitemap, StaticSitemap, LocalSitemap
 from shop.sitemap_views import configured_sitemap
 from shop import views as shop_views
 
-sitemaps = {'static': StaticSitemap, 'products': ProductSitemap, 'blog': BlogSitemap}
+sitemaps = {'static': StaticSitemap, 'products': ProductSitemap, 'blog': BlogSitemap, 'local': LocalSitemap}
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),

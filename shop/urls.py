@@ -67,6 +67,7 @@ urlpatterns = [
     path('manifest.webmanifest', views.manifest_webmanifest, name='manifest_webmanifest'),
     path('sw.js', views.service_worker, name='service_worker'),
     path('<str:lang>/menu/<slug:group>/', views.menu_group, name='localized_menu_group'),
+    path('fr/<slug:slug>/', views.local_seo_page, name='local_seo_page'),
     path('<str:lang>/', views.localized_dispatch, name='localized_home_short'),
     path('<str:lang>/<slug:page>/', views.localized_dispatch, name='localized_page'),
    

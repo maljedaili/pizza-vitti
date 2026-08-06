@@ -263,6 +263,20 @@ BLOG_AGE_TRANSLATIONS = {
 for _language, _copy in BLOG_AGE_TRANSLATIONS.items():
     TRANSLATIONS[_language].update(_copy)
 
+DELIVERY_PARTNER_TRANSLATIONS = {
+    'fr': 'Livraison disponible via Uber Eats, Deliveroo et Just Eat.',
+    'en': 'Delivery is available via Uber Eats, Deliveroo and Just Eat.',
+    'es': 'Entrega disponible a través de Uber Eats, Deliveroo y Just Eat.',
+    'it': 'Consegna disponibile tramite Uber Eats, Deliveroo e Just Eat.',
+    'pt': 'Entrega disponível através da Uber Eats, Deliveroo e Just Eat.',
+    'nl': 'Bezorging beschikbaar via Uber Eats, Deliveroo en Just Eat.',
+    'zh': '可通过 Uber Eats、Deliveroo 和 Just Eat 配送。',
+    'ja': 'Uber Eats、Deliveroo、Just Eat から配達をご利用いただけます。',
+    'ar': 'التوصيل متاح عبر Uber Eats وDeliveroo وJust Eat.',
+}
+for _language, _delivery_text in DELIVERY_PARTNER_TRANSLATIONS.items():
+    TRANSLATIONS[_language]['delivery_text'] = _delivery_text
+
 def get_lang_from_path(path):
     parts = [p for p in path.split('/') if p]
     if parts and parts[0] in TRANSLATIONS:

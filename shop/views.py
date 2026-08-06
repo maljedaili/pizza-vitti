@@ -28,21 +28,15 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 import stripe
 from .forms import CheckoutForm, ReservationForm
-from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, LoyaltyRedemption, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder, CameraLocation, SecurityCamera, PromoCode, SiteConfiguration
+from .models import BlogPost, Category, CustomerMessage, Order, OrderItem, Product, Reservation, Review, GalleryImage, NewsletterSubscriber, LoyaltyReward, LoyaltyRedemption, Favorite, ProductTranslation, CategoryTranslation, DiningTable, StaffMember, StaffShift, PurchaseOrder, CameraLocation, SecurityCamera, PromoCode, SiteConfiguration, LocalSEOPage
 from .translations import PAGE_SLUGS, HOME_SLUGS, TRANSLATIONS, get_lang_from_path, localized_url, t_for
+from .seo import absolute_public_url
 
 
 logger = logging.getLogger(__name__)
 
-PUBLIC_SITE_URL = 'https://pizza-vitti.kayen.fr'
-
-
 def _public_site_url():
-    configured_url = settings.SITE_URL.rstrip('/')
-    hostname = (urlsplit(configured_url).hostname or '').lower()
-    if hostname in {'localhost', '127.0.0.1', '::1'}:
-        return PUBLIC_SITE_URL
-    return configured_url or PUBLIC_SITE_URL
+    return settings.PUBLIC_SITE_URL.rstrip('/')
 
 
 def _password_matches(raw_password, configured_password):
@@ -1902,6 +1896,53 @@ def blog_detail(request, slug):
     })
 
 
+def local_seo_page(request, slug):
+    page = LocalSEOPage.objects.filter(slug=slug, is_published=True).first()
+    if page is None:
+        return localized_dispatch(request, lang='fr', page=slug)
+    page_url = absolute_public_url(request.path, request)
+    home_url = absolute_public_url(localized_url('home', 'fr'), request)
+    schema = {
+        '@context': 'https://schema.org',
+        '@graph': [
+            {
+                '@type': 'WebPage',
+                'name': page.title,
+                'description': page.meta_description,
+                'url': page_url,
+                'about': {'@id': absolute_public_url('/#restaurant', request)},
+            },
+            {
+                '@type': 'BreadcrumbList',
+                'itemListElement': [
+                    {'@type': 'ListItem', 'position': 1, 'name': 'Accueil', 'item': home_url},
+                    {'@type': 'ListItem', 'position': 2, 'name': page.title, 'item': page_url},
+                ],
+            },
+        ],
+    }
+    if page.faq_question and page.faq_answer:
+        schema['@graph'].append({
+            '@type': 'FAQPage',
+            'mainEntity': [{
+                '@type': 'Question', 'name': page.faq_question,
+                'acceptedAnswer': {'@type': 'Answer', 'text': page.faq_answer},
+            }],
+        })
+    products = Product.objects.filter(is_available=True, professional_only=False).select_related('category')[:4]
+    return render(request, 'shop/local_seo_page.html', {
+        'page': page,
+        'products': products,
+        'meta_title': page.meta_title,
+        'meta_description': page.meta_description,
+        'page_structured_data': json.dumps(schema, ensure_ascii=False),
+        'breadcrumbs': [
+            {'label': 'Accueil', 'url': localized_url('home', 'fr')},
+            {'label': page.title, 'url': ''},
+        ],
+    })
+
+
 def _assistant_menu_context():
     lines = []
     products = (
@@ -1974,7 +2015,12 @@ def contact(request):
         CustomerMessage.objects.create(name=request.POST.get('name',''), email=request.POST.get('email',''), phone=request.POST.get('phone',''), subject=request.POST.get('subject',''), message=request.POST.get('message',''))
         messages.success(request, 'Votre message a bien été envoyé à Pizza Vitti.')
         return redirect('shop:contact')
-    return render(request, 'shop/contact.html')
+    lang = get_lang_from_path(request.path)
+    return render(request, 'shop/contact.html', {
+        'meta_title': 'Contact et accès | Pizza Vitti Bordeaux',
+        'meta_description': 'Contactez Pizza Vitti et retrouvez le restaurant au 236 rue d’Ornano à Bordeaux.',
+        'breadcrumbs': [{'label': t_for(lang)['home'], 'url': localized_url('home', lang)}, {'label': t_for(lang)['contact'], 'url': ''}],
+    })
 
 @require_POST
 def bot_reply(request):
@@ -2131,11 +2177,13 @@ def booking(request):
         'form': form,
         'meta_title': 'Réserver une table chez Pizza Vitti Bordeaux',
         'meta_description': 'Envoyez votre demande de réservation à Pizza Vitti, 236 rue d’Ornano à Bordeaux.',
+        'breadcrumbs': [{'label': booking_copy['home'], 'url': localized_url('home', get_lang_from_path(request.path))}, {'label': booking_copy['booking'], 'url': ''}],
     })
 
 def reviews(request):
     reviews = Review.objects.filter(is_published=True).exclude(source_url='')
-    return render(request, 'shop/reviews.html', {'reviews': reviews, 'meta_title': 'Avis clients | Pizza Vitti Bordeaux'})
+    lang = get_lang_from_path(request.path)
+    return render(request, 'shop/reviews.html', {'reviews': reviews, 'meta_title': 'Avis clients | Pizza Vitti Bordeaux', 'meta_description': 'Consultez les avis clients vérifiables de Pizza Vitti à Bordeaux et accédez au profil Google officiel.', 'breadcrumbs': [{'label': t_for(lang)['home'], 'url': localized_url('home', lang)}, {'label': t_for(lang)['reviews'], 'url': ''}]})
 
 def gallery(request):
     images = GalleryImage.objects.filter(is_active=True)
@@ -2292,6 +2340,11 @@ def robots_txt(request):
         "Disallow: /staff/\n"
         "Disallow: /panier/\n"
         "Disallow: /commande/\n"
+        "Disallow: /mon-compte/\n"
+        "Disallow: /facture/\n"
+        "Disallow: /suivi-commande/\n"
+        "Disallow: /paiement/\n"
+        "Disallow: /bot/\n"
         f"Sitemap: {sitemap_url}\n"
     )
     return HttpResponse(content, content_type='text/plain')

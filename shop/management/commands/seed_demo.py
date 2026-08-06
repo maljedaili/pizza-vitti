@@ -2,6 +2,8 @@ from django.core.management.base import BaseCommand
 from django.core.management import call_command
 from django.utils.text import slugify
 from shop.models import Category, Product, BlogPost, Review, GalleryImage, LoyaltyReward
+from django.conf import settings
+from django.core.management.base import CommandError
 
 # Menu taken from NEW menu VITTI.pdf (10 pages).
 # Stable, real food/drink photos are used instead of source.unsplash.com random search URLs.
@@ -234,6 +236,8 @@ class Command(BaseCommand):
     help = 'Create the complete Pizza Vitti menu from the new PDF, with categories and photos.'
 
     def handle(self, *args, **kwargs):
+        if settings.ENVIRONMENT == 'production' and not settings.ALLOW_DEMO_DATA:
+            raise CommandError('Demo data is disabled in production. Set ALLOW_DEMO_DATA=True only for an intentional one-off run.')
         Product.objects.all().delete()
         Category.objects.all().delete()
         cats = {}

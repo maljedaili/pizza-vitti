@@ -1,6 +1,6 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
-from .models import Product, BlogPost
+from .models import Product, BlogPost, LocalSEOPage
 from .translations import LANGUAGE_OPTIONS, localized_url
 
 PUBLIC_PAGE_KEYS = ('home', 'menu', 'booking', 'reviews', 'gallery', 'blog', 'contact')
@@ -43,3 +43,17 @@ class BlogSitemap(Sitemap):
     priority = 0.7
     def items(self): return BlogPost.objects.filter(is_published=True)
     def lastmod(self, item): return item.updated_at
+
+
+class LocalSitemap(Sitemap):
+    changefreq = 'monthly'
+    priority = 0.7
+
+    def items(self):
+        return LocalSEOPage.objects.filter(is_published=True)
+
+    def location(self, item):
+        return reverse('shop:local_seo_page', args=[item.slug])
+
+    def lastmod(self, item):
+        return item.updated_at
