@@ -28,6 +28,8 @@ class ProductSitemap(Sitemap):
     def items(self):
         products = Product.objects.filter(
             is_available=True,
+            is_published=True,
+            is_indexable=True,
             professional_only=False,
         ).only('id', 'slug', 'updated_at')
         complete_by_product = {}

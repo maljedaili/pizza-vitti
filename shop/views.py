@@ -548,7 +548,9 @@ def faq(request):
 def boutique(request):
     qs = Product.objects.filter(
         Q(availability_status='available')
-        | Q(availability_status='scheduled', available_again_at__lte=timezone.now())
+        | Q(availability_status='scheduled', available_again_at__lte=timezone.now()),
+        is_published=True,
+        professional_only=False,
     ).select_related('category')
     query = request.GET.get('q','').strip()
     if query:
@@ -574,7 +576,9 @@ def category(request, slug):
     cat = get_object_or_404(Category, slug=slug, is_active=True)
     qs = cat.products.filter(
         Q(availability_status='available')
-        | Q(availability_status='scheduled', available_again_at__lte=timezone.now())
+        | Q(availability_status='scheduled', available_again_at__lte=timezone.now()),
+        is_published=True,
+        professional_only=False,
     )
     paginator = Paginator(qs, 120)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -601,6 +605,8 @@ def menu_group(request, group, lang=None):
         Q(availability_status='available')
         | Q(availability_status='scheduled', available_again_at__lte=timezone.now()),
         category__in=categories,
+        is_published=True,
+        professional_only=False,
     ).select_related('category'))
     _apply_menu_translations(products, categories, lang)
     for product in products:
@@ -699,7 +705,12 @@ def menu_group(request, group, lang=None):
     })
 
 def product_detail(request, slug, lang=None):
-    product = get_object_or_404(Product.objects.select_related('category'), slug=slug)
+    product = get_object_or_404(
+        Product.objects.select_related('category'),
+        slug=slug,
+        is_published=True,
+        professional_only=False,
+    )
     lang = lang if lang in TRANSLATIONS else get_lang_from_path(request.path)
     _apply_menu_translations([product], [product.category] if product.category else [], lang)
     product.requires_age_verification = _requires_age_verification(product)
@@ -714,6 +725,7 @@ def product_detail(request, slug, lang=None):
     related_products = list(Product.objects.filter(
         category=product.category,
         is_available=True,
+        is_published=True,
         professional_only=False,
     ).exclude(pk=product.pk).select_related('category').order_by(
         '-is_best_seller', '-is_featured', 'name'
@@ -771,11 +783,11 @@ def product_detail(request, slug, lang=None):
             {'label': translated_name, 'url': ''},
         ],
         'has_age_restricted_products': product.requires_age_verification,
-        'meta_title': (product.meta_title if lang == 'fr' else '') or f'{translated_name} | Pizza Vitti Bordeaux',
-        'meta_description': (product.meta_description if lang == 'fr' else '') or translated_description[:155],
+        'meta_title': (product.meta_title if lang == 'fr' else '') or f'{translated_name} à Bordeaux | Pizza Vitti',
+        'meta_description': (product.meta_description if lang == 'fr' else '') or f'Découvrez {translated_name} chez Pizza Vitti à Bordeaux. {translated_description}'[:160],
         'meta_type': 'product',
         'meta_image_absolute': image_url,
-        'meta_image_alt': translated_name,
+        'meta_image_alt': product.effective_image_alt if lang == 'fr' else translated_name,
         'page_structured_data': page_structured_data})
 
 

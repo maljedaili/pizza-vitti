@@ -256,3 +256,24 @@ class SEOUpgradeTests(TestCase):
 
         self.client.post('/newsletter/', {'email': 'client@example.com'})
         self.assertTrue(NewsletterSubscriber.objects.filter(email='client@example.com').exists())
+
+    def test_unpublished_and_nonindexable_product_controls(self):
+        category = Category.objects.create(name='Contrôles SEO', slug='controles-seo')
+        unpublished = Product.objects.create(
+            category=category, name='Produit privé', slug='produit-prive',
+            description='Description privée.', price='10.00', is_published=False,
+        )
+        hidden_from_search = Product.objects.create(
+            category=category, name='Produit sans index', slug='produit-sans-index',
+            description='Description visible.', price='11.00', is_indexable=False,
+            image_alt='Photo personnalisée du produit', image_title='Produit Pizza Vitti',
+        )
+
+        self.assertEqual(self.client.get(f'/fr/product/{unpublished.slug}/').status_code, 404)
+        response = self.client.get(f'/fr/product/{hidden_from_search.slug}/')
+        sitemap = self.client.get('/sitemap.xml')
+        self.assertContains(response, 'content="noindex,follow"')
+        self.assertContains(response, 'alt="Photo personnalisée du produit"')
+        self.assertContains(response, 'title="Produit Pizza Vitti"')
+        self.assertNotContains(sitemap, hidden_from_search.slug)
+        self.assertNotContains(sitemap, unpublished.slug)

@@ -51,10 +51,20 @@ class Product(TimeStampedModel):
     name = models.CharField(max_length=180)
     slug = models.SlugField(max_length=210, unique=True, blank=True)
     description = models.TextField()
+    ingredients = models.TextField(
+        blank=True,
+        help_text='Ingrédients vérifiés uniquement. Ne pas ajouter de revendication non confirmée.',
+    )
     price = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal('0.00'))
     unit = models.CharField(max_length=60, default='pièce')
     image = models.ImageField(upload_to='products/', blank=True, null=True)
     external_image = models.URLField(blank=True)
+    image_alt = models.CharField(
+        max_length=180,
+        blank=True,
+        help_text='Description accessible de la photo. Un texte est généré si ce champ reste vide.',
+    )
+    image_title = models.CharField(max_length=180, blank=True)
     badge = models.CharField(max_length=60, blank=True)
     allergens = models.CharField(
         max_length=240,
@@ -72,6 +82,8 @@ class Product(TimeStampedModel):
     is_best_seller = models.BooleanField(default=False, verbose_name='Meilleure vente')
     is_pizza_of_month = models.BooleanField(default=False, verbose_name='Pizza du mois')
     professional_only = models.BooleanField(default=False, verbose_name='Réservé aux professionnels')
+    is_published = models.BooleanField(default=True, verbose_name='Publié sur le site')
+    is_indexable = models.BooleanField(default=True, verbose_name='Autoriser l’indexation SEO')
     meta_title = models.CharField(max_length=70, blank=True)
     meta_description = models.CharField(max_length=160, blank=True)
     glass_price = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True, verbose_name='Prix au verre')
@@ -108,6 +120,9 @@ class Product(TimeStampedModel):
             return '/static/shop/img/hero/menu-bambino-pizza.jpg'
         return '/static/shop/img/hero/menu-pizza-vitti.jpg'
     def get_absolute_url(self): return reverse('shop:product_detail', args=[self.slug])
+    @property
+    def effective_image_alt(self):
+        return self.image_alt.strip() or f'{self.name} chez Pizza Vitti à Bordeaux'
     @property
     def is_orderable(self):
         return self.availability_status == 'available' or (

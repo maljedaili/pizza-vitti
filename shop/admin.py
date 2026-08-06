@@ -30,17 +30,17 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name','category','price','unit','stock','availability_status','available_again_at','is_best_seller','is_vegetarian','is_spicy','is_signature')
-    list_filter = ('category','availability_status','is_featured','is_best_seller','is_vegetarian','is_spicy','is_signature')
+    list_display = ('name','category','price','unit','stock','availability_status','available_again_at','is_published','is_indexable','is_best_seller','is_vegetarian','is_spicy','is_signature')
+    list_filter = ('category','is_published','is_indexable','availability_status','is_featured','is_best_seller','is_vegetarian','is_spicy','is_signature')
     list_editable = ('price','stock','availability_status','available_again_at','is_best_seller','is_vegetarian','is_spicy','is_signature')
     search_fields = ('name','description')
     prepopulated_fields = {'slug': ('name',)}
     fieldsets = (
-        ('Produit', {'fields': ('category','name','slug','description','allergens','price','unit','stock','badge')}),
+        ('Produit', {'fields': ('category','name','slug','description','ingredients','allergens','price','unit','stock','badge')}),
         ('Vin (facultatif)', {'fields': ('glass_price','bottle_price','wine_colour','region','grape_variety','vintage')}),
-        ('Images', {'fields': ('image','external_image')}),
+        ('Images', {'fields': ('image','external_image','image_alt','image_title')}),
         ('Badges', {'fields': ('is_vegetarian','is_spicy','is_signature')}),
-        ('Publication', {'fields': ('availability_status','available_again_at','is_featured','is_best_seller','is_pizza_of_month')}),
+        ('Publication', {'fields': ('is_published','is_indexable','availability_status','available_again_at','is_featured','is_best_seller','is_pizza_of_month')}),
         ('SEO', {'fields': ('meta_title','meta_description')}),
     )
 

@@ -1,6 +1,6 @@
 <article class="product-card reveal{% if not product.is_orderable %} is-unavailable{% endif %}">
   <a href="{% url 'shop:localized_product_detail' current_lang product.slug %}" class="product-img is-3d-product" data-product-tilt>
-    <img src="{{ product.display_image }}" alt="{{ product.translated_name|default:product.name }}" width="900" height="900" loading="lazy">
+    <img src="{{ product.display_image }}" alt="{% if current_lang == 'fr' %}{{ product.effective_image_alt }}{% else %}{{ product.translated_name|default:product.name }}{% endif %}"{% if product.image_title %} title="{{ product.image_title }}"{% endif %} width="900" height="900" loading="lazy">
     <span class="product-badges">
       {% if product.is_best_seller %}<b>{{ T.popular }}</b>{% endif %}
       {% if product.is_vegetarian %}<b>{{ T.vegetarian }}</b>{% endif %}

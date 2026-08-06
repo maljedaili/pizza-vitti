@@ -68,6 +68,7 @@ def site_settings(request):
     resolver_name = request.resolver_match.url_name if request.resolver_match else ''
     language_menu = []
     available_language_codes = None
+    product_is_indexable = True
     localized_page_key = None
     if resolver_name == 'localized_page':
         current_slug = request.resolver_match.kwargs.get('page')
@@ -77,6 +78,7 @@ def site_settings(request):
         )
     if resolver_name == 'localized_product_detail':
         product_slug = request.resolver_match.kwargs.get('slug')
+        product_is_indexable = Product.objects.filter(slug=product_slug).values_list('is_indexable', flat=True).first()
         translations = ProductTranslation.objects.filter(
             product__slug=product_slug,
         ).select_related('product')
@@ -198,7 +200,7 @@ def site_settings(request):
         'show_blog': True,
         'show_app_promo': resolver_name in {'home', 'localized_home_short', 'customer_dashboard'} or is_localized_home,
         'show_review_prompt': resolver_name in {'reviews', 'invoice'},
-        'meta_robots': 'noindex,follow' if translation_incomplete else 'noindex,nofollow' if (
+        'meta_robots': 'noindex,follow' if translation_incomplete or product_is_indexable is False else 'noindex,nofollow' if (
             resolver_name in private_page_names
             or any(segment in request.path for segment in ('/panier/', '/commande/', '/checkout/', '/cart/'))
         ) else '',
