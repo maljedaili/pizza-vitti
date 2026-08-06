@@ -39,6 +39,25 @@ def _public_site_url():
     return settings.PUBLIC_SITE_URL.rstrip('/')
 
 
+def _breadcrumb_structured_data(request, lang, current_label):
+    return json.dumps({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            {
+                '@type': 'ListItem', 'position': 1,
+                'name': t_for(lang)['home'],
+                'item': absolute_public_url(localized_url('home', lang), request),
+            },
+            {
+                '@type': 'ListItem', 'position': 2,
+                'name': current_label,
+                'item': absolute_public_url(request.path, request),
+            },
+        ],
+    }, ensure_ascii=False)
+
+
 def _password_matches(raw_password, configured_password):
     return bool(raw_password) and raw_password == configured_password
 
@@ -2026,6 +2045,7 @@ def contact(request):
         'meta_title': f"{copy['contact_title']} · Pizza Vitti Bordeaux",
         'meta_description': f"{copy['contact_title']} · Pizza Vitti, {SiteConfiguration.load().address}.",
         'breadcrumbs': [{'label': copy['home'], 'url': localized_url('home', lang)}, {'label': copy['contact'], 'url': ''}],
+        'page_structured_data': _breadcrumb_structured_data(request, lang, copy['contact']),
     })
 
 @require_POST
@@ -2184,21 +2204,25 @@ def booking(request):
         'meta_title': f"{booking_copy['booking_title']} · Pizza Vitti Bordeaux",
         'meta_description': booking_copy['booking_text'],
         'breadcrumbs': [{'label': booking_copy['home'], 'url': localized_url('home', get_lang_from_path(request.path))}, {'label': booking_copy['booking'], 'url': ''}],
+        'page_structured_data': _breadcrumb_structured_data(request, get_lang_from_path(request.path), booking_copy['booking']),
     })
 
 def reviews(request):
     reviews = Review.objects.filter(is_published=True).exclude(source_url='')
     lang = get_lang_from_path(request.path)
     copy = t_for(lang)
-    return render(request, 'shop/reviews.html', {'reviews': reviews, 'meta_title': f"{copy['reviews_title']} · Pizza Vitti Bordeaux", 'meta_description': copy['reviews_text'], 'breadcrumbs': [{'label': copy['home'], 'url': localized_url('home', lang)}, {'label': copy['reviews'], 'url': ''}]})
+    return render(request, 'shop/reviews.html', {'reviews': reviews, 'meta_title': f"{copy['reviews_title']} · Pizza Vitti Bordeaux", 'meta_description': copy['reviews_text'], 'breadcrumbs': [{'label': copy['home'], 'url': localized_url('home', lang)}, {'label': copy['reviews'], 'url': ''}], 'page_structured_data': _breadcrumb_structured_data(request, lang, copy['reviews'])})
 
 def gallery(request):
     images = GalleryImage.objects.filter(is_active=True)
-    copy = t_for(get_lang_from_path(request.path))
+    lang = get_lang_from_path(request.path)
+    copy = t_for(lang)
     return render(request, 'shop/gallery.html', {
         'images': images,
         'meta_title': f"{copy['gallery_title']} · Pizza Vitti Bordeaux",
         'meta_description': copy['gallery_text'],
+        'breadcrumbs': [{'label': copy['home'], 'url': localized_url('home', lang)}, {'label': copy['gallery'], 'url': ''}],
+        'page_structured_data': _breadcrumb_structured_data(request, lang, copy['gallery']),
     })
 
 @require_POST

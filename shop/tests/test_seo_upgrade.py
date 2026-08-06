@@ -106,3 +106,12 @@ class SEOUpgradeTests(TestCase):
         response = self.client.get('/fr/')
         self.assertContains(response, 'alt="Logo Pizza Vitti" width="72" height="72"')
         self.assertContains(response, 'alt="Google Play" width="646" height="250"')
+
+    def test_key_public_pages_have_visible_and_structured_breadcrumbs(self):
+        for path in ('/en/booking/', '/en/reviews/', '/en/gallery/', '/en/contact/'):
+            with self.subTest(path=path):
+                response = self.client.get(path)
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, 'aria-label="Breadcrumb"')
+                self.assertContains(response, '"@type": "BreadcrumbList"')
+                self.assertContains(response, f'"item": "http://testserver{path}"')
