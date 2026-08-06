@@ -1,0 +1,49 @@
+{% extends "shop/base.html" %}
+{% load static i18n %}
+
+{% block content %}
+<section class="auth-page">
+  <div class="auth-shell">
+    <aside class="auth-brand-panel">
+      <img src="{% static 'shop/img/logo-vitti-clean.png' %}" alt="Pizza Vitti" class="auth-logo">
+      <p class="eyebrow">Espace client</p>
+      <h1>Bienvenue chez Vitti</h1>
+      <p>Connectez-vous simplement avec Google pour retrouver vos commandes, vos favoris et vos avantages fidélité.</p>
+      <div class="auth-benefits">
+        <span>🍕 Commandez plus rapidement</span>
+        <span>🎁 Cumulez vos avantages fidélité</span>
+        <span>❤️ Retrouvez vos pizzas préférées</span>
+      </div>
+    </aside>
+
+    <div class="auth-card-vitti social-confirm-card">
+      <div class="auth-tabs" aria-label="Menu compte">
+        <a class="active" href="{% url 'account_login' %}">Connexion</a>
+        <a href="{% url 'account_signup' %}">Création de compte</a>
+      </div>
+
+      <span class="social-provider-mark" aria-hidden="true">G</span>
+      {% if process == "connect" %}
+        <p class="eyebrow">Compte Google</p>
+        <h2>Associer Google</h2>
+        <p class="auth-subtitle">Vous allez associer votre compte Pizza Vitti à votre compte Google.</p>
+      {% else %}
+        <p class="eyebrow">Connexion sécurisée</p>
+        <h2>Continuer avec Google</h2>
+        <p class="auth-subtitle">Google vous demandera de choisir un compte. Pizza Vitti recevra uniquement votre nom, votre photo de profil et votre adresse e-mail.</p>
+      {% endif %}
+
+      <form class="auth-form social-confirm-form" method="post">
+        {% csrf_token %}
+        {% if redirect_field_value %}
+          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}">
+        {% endif %}
+        <button class="auth-submit" type="submit">Continuer avec Google</button>
+      </form>
+
+      <p class="social-privacy-note"><span aria-hidden="true">🔒</span> Connexion sécurisée. Votre mot de passe Google n’est jamais transmis à Pizza Vitti.</p>
+      <p class="auth-bottom"><a href="{% url 'account_login' %}">← Retour à la connexion</a></p>
+    </div>
+  </div>
+</section>
+{% endblock %}
