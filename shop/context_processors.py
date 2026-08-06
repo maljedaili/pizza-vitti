@@ -207,7 +207,6 @@ def site_settings(request):
         'FACEBOOK_URL': site.facebook_url,
         'GOOGLE_PLAY_URL': 'https://play.google.com/store/apps/details?id=kayen.fr',
         'LOYALTY_ENABLED': settings.LOYALTY_ENABLED,
-        'nav_categories': _menu_category_order(Category.objects.filter(is_active=True)),
         'current_lang': lang,
         'T': T,
         'LANGUAGES_MENU': language_menu,

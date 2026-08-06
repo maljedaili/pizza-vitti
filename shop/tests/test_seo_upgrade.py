@@ -206,3 +206,13 @@ class SEOUpgradeTests(TestCase):
         self.assertEqual(response.headers['X-Content-Type-Options'], 'nosniff')
         self.assertEqual(response.headers['Referrer-Policy'], 'strict-origin-when-cross-origin')
         self.assertEqual(response.headers['X-Frame-Options'], 'DENY')
+
+    def test_home_preloads_lcp_poster_and_defers_video(self):
+        response = self.client.get('/fr/')
+
+        self.assertContains(
+            response,
+            '<link rel="preload" as="image" href="/static/shop/video/pizza-vitti-hero-poster.jpg" fetchpriority="high">',
+            html=True,
+        )
+        self.assertContains(response, 'preload="none"')

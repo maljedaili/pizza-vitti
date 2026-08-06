@@ -3,8 +3,9 @@ const publicSite = document.body.classList.contains("public-site");
 if (publicSite) {
   document.querySelectorAll("[data-hero-video]").forEach((video) => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const compactViewport = window.matchMedia("(max-width: 700px)").matches;
     const dataSaver = navigator.connection?.saveData === true;
-    if (reducedMotion || dataSaver) {
+    if (reducedMotion || compactViewport || dataSaver) {
       video.pause();
       return;
     }
