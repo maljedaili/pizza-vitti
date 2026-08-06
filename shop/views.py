@@ -613,22 +613,22 @@ def menu_group(request, group, lang=None):
         'ar': ('بار إيطالي · قهوة · نبيذ', 'المشروبات وقائمة النبيذ', 'قهوة إيطالية ومشروبات منعشة ومقبلات ونبيذ مختار بعناية لمرافقة وجبتكم.', 'اكتشف القائمة', 'عرض النبيذ', 'التنقل بين المشروبات'),
     }
     copy = drinks_copy.get(lang, drinks_copy['fr'])
+    page_url = request.build_absolute_uri()
+    menu_url = request.build_absolute_uri(localized_url('menu', lang))
+    page_structured_data = json.dumps({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+            {'@type': 'ListItem', 'position': 1, 'name': 'Pizza Vitti', 'item': request.build_absolute_uri(localized_url('home', lang))},
+            {'@type': 'ListItem', 'position': 2, 'name': t_for(lang)['menu'], 'item': menu_url},
+            {'@type': 'ListItem', 'position': 3, 'name': menu_group_data['title'], 'item': page_url},
+        ],
+    }, ensure_ascii=False)
     drinks_structured_data = ''
     if group == 'boissons':
-        page_url = request.build_absolute_uri()
-        menu_url = request.build_absolute_uri(reverse('shop:localized_page', args=[lang, 'menu']))
         drinks_structured_data = json.dumps({
             '@context': 'https://schema.org',
-            '@graph': [
-                {
-                    '@type': 'BreadcrumbList',
-                    'itemListElement': [
-                        {'@type': 'ListItem', 'position': 1, 'name': 'Pizza Vitti', 'item': request.build_absolute_uri(f'/{lang}/')},
-                        {'@type': 'ListItem', 'position': 2, 'name': 'Menu', 'item': menu_url},
-                        {'@type': 'ListItem', 'position': 3, 'name': copy[1], 'item': page_url},
-                    ],
-                },
-                {
+            '@graph': [{
                     '@type': 'Menu',
                     'name': copy[1],
                     'description': copy[2],
@@ -654,8 +654,7 @@ def menu_group(request, group, lang=None):
                         }
                         for section in sections
                     ],
-                },
-            ],
+            }],
         }, ensure_ascii=False)
     return render(request, 'shop/boutique.html', {
         'menu_group': menu_group_data,
@@ -673,6 +672,12 @@ def menu_group(request, group, lang=None):
         'meta_title': 'Boissons, cafés et vins italiens | Pizza Vitti Bordeaux' if group == 'boissons' else f"{menu_group_data['title']} | Pizza Vitti Bordeaux",
         'meta_description': 'Découvrez les cafés italiens, boissons fraîches, apéritifs, digestifs et la carte des vins de Pizza Vitti à Bordeaux.' if group == 'boissons' else menu_group_data['summary'],
         'meta_image': '/static/shop/img/drinks/shirley-temple-cosmopolitan.jpg' if group == 'boissons' else '',
+        'page_structured_data': page_structured_data,
+        'breadcrumbs': [
+            {'label': t_for(lang)['home'], 'url': localized_url('home', lang)},
+            {'label': t_for(lang)['menu'], 'url': localized_url('menu', lang)},
+            {'label': menu_group_data['title'], 'url': ''},
+        ],
         'drinks_structured_data': drinks_structured_data,
         'has_age_restricted_products': any(product.requires_age_verification for product in products),
     })
@@ -732,6 +737,11 @@ def product_detail(request, slug, lang=None):
         ],
     }, ensure_ascii=False)
     return render(request, 'shop/product_detail.html', {'product': product, 'supplements': supplements, 'favorite_product_ids': favorite_product_ids,
+        'breadcrumbs': [
+            {'label': t_for(lang)['home'], 'url': localized_url('home', lang)},
+            {'label': t_for(lang)['menu'], 'url': localized_url('menu', lang)},
+            {'label': translated_name, 'url': ''},
+        ],
         'has_age_restricted_products': product.requires_age_verification,
         'meta_title': product.meta_title or f'{translated_name} | Pizza Vitti',
         'meta_description': product.meta_description or translated_description[:155],
@@ -1846,7 +1856,50 @@ def blog(request):
 
 def blog_detail(request, slug):
     post = get_object_or_404(BlogPost, slug=slug, is_published=True)
-    return render(request, 'shop/blog_detail.html', {'post': post, 'meta_title': post.meta_title or post.title, 'meta_description': post.meta_description or post.excerpt})
+    lang = get_lang_from_path(request.path)
+    post_url = request.build_absolute_uri()
+    image_url = request.build_absolute_uri(post.display_image) if post.display_image else ''
+    page_structured_data = json.dumps({
+        '@context': 'https://schema.org',
+        '@graph': [
+            {
+                '@type': 'BreadcrumbList',
+                'itemListElement': [
+                    {'@type': 'ListItem', 'position': 1, 'name': 'Pizza Vitti', 'item': request.build_absolute_uri(localized_url('home', lang))},
+                    {'@type': 'ListItem', 'position': 2, 'name': t_for(lang)['blog'], 'item': request.build_absolute_uri(localized_url('blog', lang))},
+                    {'@type': 'ListItem', 'position': 3, 'name': post.title, 'item': post_url},
+                ],
+            },
+            {
+                '@type': 'Article',
+                'headline': post.title,
+                'description': post.meta_description or post.excerpt,
+                'image': image_url,
+                'datePublished': post.created_at.isoformat(),
+                'dateModified': post.updated_at.isoformat(),
+                'mainEntityOfPage': post_url,
+                'author': {'@type': 'Organization', 'name': 'Pizza Vitti'},
+                'publisher': {
+                    '@type': 'Organization',
+                    'name': 'Pizza Vitti',
+                    'logo': {'@type': 'ImageObject', 'url': request.build_absolute_uri('/static/shop/img/logo-vitti-header.png')},
+                },
+            },
+        ],
+    }, ensure_ascii=False)
+    return render(request, 'shop/blog_detail.html', {
+        'post': post,
+        'meta_title': post.meta_title or post.title,
+        'meta_description': post.meta_description or post.excerpt,
+        'meta_image_absolute': image_url,
+        'meta_image_alt': post.title,
+        'page_structured_data': page_structured_data,
+        'breadcrumbs': [
+            {'label': t_for(lang)['home'], 'url': localized_url('home', lang)},
+            {'label': t_for(lang)['blog'], 'url': localized_url('blog', lang)},
+            {'label': post.title, 'url': ''},
+        ],
+    })
 
 
 def _assistant_menu_context():

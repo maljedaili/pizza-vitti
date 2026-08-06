@@ -1,6 +1,7 @@
 {% extends 'shop/base.html' %}
 
 {% block content %}
+{% include 'shop/_breadcrumbs.html' %}
 <section class="detail product-detail">
   <div class="detail-media is-3d-product" data-product-tilt>
     <img src="{{ product.display_image }}" alt="{{ product.name }}">

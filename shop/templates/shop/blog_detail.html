@@ -1,11 +1,24 @@
 {% extends 'shop/base.html' %}
 {% block content %}
+{% include 'shop/_breadcrumbs.html' %}
 <article class="card prose blog-detail">
   <p class="eyebrow">{{ T.blog }} · {{ post.created_at|date:'d F Y' }}</p>
   <h1>{{ post.title }}</h1>
   {% if post.display_image %}<img class="blog-detail-img" src="{{ post.display_image }}" alt="{{ post.title }}">{% endif %}
   <p class="lead">{{ post.excerpt }}</p>
   <div>{{ post.body|linebreaks }}</div>
+
+  <section class="blog-next-actions" aria-label="Pizza Vitti">
+    <div>
+      <p class="eyebrow">Pizza Vitti Bordeaux</p>
+      <h2>{{ T.order_now }}</h2>
+      <p>{{ T.menu_intro }}</p>
+    </div>
+    <div class="blog-social-actions">
+      <a class="button" href="{{ url_menu }}">{{ T.see_menu }}</a>
+      <a class="button ghost" href="{{ url_booking }}">{{ T.book_table }}</a>
+    </div>
+  </section>
 
   <section class="blog-social-share" aria-labelledby="share-title">
     <div>

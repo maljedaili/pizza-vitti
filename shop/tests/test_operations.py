@@ -314,6 +314,18 @@ class CustomerLoyaltyTests(TestCase):
         self.assertContains(response, '"priceCurrency": "EUR"')
         self.assertContains(response, '"availability": "https://schema.org/InStock"')
         self.assertContains(response, f'http://testserver/en/product/{self.product.slug}/')
+        self.assertContains(response, 'aria-label="Breadcrumb"')
+        self.assertContains(response, 'href="/en/menu/"')
+
+    def test_home_exposes_complete_local_restaurant_structured_data(self):
+        response = self.client.get('/fr/')
+
+        self.assertContains(response, '"@id": "http://testserver/#restaurant"')
+        self.assertContains(response, '"@type": "GeoCoordinates"')
+        self.assertContains(response, '"latitude": 44.8324494')
+        self.assertContains(response, '"@type": "OrderAction"')
+        self.assertContains(response, '"@type": "ReserveAction"')
+        self.assertContains(response, '"paymentAccepted": "Cash, Visa, Mastercard, CB, Contactless"')
 
     def test_product_sharing_metadata_uses_the_product_photo(self):
         response = self.client.get(f'/en/product/{self.product.slug}/')

@@ -108,7 +108,15 @@ def site_settings(request):
     structured_data = {
         '@context': 'https://schema.org',
         '@type': 'Restaurant',
+        '@id': configured_site_url + '/#restaurant',
         'name': site.restaurant_name,
+        'alternateName': 'Pizza Vitti - Ornano',
+        'description': T['default_meta_description'],
+        'image': [
+            configured_site_url + '/static/shop/img/hero/menu-pizza-vitti.jpg',
+            configured_site_url + '/static/shop/img/hero/pizza-vitti-deliveroo.jpg',
+        ],
+        'logo': configured_site_url + '/static/shop/img/logo-vitti-header.png',
         'servesCuisine': ['Italian', 'Pizza'],
         'address': {
             '@type': 'PostalAddress',
@@ -117,11 +125,30 @@ def site_settings(request):
             'postalCode': '33000',
             'addressCountry': 'FR',
         },
+        'geo': {
+            '@type': 'GeoCoordinates',
+            'latitude': 44.8324494,
+            'longitude': -0.5944067,
+        },
         'telephone': site.telephone,
         'url': configured_site_url,
+        'hasMap': site.google_maps_url,
         'hasMenu': configured_site_url + localized_url('menu', lang),
         'acceptsReservations': True,
         'priceRange': '€€',
+        'currenciesAccepted': 'EUR',
+        'paymentAccepted': 'Cash, Visa, Mastercard, CB, Contactless',
+        'areaServed': {'@type': 'City', 'name': 'Bordeaux'},
+        'potentialAction': [
+            {
+                '@type': 'OrderAction',
+                'target': configured_site_url + localized_url('menu', lang),
+            },
+            {
+                '@type': 'ReserveAction',
+                'target': configured_site_url + localized_url('booking', lang),
+            },
+        ],
         'openingHoursSpecification': [
             {
                 '@type': 'OpeningHoursSpecification',

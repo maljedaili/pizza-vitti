@@ -38,3 +38,20 @@ class BlogVisibilityTests(TestCase):
         self.assertContains(english, 'Restaurant news')
         self.assertNotContains(english, 'Nouvelles du restaurant')
         self.assertContains(arabic, 'تابع Pizza Vitti على Instagram')
+
+    def test_blog_article_has_breadcrumb_article_schema_and_internal_actions(self):
+        post = BlogPost.objects.create(
+            title='Pizza à Bordeaux',
+            slug='pizza-a-bordeaux',
+            excerpt='Une pizza italienne rue d’Ornano.',
+            body='Découvrez Pizza Vitti.',
+            is_published=True,
+        )
+
+        response = self.client.get(post.get_absolute_url())
+
+        self.assertContains(response, 'aria-label="Breadcrumb"')
+        self.assertContains(response, '"@type": "Article"')
+        self.assertContains(response, '"@type": "BreadcrumbList"')
+        self.assertContains(response, 'href="/fr/menu/"')
+        self.assertContains(response, 'href="/fr/reserver/"')
