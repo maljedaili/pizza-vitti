@@ -11,7 +11,7 @@
   <section class="testimonials reveal">
     {% for review in reviews %}
       <article>
-        {% if review.reviewer_photo_url %}<img class="reviewer-photo" src="{{ review.reviewer_photo_url }}" alt="{{ T.photo_by }} {{ review.name }}" loading="lazy" referrerpolicy="no-referrer">{% endif %}
+        {% if review.reviewer_photo_url %}<img class="reviewer-photo" src="{{ review.reviewer_photo_url }}" alt="{{ T.photo_by }} {{ review.name }}" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer">{% endif %}
         <strong>{{ review.name }}</strong>
         <span aria-label="{{ review.rating }} {{ T.stars }}">{% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}</span>
         <p>{{ review.comment }}</p>

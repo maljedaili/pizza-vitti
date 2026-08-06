@@ -17,7 +17,7 @@
       <a class="button ghost" href="tel:+33556421449">{{ T.phone }}</a>
       {% if GOOGLE_PLAY_URL %}
         <a class="home-google-play" href="{{ GOOGLE_PLAY_URL }}" target="_blank" rel="noopener" aria-label="Google Play">
-          <img src="{% static 'shop/img/store/google-play-badge-fr.png' %}" alt="Google Play">
+          <img src="{% static 'shop/img/store/google-play-badge-fr.png' %}" alt="Google Play" width="646" height="250">
         </a>
       {% endif %}
     </div>
@@ -110,7 +110,7 @@
   <div class="testimonials reveal">
     {% for review in reviews|slice:":3" %}
       <article>
-        {% if review.reviewer_photo_url %}<img class="reviewer-photo" src="{{ review.reviewer_photo_url }}" alt="{{ T.photo_by }} {{ review.name }}" loading="lazy" referrerpolicy="no-referrer">{% endif %}
+        {% if review.reviewer_photo_url %}<img class="reviewer-photo" src="{{ review.reviewer_photo_url }}" alt="{{ T.photo_by }} {{ review.name }}" width="96" height="96" loading="lazy" decoding="async" referrerpolicy="no-referrer">{% endif %}
         <span class="review-stars" aria-label="{{ review.rating|default:5 }} {{ T.stars }}">★★★★★</span>
         <p>“{{ review.comment|default:T.review_fallback }}”</p>
         <strong>{{ review.name }}</strong>
@@ -130,7 +130,7 @@
   <div class="authentic-gallery">
     {% for image in gallery %}
       <figure>
-        <img src="{{ image.display_image }}" alt="{{ image.caption|default:image.title }}" loading="lazy">
+        <img src="{{ image.display_image }}" alt="{{ image.caption|default:image.title }}" width="900" height="700" loading="lazy" decoding="async">
         {% if image.caption %}<figcaption>{{ image.caption }}</figcaption>{% endif %}
       </figure>
     {% endfor %}

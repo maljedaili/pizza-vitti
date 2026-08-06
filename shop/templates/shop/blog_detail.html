@@ -4,7 +4,7 @@
 <article class="card prose blog-detail">
   <p class="eyebrow">{{ T.blog }} · {{ post.created_at|date:'d F Y' }}</p>
   <h1>{{ post.title }}</h1>
-  {% if post.display_image %}<img class="blog-detail-img" src="{{ post.display_image }}" alt="{{ post.title }}">{% endif %}
+  {% if post.display_image %}<img class="blog-detail-img" src="{{ post.display_image }}" alt="{{ post.title }}" width="1200" height="800" fetchpriority="high" decoding="async">{% endif %}
   <p class="lead">{{ post.excerpt }}</p>
   <div>{{ post.body|linebreaks }}</div>
 

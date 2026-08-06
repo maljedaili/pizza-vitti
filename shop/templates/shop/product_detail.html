@@ -4,7 +4,7 @@
 {% include 'shop/_breadcrumbs.html' %}
 <section class="detail product-detail">
   <div class="detail-media is-3d-product" data-product-tilt>
-    <img src="{{ product.display_image }}" alt="{{ product.name }}">
+    <img src="{{ product.display_image }}" alt="{{ product.translated_name|default:product.name }}" width="900" height="900" decoding="async">
     <span class="product-tilt-hint" aria-hidden="true">↔ {{ T.swipe_rotate }}</span>
   </div>
   <div>

@@ -101,3 +101,8 @@ class SEOUpgradeTests(TestCase):
         self.assertContains(arabic_reviews, '<title>آراء العملاء · Pizza Vitti Bordeaux</title>', html=True)
         self.assertContains(english_gallery, '<title>The restaurant in pictures · Pizza Vitti Bordeaux</title>', html=True)
         self.assertNotEqual(english_reviews.context['meta_description'], english_gallery.context['meta_description'])
+
+    def test_recurring_public_images_reserve_layout_space(self):
+        response = self.client.get('/fr/')
+        self.assertContains(response, 'alt="Logo Pizza Vitti" width="72" height="72"')
+        self.assertContains(response, 'alt="Google Play" width="646" height="250"')
