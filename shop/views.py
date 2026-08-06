@@ -737,8 +737,8 @@ def product_detail(request, slug, lang=None):
             {'label': translated_name, 'url': ''},
         ],
         'has_age_restricted_products': product.requires_age_verification,
-        'meta_title': product.meta_title or f'{translated_name} | Pizza Vitti',
-        'meta_description': product.meta_description or translated_description[:155],
+        'meta_title': (product.meta_title if lang == 'fr' else '') or f'{translated_name} | Pizza Vitti Bordeaux',
+        'meta_description': (product.meta_description if lang == 'fr' else '') or translated_description[:155],
         'meta_type': 'product',
         'meta_image_absolute': image_url,
         'meta_image_alt': translated_name,
@@ -1846,7 +1846,12 @@ def report_order_issue(request, order_number):
 
 def blog(request):
     posts = BlogPost.objects.filter(is_published=True)
-    return render(request, 'shop/blog.html', {'posts': posts, 'meta_title': 'Blog | Pizza Vitti Bordeaux'})
+    copy = t_for(get_lang_from_path(request.path))
+    return render(request, 'shop/blog.html', {
+        'posts': posts,
+        'meta_title': f"{copy['blog']} · Pizza Vitti Bordeaux",
+        'meta_description': copy['blog_text'],
+    })
 
 def blog_detail(request, slug):
     post = get_object_or_404(BlogPost, slug=slug, is_published=True)
@@ -2016,10 +2021,11 @@ def contact(request):
         messages.success(request, 'Votre message a bien été envoyé à Pizza Vitti.')
         return redirect('shop:contact')
     lang = get_lang_from_path(request.path)
+    copy = t_for(lang)
     return render(request, 'shop/contact.html', {
-        'meta_title': 'Contact et accès | Pizza Vitti Bordeaux',
-        'meta_description': 'Contactez Pizza Vitti et retrouvez le restaurant au 236 rue d’Ornano à Bordeaux.',
-        'breadcrumbs': [{'label': t_for(lang)['home'], 'url': localized_url('home', lang)}, {'label': t_for(lang)['contact'], 'url': ''}],
+        'meta_title': f"{copy['contact_title']} · Pizza Vitti Bordeaux",
+        'meta_description': f"{copy['contact_title']} · Pizza Vitti, {SiteConfiguration.load().address}.",
+        'breadcrumbs': [{'label': copy['home'], 'url': localized_url('home', lang)}, {'label': copy['contact'], 'url': ''}],
     })
 
 @require_POST
@@ -2175,19 +2181,25 @@ def booking(request):
         return redirect('shop:booking')
     return render(request, 'shop/booking.html', {
         'form': form,
-        'meta_title': 'Réserver une table chez Pizza Vitti Bordeaux',
-        'meta_description': 'Envoyez votre demande de réservation à Pizza Vitti, 236 rue d’Ornano à Bordeaux.',
+        'meta_title': f"{booking_copy['booking_title']} · Pizza Vitti Bordeaux",
+        'meta_description': booking_copy['booking_text'],
         'breadcrumbs': [{'label': booking_copy['home'], 'url': localized_url('home', get_lang_from_path(request.path))}, {'label': booking_copy['booking'], 'url': ''}],
     })
 
 def reviews(request):
     reviews = Review.objects.filter(is_published=True).exclude(source_url='')
     lang = get_lang_from_path(request.path)
-    return render(request, 'shop/reviews.html', {'reviews': reviews, 'meta_title': 'Avis clients | Pizza Vitti Bordeaux', 'meta_description': 'Consultez les avis clients vérifiables de Pizza Vitti à Bordeaux et accédez au profil Google officiel.', 'breadcrumbs': [{'label': t_for(lang)['home'], 'url': localized_url('home', lang)}, {'label': t_for(lang)['reviews'], 'url': ''}]})
+    copy = t_for(lang)
+    return render(request, 'shop/reviews.html', {'reviews': reviews, 'meta_title': f"{copy['reviews_title']} · Pizza Vitti Bordeaux", 'meta_description': copy['reviews_text'], 'breadcrumbs': [{'label': copy['home'], 'url': localized_url('home', lang)}, {'label': copy['reviews'], 'url': ''}]})
 
 def gallery(request):
     images = GalleryImage.objects.filter(is_active=True)
-    return render(request, 'shop/gallery.html', {'images': images, 'meta_title': 'Galerie | Pizza Vitti Bordeaux'})
+    copy = t_for(get_lang_from_path(request.path))
+    return render(request, 'shop/gallery.html', {
+        'images': images,
+        'meta_title': f"{copy['gallery_title']} · Pizza Vitti Bordeaux",
+        'meta_description': copy['gallery_text'],
+    })
 
 @require_POST
 def newsletter(request):

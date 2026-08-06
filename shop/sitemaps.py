@@ -25,7 +25,10 @@ class ProductSitemap(Sitemap):
     changefreq = 'daily'
     priority = 0.9
     def items(self):
-        products = Product.objects.filter(is_available=True).only('id', 'slug', 'updated_at')
+        products = Product.objects.filter(
+            is_available=True,
+            professional_only=False,
+        ).only('id', 'slug', 'updated_at')
         complete_by_product = {}
         for product_id, language in ProductTranslation.objects.filter(
             product__in=products,

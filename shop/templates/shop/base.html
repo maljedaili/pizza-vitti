@@ -42,7 +42,7 @@
 {% if GOOGLE_TAG_MANAGER_ID %}<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_ID }}" height="0" width="0" style="display:none;visibility:hidden" title="Google Tag Manager"></iframe></noscript>{% endif %}
 <a class="skip-link" href="#main-content">{{ T.skip_to_content|default:'Aller au contenu' }}</a>
 <header class="site-header">
-  <a class="logo" href="{% if kitchen_app %}{% url 'shop:app_home' %}{% else %}{{ url_home }}{% endif %}"><img src="{% static 'shop/img/logo-vitti-header.png' %}" alt="Logo Pizza Vitti"><span class="logo-text">{% if kitchen_app %}Pizza Vitti · Équipe{% else %}Pizza Vitti{% endif %}</span></a>
+  <a class="logo" href="{% if kitchen_app %}{% url 'shop:app_home' %}{% else %}{{ url_home }}{% endif %}"><img src="{% static 'shop/img/logo-vitti-header.png' %}" alt="Logo Pizza Vitti" width="72" height="72"><span class="logo-text">{% if kitchen_app %}Pizza Vitti · Équipe{% else %}Pizza Vitti{% endif %}</span></a>
   <button class="nav-toggle" type="button" data-nav aria-label="{{ T.open_navigation }}" aria-expanded="false">☰</button>
   {% if kitchen_app %}
   <nav>

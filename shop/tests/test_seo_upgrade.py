@@ -92,3 +92,12 @@ class SEOUpgradeTests(TestCase):
         self.assertContains(response, f'/en/product/{product.slug}/</loc>')
         self.assertNotContains(response, f'/es/product/{product.slug}/</loc>')
         self.assertNotContains(response, f'/ar/product/{product.slug}/</loc>')
+
+    def test_public_page_metadata_is_localized_and_unique(self):
+        english_reviews = self.client.get('/en/reviews/')
+        arabic_reviews = self.client.get('/ar/avis/')
+        english_gallery = self.client.get('/en/gallery/')
+        self.assertContains(english_reviews, '<title>Customer reviews · Pizza Vitti Bordeaux</title>', html=True)
+        self.assertContains(arabic_reviews, '<title>آراء العملاء · Pizza Vitti Bordeaux</title>', html=True)
+        self.assertContains(english_gallery, '<title>The restaurant in pictures · Pizza Vitti Bordeaux</title>', html=True)
+        self.assertNotEqual(english_reviews.context['meta_description'], english_gallery.context['meta_description'])
