@@ -44,8 +44,10 @@
         <button class="auth-submit" type="submit">Créer ma carte fidélité</button>
       </form>
 
-      <div class="auth-separator"><span>ou</span></div>
-      <a class="google-login" href="/accounts/google/login/">{% include "account/_google_logo.html" %}<span>Créer un compte avec Google</span></a>
+      {% if GOOGLE_LOGIN_ENABLED %}
+        <div class="auth-separator"><span>ou</span></div>
+        <a class="google-login" href="/accounts/google/login/">{% include "account/_google_logo.html" %}<span>Créer un compte avec Google</span></a>
+      {% endif %}
     </div>
   </div>
 </section>

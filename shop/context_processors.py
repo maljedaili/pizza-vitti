@@ -222,6 +222,9 @@ def site_settings(request):
         'GA4_MEASUREMENT_ID': settings.GA4_MEASUREMENT_ID,
         'GOOGLE_TAG_MANAGER_ID': settings.GOOGLE_TAG_MANAGER_ID,
         'MICROSOFT_CLARITY_ID': settings.MICROSOFT_CLARITY_ID,
+        'GOOGLE_LOGIN_ENABLED': bool(
+            settings.GOOGLE_OAUTH_CLIENT_ID and settings.GOOGLE_OAUTH_CLIENT_SECRET
+        ),
         'lang_home': lang_home(lang),
         'url_home': localized_url('home', lang),
         'url_menu': localized_url('menu', lang),
